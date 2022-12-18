@@ -9,6 +9,7 @@ var errorMsgForLogin = document.getElementsByClassName("error-credentials")[0];
 function signInForm() {
   let formElement = document.getElementsByClassName("signin-data");
   let formData = new FormData();
+  let response;
   for (let i = 0; i < formElement.length; ++i) {
     formData.append(formElement[i].name, formElement[i].value);
   }
@@ -18,8 +19,9 @@ function signInForm() {
   ajax_request.send(formData);
   ajax_request.onreadystatechange = function () {
     if (ajax_request.readyState == 4 && ajax_request.status == 200) {
-      let response = JSON.parse(ajax_request.responseText);
-      console.log(response);
+      if (ajax_request.responseText) {
+        response = JSON.parse(ajax_request.responseText);
+      }
       if (response["success"] == true) {
         window.location.assign("home.html");
       } else if (response["success"] == false) {
@@ -90,7 +92,6 @@ function logInForm() {
   ajax_request.onreadystatechange = function () {
     if (ajax_request.readyState == 4 && ajax_request.status == 200) {
       let response = JSON.parse(ajax_request.responseText);
-      console.log(response);
       if (response["success"] == true) {
         errorMsgForLogin.style.display = "none";
         window.location.assign("home.html");
