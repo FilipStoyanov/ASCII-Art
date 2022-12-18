@@ -1,0 +1,69 @@
+* {
+    margin: 0;
+    padding: 0;
+}
+
+/*  CSS VARIABLES */
+:root {
+    --sm-font: 10px;
+    --md-font: 12px;
+    --normal-font: 14px;
+    --lg-font: 20px;
+    --xl-font: 25px;
+    --font: "sans-serif";
+    --error: #FF0000;
+    --skyblue: #87CEEB;
+    --white: #ffffff;
+}
+
+body {
+    background-color: var(--skyblue);
+}
+
+.signin-form,
+.login-form {
+    width: 40%;
+    margin: 0 auto;
+    background-color: var(--white);
+    margin-top: 200px;
+    border-radius: 20px;
+    padding: 20px;
+}
+
+.signin-label,
+.login-label {
+    margin-bottom: 5px;
+}
+
+.signin-label,
+.signin-input,
+.login-label,
+.login-input {
+    display: block;
+    width: 100%;
+}
+
+.signin-input,
+.login-input {
+    height: 30px;
+    margin-bottom: 20px;
+    text-indent: 10px;
+}
+
+.signin-submit,
+.login-submit {
+    display: block;
+    text-align: center;
+    height: 40px;
+    width: 50%;
+    border-radius: 10px;
+    border: 1px solid var(--skyblue);
+    margin: 0 auto;
+}
+
+.error-msg {
+    display: none;
+    margin: 10px auto;
+    color: var(--error);
+    font-size: var(--normal-font);
+}

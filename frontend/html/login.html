@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>ASCII ART</title>
+    <link href="../css/main.css" rel="stylesheet" />
+    <script src="../js/main.js" defer></script>
+  </head>
+  <body>
+    <section class="login">
+      <form
+        method="post"
+        action="../../server/page_controllers/login.php"
+        class="login-form"
+        id="loginForm"
+      >
+        <label class="login-label" for="username">Username</label>
+        <input
+          class="login-data login-input"
+          type="username"
+          name="username"
+          id="login-username"
+          required
+          placeholder="Username"
+        />
+        <label class="login-label" for="password">Password</label>
+        <input
+          class="login-data login-input"
+          type="password"
+          name="password"
+          id="login-password"
+          required
+          placeholder="Password"
+        />
+        <p class="error-msg error-credentials"></p>
+        <input class="login-submit" type="submit" value="Login" />
+      </form>
+    </section>
+  </body>
+</html>

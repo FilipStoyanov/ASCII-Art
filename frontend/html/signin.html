@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>ASCII ART</title>
+    <link href="../css/main.css" rel="stylesheet" />
+    <script src="../js/main.js" defer></script>
+  </head>
+  <body>
+    <section class="signin">
+      <form
+        method="post"
+        action="../../server/page_controllers/signin.php"
+        class="signin-form"
+        id="signinForm"
+      >
+        <label class="signin-label" for="username">Username</label>
+        <input
+          class="signin-input signin-data"
+          type="username"
+          name="username"
+          id="username"
+          required
+          placeholder="Username"
+        />
+        <p id="error-username" class="error-msg error-username"></p>
+        <label class="signin-label" for="password">Password</label>
+        <input
+          class="signin-input signin-data"
+          type="password"
+          name="password"
+          id="password"
+          required
+          placeholder="Password"
+        />
+        <label class="signin-label" for="repeat-password"
+          >Repeat Password</label
+        >
+        <input
+          class="signin-input signin-data"
+          type="password"
+          name="repeat-password"
+          id="repeat-password"
+          required
+          placeholder="Repeat Password"
+        />
+        <p id="error-password" class="error-msg error-password"></p>
+        <p id="error-msg" class="error-msg error-dup-username"></p>
+        <input class="signin-submit" type="submit" value="Sign in" />
+      </form>
+    </section>
+  </body>
+</html>
