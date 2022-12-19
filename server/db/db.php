@@ -30,6 +30,45 @@ class DataBaseConnection
         }
     }
 
+    public function insertNewFollower($user, $follower)
+    {
+        $response = array();
+        $insertUserQuery = 'insert into follower(user, follower) VALUES (?, ?)';
+        $stmt = $this->connection->prepare($insertUserQuery);
+        try {
+            $stmt->execute([$user, $follower]);
+            $response['success'] = true;
+            return json_encode($response);
+        } catch (Exception $e) {
+            $response['success'] = false;
+            return json_encode($response);
+        }
+    }
+
+    public function getFollowers($user)
+    {
+        $response = array();
+        $getFollowerQuery = 'select follower from follower where user = ?';
+        $stmt = $this->connection->prepare($getFollowerQuery);
+        try {
+            $result = $stmt->execute([$user]);
+            $followers ??= $stmt->fetch();
+            $followers_ids = array();
+            if ($followers) {
+                foreach ($followers as $key => $id)
+                    $current_user = self::getUserById($id);
+                $followers_ids[] = $current_user;
+            }
+            $response['followers'] = $followers_ids;
+            $response['success'] = true;
+            return json_encode($response);
+        } catch (Exception $e) {
+            $response['success'] = false;
+            $response['error_message'] = $e->getMessage();
+            return json_encode($response);
+        }
+    }
+
     public function getUserByUsernameAndPassword($username, $password)
     {
         $response = array();
@@ -53,5 +92,24 @@ class DataBaseConnection
             $response['error'] = $error[2];
             echo json_encode($response);
         }
+    }
+
+    public function getUserById($id)
+    {
+        $response = array();
+        $getUserQuery = 'select * from user where id = ?';
+        $stmt = $this->connection->prepare($getUserQuery);
+
+        try {
+            $result = $stmt->execute([$id]);
+            $user ??= $stmt->fetch();
+            return $user;
+            if ($user) {
+                return $user;
+            }
+        } catch (Exception $e) {
+            return null;
+        }
+        return null;
     }
 }

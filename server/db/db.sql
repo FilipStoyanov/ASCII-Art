@@ -19,3 +19,11 @@ create table if not exists pictures(
     constraint PK_PICTURE primary key (id),
     constraint FK_OWNER foreign key (owner_id) references user(id) on delete cascade
 );
+
+
+create table if not exists follower(
+	id int auto_increment,
+    user int not null,
+    follower int not null,
+    constraint PK_FRIEND primary key (id)
+);
