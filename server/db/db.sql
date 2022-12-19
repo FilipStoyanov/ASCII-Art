@@ -7,7 +7,7 @@ create table if not exists user(
     password_hash varchar(255) not null,
 	roles enum("USER","ADMIN") not null default "USER",
     created_at datetime default current_timestamp,
-    constraint USERNAME_LENGTH check(length(username) > 3),
+    constraint USERNAME_LENGTH check(length(username) >= 3),
     unique index(username)
 );
 
