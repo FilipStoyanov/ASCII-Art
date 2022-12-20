@@ -6,34 +6,78 @@ var errorMsgForUsername = document.getElementsByClassName("error-username")[0];
 var errorMsgForPassword = document.getElementsByClassName("error-password")[0];
 var errorMsgForLogin = document.getElementsByClassName("error-credentials")[0];
 
+function sendRequest(url, options, successCallback, errorCallback) {
+  var request = new XMLHttpRequest();
+
+  request.onload = function () {
+    var response = JSON.parse(request.responseText);
+
+    if (request.status === 200) {
+      successCallback(response);
+    } else {
+      console.log('Not authorized')
+      errorCallback(response);
+    }
+  }
+
+  request.open(options.method, url, true);
+  request.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+  request.send(options.data);
+}
+
+
+function load(response) {
+  window.location.assign("home.html");
+}
+
+function handleError(response) {
+  if (response["errors"] && response["errors"]["name"]) {
+    errorMsg.style.display = "block";
+    errorMsg.innerHTML = "A user with this username already exists.";
+  } else {
+    errorMsg.style.display = "none";
+  }
+}
+
 function signInForm() {
   let formElement = document.getElementsByClassName("signin-data");
   let formData = new FormData();
-  let response;
   for (let i = 0; i < formElement.length; ++i) {
     formData.append(formElement[i].name, formElement[i].value);
   }
-  ajax_request = new XMLHttpRequest();
+  var data = {};
+  formData.forEach(function (value, key) {
+    data[key] = value;
+  });
+  console.log(data);
+  sendRequest('../../server/page_controllers/signin.php', { method: 'POST', data: `data=${JSON.stringify(data)}` }, load, handleError);
 
-  ajax_request.open("POST", "../../server/page_controllers/signin.php");
-  ajax_request.send(formData);
-  ajax_request.onreadystatechange = function () {
-    if (ajax_request.readyState == 4 && ajax_request.status == 200) {
-      if (ajax_request.responseText) {
-        response = JSON.parse(ajax_request.responseText);
-      }
-      if (response["success"] == true) {
-        window.location.assign("home.html");
-      } else if (response["success"] == false) {
-        if (response["errors"] && response["errors"]["name"]) {
-          errorMsg.style.display = "block";
-          errorMsg.innerHTML = "A user with this username already exists.";
-        } else {
-          errorMsg.style.display = "none";
-        }
-      }
-    }
-  };
+
+  // for (var pair of formData.entries()) {
+  //   console.log(pair[0] + ', ' + pair[1]);
+  // }
+  // ajax_request.open("POST", "../../server/page_controllers/signin.php");
+  // ajax_request.send(formData);
+  // ajax_request.onreadystatechange = function () {
+  //   if (ajax_request.readyState == 4 && ajax_request.status == 200) {
+  //     console.log(ajax_request.responseText);
+  //     if (ajax_request.responseText) {
+  //       console.log(ajax_request.responseText);
+  //       response = JSON.parse(ajax_request.responseText);
+  //       console.log(response);
+  //     }
+  // if (response["success"] == true) {
+  //   window.location.assign("home.html");
+  // } else if (response["success"] == false) {
+  //   if (response["errors"] && response["errors"]["name"]) {
+  //     errorMsg.style.display = "block";
+  //     errorMsg.innerHTML = "A user with this username already exists.";
+  //   } else {
+  //     errorMsg.style.display = "none";
+  //   }
+  // }
+  // }
+  // };
 }
 
 function submitSignInForm() {
