@@ -38,7 +38,6 @@ class SignIn
                 $_SESSION['user'] = $username;
                 $query = $this->connection->insertNewUser(["username" => $username, "password" => $hash]);
 
-                var_dump($query);
                 if($query["success"]){
                     echo json_encode(["success" => true, "message" => "User created"]);
                 }

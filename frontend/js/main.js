@@ -49,7 +49,6 @@ function signInForm() {
   formData.forEach(function (value, key) {
     data[key] = value;
   });
-  console.log(data);
   sendRequest('../../server/page_controllers/signin.php', { method: 'POST', data: `data=${JSON.stringify(data)}` }, load, handleError);
 
 

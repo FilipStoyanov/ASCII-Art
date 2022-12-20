@@ -25,7 +25,6 @@ class DataBaseConnection
     private function prepareSQLStatements()
     {
         $sql = 'INSERT INTO user(username, password) VALUES (:username , :password_hash)';
-        var_dump($sql);
         $this->insertUser = $this->connection->prepare($sql);
 
         $sql = 'INSERT INTO follower(user, follower) VALUES (:user, :follower)';
@@ -55,7 +54,6 @@ class DataBaseConnection
         // var_dump($input);
         $hash = sha1($input["password"]);
         try {
-            var_dump($input);
             // var_dump (["username" => $input["username"], "password" => $hash]);
             $this->insertUser->execute(["username" => $input["username"], "password_hash" => $hash]);
 
