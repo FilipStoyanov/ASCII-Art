@@ -22,6 +22,7 @@ class DataBaseConnection
         }
     }
 
+    //prepare the sql statements => execute them later
     private function prepareSQLStatements()
     {
         $sql = 'INSERT INTO user(username, password) VALUES (:username , :password_hash)';
@@ -33,36 +34,23 @@ class DataBaseConnection
         $sql = 'SELECT follower FROM follower WHERE user = :user';
         $this->selectFollower = $this->connection->prepare($sql);
 
-        $sql = 'SELECT * FROM user WHERE username = :username AND password_hash = :password';
+        $sql = 'SELECT * FROM user WHERE username = :username AND password = :password';
         $this->selectUser = $this->connection->prepare($sql);
 
         $sql = 'SELECT * FROM user WHERE id = :id';
         $this->selectUserById = $this->connection->prepare($sql);
     }
 
-    private function handleError($error)
-    {
-        $this->connection->rollBack();
-
-        return ["success" => false, "error" => "Connection failed: " . $error->getMessage(), "code" => $error->getCode()];
-
-    }
-
     //$input -> ["username" => value, "passowrd" => value]
     public function insertNewUser($input)
     {
-        // var_dump($input);
         $hash = sha1($input["password"]);
         try {
-            // var_dump (["username" => $input["username"], "password" => $hash]);
             $this->insertUser->execute(["username" => $input["username"], "password_hash" => $hash]);
 
             return ["success" => true];
         } catch (Exception $e) {
-            // $this->handleError($e);
-            // $this->connection->rollBack();
-
-        return ["success" => false, "error" => "Connection failed: " . $e->getMessage(), "code" => $e->getCode()];
+            return ["success" => false, "error" => "Connection failed: " . $e->getMessage(), "code" => $e->getCode()];
         }
     }
 
@@ -75,7 +63,7 @@ class DataBaseConnection
             return ["success" => true];
         } catch (Exception $e) {
 
-            $this->handleError($e);
+            return ["success" => false, "error" => "Connection failed: " . $e->getMessage(), "code" => $e->getCode()];
 
         }
     }
@@ -89,7 +77,7 @@ class DataBaseConnection
 
             return ["success" => true, "data" => $this->selectFollower];
         } catch (Exception $e) {
-            $this->handleError($e);
+            return ["success" => false, "error" => "Connection failed: " . $e->getMessage(), "code" => $e->getCode()];
         }
     }
 
@@ -105,11 +93,10 @@ class DataBaseConnection
             if ($user) {
                 return ["success" => true];
             }
-            // $response['success'] = false; //ne trqbva li da e true tuk? 🤔🤔
 
-            return ["success" => false, "error" => "Invalid username or password"];
+            return ["success" => false, "error" => "Invalid username or password", "code" => 403];
         } catch (Exception $e) {
-            $this->handleError($e);
+            return ["success" => false, "error" => "Connection failed: " . $e->getMessage(), "code" => $e->getCode()];
         }
     }
 
@@ -121,7 +108,7 @@ class DataBaseConnection
 
             return ["success" => true, "data" => $this->selectUserById];
         } catch (Exception $e) {
-            $this->handleError($e);
+            return ["success" => false, "error" => "Connection failed: " . $e->getMessage(), "code" => $e->getCode()];
         }
 
     }

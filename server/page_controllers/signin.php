@@ -8,6 +8,7 @@ class SignIn
 
     public function __construct()
     {
+        //needs error handling
         $this->connection = new DataBaseConnection();
         $this->errors = array();
     }
@@ -38,8 +39,10 @@ class SignIn
                 $_SESSION['user'] = $username;
                 $query = $this->connection->insertNewUser(["username" => $username, "password" => $hash]);
 
-                if($query["success"]){
+                if ($query["success"]) {
                     echo json_encode(["success" => true, "message" => "User created"]);
+                } else {
+                    echo json_encode(["success" => false, "errors" => $query["error"], "code" => $query["code"], "message" => "User already exists"]);
                 }
             } else {
                 echo json_encode($this->errors);

@@ -40,7 +40,7 @@ class Follow
             $user = $data['user'];
             $follower = $data['follower'];
 
-            return $this->connection->insertNewFollower($user, $follower);
+            return $this->connection->insertNewFollower(["user" => $user, "follower" => $follower]);
         }
         $this->response['status'] = 'fail';
         $this->response['error_message'] = 'WRONG HTTP Request method.';
@@ -65,10 +65,10 @@ class Follow
             # TODO check type
             $user = $data['user'];
             // $follower = $data['follower'];
-            return $this->connection->getFollowers($user);
+            return $this->connection->getFollowers(["user" => $user]);
         }
         $this->response['status'] = 'fail';
-        $this->response['error_message'] = 'WRON HTTP Request method.';
+        $this->response['error_message'] = 'WRONG HTTP Request method.';
         return json_encode($this->response);
 
     }
