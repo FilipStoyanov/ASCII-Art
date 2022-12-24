@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8" />
+    <title>ASCII ART</title>
+    <link href="../css/main.css" rel="stylesheet" />
+    <script src="../js/video.js" defer></script>
+</head>
+
+<body>
+    <section class="options">
+        <form class="video-options">
+            <label for="video-title">Video Title</label>
+            <input type="text" id="video-title" name="video-title" required placeholder="Title" />
+
+            <label for="time" name="time">Time between frames</label>
+            <select name="time-frames" id="time">
+                <option value="0.05s" selected="selected"> 0.05s </option>
+                <option value="0.10s"> 0.10s </option>
+                <option value="0.20s"> 0.20s </option>
+                <option value="0.40s"> 0.40s </option>
+                <option value="1s"> 1s </option>
+                <option value="2s"> 2s </option>
+            </select>
+
+            <label for="transition" name="transition">Transition direction</label>
+            <select name="transition" id="transition">
+                <option value="down" selected="selected"> down </option>
+                <option value="up"> up </option>
+                <option value="left"> left </option>
+                <option value="right"> right </option>
+            </select>
+
+            <input type="submit" value="submit" />
+
+    </section>
+</body>
+
+</html>
