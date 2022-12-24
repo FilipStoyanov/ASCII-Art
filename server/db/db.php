@@ -32,41 +32,60 @@ class DataBaseConnection
 
     public function insertNewFollower($user, $follower)
     {
+        // TODO check whether the same tuple exists in the database
+        $this->validateUsers([$user, $follower]);
         $response = array();
         $insertUserQuery = 'insert into follower(user, follower) VALUES (?, ?)';
         $stmt = $this->connection->prepare($insertUserQuery);
-        try {
-            $stmt->execute([$user, $follower]);
-            $response['success'] = true;
-            return json_encode($response);
-        } catch (Exception $e) {
-            $response['success'] = false;
-            return json_encode($response);
+        $stmt->execute([$user, $follower]);
+    }
+
+    public function deleteFollower($user, $follower)
+    {
+        $this->validateUsers([$user, $follower]);
+        $response = array();
+        $insertUserQuery = 'delete from follower where user=? and follower=?';
+        $stmt = $this->connection->prepare($insertUserQuery);
+        $stmt->execute([$user, $follower]);
+    }
+    
+    private function validateUsers($users){
+        for($i=0;$i<count($users);++$i){
+            if($this->getUserById($users[$i]) == null){
+                http_response_code(404);
+                die();
+            }
         }
     }
 
     public function getFollowers($user)
     {
+        return $this->getFellows($user,'follower', 'user');
+    }
+
+
+
+
+    public function getFollowings($user)
+    {
+        return $this->getFellows($user,'user', 'follower');
+    }
+
+    private function getFellows($user,$searched_value, $role)
+    {
         $response = array();
-        $getFollowerQuery = 'select follower from follower where user = ?';
+        $getFollowerQuery = 'select '.$searched_value.' from follower where ' . $role . ' = ?';
         $stmt = $this->connection->prepare($getFollowerQuery);
-        try {
-            $result = $stmt->execute([$user]);
-            $followers ??= $stmt->fetch();
-            $followers_ids = array();
-            if ($followers) {
-                foreach ($followers as $key => $id)
-                    $current_user = self::getUserById($id);
-                $followers_ids[] = $current_user;
-            }
-            $response['followers'] = $followers_ids;
-            $response['success'] = true;
-            return json_encode($response);
-        } catch (Exception $e) {
-            $response['success'] = false;
-            $response['error_message'] = $e->getMessage();
-            return json_encode($response);
+
+        $result = $stmt->execute([$user]);
+        $fellows ??= $stmt->fetch();
+        $fellows_ids = array();
+        if ($fellows) {
+            foreach ($fellows as $key => $id)
+                $current_user = self::getUserById($id);
+            $fellows_ids[] = $current_user;
         }
+        return $fellows_ids;
     }
 
     public function getUserByUsernameAndPassword($username, $password)
