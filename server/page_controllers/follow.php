@@ -129,5 +129,3 @@ class Follow
     }
 
 }
-$follow = new Follow();
-$follow->addFollower();

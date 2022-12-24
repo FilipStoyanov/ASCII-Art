@@ -88,6 +88,15 @@ class DataBaseConnection
         return $fellows_ids;
     }
 
+    public function getUserByName($username)
+    {
+        $response = array();
+        $getUserQuery = 'select * from user where username = ?';
+        $stmt = $this->connection->prepare($getUserQuery);
+        $result = $stmt->execute([$username]);
+        return $stmt->fetch();    
+    }
+
     public function getUserByUsernameAndPassword($username, $password)
     {
         $response = array();
