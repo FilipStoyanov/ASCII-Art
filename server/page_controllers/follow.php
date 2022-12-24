@@ -69,18 +69,20 @@ class Follow
 
     public function getFollowers()
     {
-        return $this->getFellows(function ($user) {
-            return $this->connection->getFollowers($user); });
+        return $this->getFellows(function ($user, $page, $limit) {
+            return $this->connection->getFollowers($user, $page, $limit);
+        },'followers');
     }
 
 
     public function getFollowings()
     {
-        return $this->getFellows(function ($user) {
-            return $this->connection->getFollowings($user); });
+        return $this->getFellows(function ($user, $page, $limit) {
+            return $this->connection->getFollowings($user, $page, $limit);
+        },'followings');
     }
 
-    private function getFellows($search)
+    private function getFellows($search,$search_key)
     {
         if ($_SERVER['REQUEST_METHOD'] == 'GET') {
             $data = (array) json_decode(file_get_contents('php://input'), JSON_UNESCAPED_UNICODE);
@@ -91,24 +93,31 @@ class Follow
                 return json_encode($this->response);
             }
 
+            if (!array_key_exists('page', $data) || $data['page'] == null || !is_int($data['page']) || $data['page']<=0) {
+                $page = null;
+                $limit = null;
+            } else {
+                $page = $data['page'];
+                $limit = 20;
+            }
+
             $user = $data['user'];
             if (!is_int($user) || $user <= 0) {
                 $this->response['status'] = 'fail';
                 $this->response['error_message'] = 'Invalid user id.';
                 return json_encode($this->response);
             }
-
             try {
-                $followers = $search($user);
+                $fellows = $search($user, $page, $limit);
             } catch (Exception $e) {
                 $response['success'] = false;
                 $response['error_message'] = $e->getMessage();
                 return json_encode($response);
             }
-            for ($i = 0; $i < count($followers); ++$i) {
-                $followers[$i] = $this->dropSensitiveInformation($followers[$i]);
+            for ($i = 0; $i < count($fellows); ++$i) {
+                $fellows[$i] = $this->dropSensitiveInformation($fellows[$i]);
             }
-            $response['followers'] = $followers;
+            $response[$search_key] = $fellows;
             $response['success'] = true;
             return json_encode($response);
         }

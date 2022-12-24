@@ -48,36 +48,46 @@ class DataBaseConnection
         $stmt = $this->connection->prepare($insertUserQuery);
         $stmt->execute([$user, $follower]);
     }
-    
-    private function validateUsers($users){
-        for($i=0;$i<count($users);++$i){
-            if($this->getUserById($users[$i]) == null){
+
+    private function validateUsers($users)
+    {
+        for ($i = 0; $i < count($users); ++$i) {
+            if ($this->getUserById($users[$i]) == null) {
                 http_response_code(404);
                 die();
             }
         }
     }
 
-    public function getFollowers($user)
+    public function getFollowers($user,$page,$limit)
     {
-        return $this->getFellows($user,'follower', 'user');
+        return $this->getFellows($user, 'follower', 'user',$page,$limit);
     }
 
 
 
 
-    public function getFollowings($user)
+    public function getFollowings($user,$page,$limit)
     {
-        return $this->getFellows($user,'user', 'follower');
+        return $this->getFellows($user, 'user', 'follower',$page,$limit);
     }
 
-    private function getFellows($user,$searched_value, $role)
+    private function getFellows($user, $searched_value, $role, $page, $limit)
     {
-        $response = array();
-        $getFollowerQuery = 'select '.$searched_value.' from follower where ' . $role . ' = ?';
-        $stmt = $this->connection->prepare($getFollowerQuery);
 
-        $result = $stmt->execute([$user]);
+        if ($page != null && $page > 1) {
+            $start = (($page - 1) * $limit);
+        } else {
+            $page = null;
+        }
+
+        $query = 'select ' . $searched_value . ' from follower where ' . $role . ' = ?';
+        if ($page != null) {
+            $query = $query . ' limit ' . $start . ', ' . $limit . '';
+        }
+        $stmt = $this->connection->prepare($query);
+
+        $stmt->execute([$user]);
         $fellows ??= $stmt->fetch();
         $fellows_ids = array();
         if ($fellows) {
@@ -94,7 +104,7 @@ class DataBaseConnection
         $getUserQuery = 'select * from user where username = ?';
         $stmt = $this->connection->prepare($getUserQuery);
         $result = $stmt->execute([$username]);
-        return $stmt->fetch();    
+        return $stmt->fetch();
     }
 
     public function getUserByUsernameAndPassword($username, $password)
