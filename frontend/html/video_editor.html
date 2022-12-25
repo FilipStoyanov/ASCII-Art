@@ -10,7 +10,7 @@
 
 <body>
     <section class="options">
-        <form class="video-options">
+        <form id="video-options">
             <label for="video-title">Video Title</label>
             <input type="text" id="video-title" name="video-title" required placeholder="Title" />
 
@@ -32,8 +32,22 @@
                 <option value="right"> right </option>
             </select>
 
-            <input type="submit" value="submit" />
+            <label for="color">Color</label>
+            <input type="color" id="color" name="color" />
 
+            <label for="background">Background color</label>
+            <input type="color" id="background" name="background" />
+            <!-- TO DO color and background -->
+
+            <input type="submit" value="submit" />
+        </form>
+    </section>
+    <section id="frames">
+        <label for="frame1" id="frame-label-1">Frame 1</label>
+        <textarea cols="10" rows="5" class="frame" id="frame1"></textarea>
+
+        <button type="button" id="new-frame">Add new frame</button>
+        <button type="button" id="remove-frame">X</button>
     </section>
 </body>
 
