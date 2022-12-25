@@ -1,0 +1,114 @@
+/* ASCII TEXT EDITOR*/
+.editor {
+    background-color: --var(--white);
+}
+.editor-menu{
+    font-family: var(--font);
+    background-color: var(--white);
+    max-width: 380px;
+    height: auto;
+    width: 100%;
+    position: relative;
+    z-index: 1;
+    box-shadow: 0px 3px 3px -2px rgb(0 0 0 / 20%), 0px 3px 4px 0px rgb(0 0 0 / 14%), 0px 1px 8px 0px rgb(0 0 0 / 12%);
+    border-radius: 8px;
+    padding: 15px;
+    margin: 50px 0 0 20px;
+}
+
+.menu {
+    list-style-type: none;
+}
+
+.menu-item {
+    display: flex;
+    width: 100%;
+    position: relative;
+}
+
+.menu-button {
+    font-size: var(--normal-font);
+    height: var(--button-height);
+    border: 1px solid var(--skyblue);
+    width: 100%;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    background-color: var(--white);
+}
+
+.menu-button:hover {
+    background-color: var(--light-gray);
+}
+
+.menu-button:focus {
+    background-color: var(--light-gray);
+}
+
+.editor-title {
+    text-align: center;
+    margin-bottom: 15px;
+}
+
+.letter-btn {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 50px;
+    height: var(--button-height);
+    border: none;
+    background-color: var(--skyblue);
+}
+
+.letters {
+    position: absolute;
+    display: none;
+    width: 300px;
+    background-color: white;
+    border-radius: 15px;
+    right: calc(-100% + 30px);
+    top: 0;
+    padding: 15px;
+    cursor: pointer;
+}
+
+.letter {
+    display: inline-block;
+    border: none;
+    background-color: var(--white);
+    padding: 10px;
+}
+
+.letter:hover {
+    background-color: var(--light-gray);
+}
+
+.letter:focus {
+    background-color: var(--light-gray);
+}
+
+.open {
+    display: inline-block;
+}
+
+.color-palette, .fill-color {
+    position: absolute;
+    right: 5px;
+    top:7.5px;
+}
+
+.fill-btn:focus {
+    cursor: auto;
+}
+
+.crosshair-cursor {
+    cursor: crosshair;
+}
+
+.save {
+    background-color: var(--skyblue);
+    border: none;
+    width: 100px;
+    height: 45px;
+    border-radius: 5px;
+}

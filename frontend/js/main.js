@@ -117,3 +117,5 @@ document.addEventListener("DOMContentLoaded", function (event) {
   submitSignInForm();
   submitLogInForm();
 });
+
+

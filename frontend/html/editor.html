@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8" />
+        <title>ASCII ART</title>
+        <link href="../css/main.css" rel="stylesheet" />
+        <!-- <script src="../js/main.js" defer></script> -->
+        <script src="../js/editor.js" defer></script>
+    </head>
+    <body>
+        <section class="editor">
+            <div class="editor-menu">
+                <h2 class="editor-title">ASCII Editor</h2>
+                <ul class="menu">
+                    <li class="menu-item">
+                        <button class="menu-button">Default drawing</button>
+                    </li>
+                    <li class="menu-item">
+                        <button class="menu-button">Boxes</button>
+                    </li>
+                    <li class="menu-item">
+                        <button class="menu-button">Select & Move</button>
+                    </li>
+                    <li class="menu-item">
+                        <button class="menu-button" id="chosen-letter">FreeForm</button>
+                        <button class="letter-btn">Letter</button>
+                        <div class="letters"></div>
+                    </li>
+                    <li class="menu-item">
+                        <button class="menu-button color-btn">Color
+                        <label for="color"></label>
+                        <input type = "color" id="color" name = "color" class="color-palette"> 
+                        </button>
+                    </li>
+                    <li class="menu-item">
+                        <button class="menu-button fill-btn">Fill Color
+                        <label for="fill-color"></label>
+                        <input type = "color" id="fill-color" name = "fill-color" class="fill-color"> 
+                        </button>
+                    </li>
+                </ul>
+                <button class="save">Save</button>
+            </div>
+            <canvas class="draw-field" id="drawer" width="400" height="400"></canvas>
+        </section>
+    </body>
+</html>

@@ -1,3 +1,4 @@
+@import "editor.css";
 * {
     margin: 0;
     padding: 0;
@@ -10,14 +11,17 @@
     --normal-font: 14px;
     --lg-font: 20px;
     --xl-font: 25px;
-    --font: "sans-serif";
+    --font: "Roboto, sans-serif";
     --error: #FF0000;
     --skyblue: #87CEEB;
     --white: #ffffff;
+    --light-gray: #ECF0F1;
+    --gray: #D3D3D3;
+    --button-height: 40px;
 }
 
 body {
-    background-color: var(--skyblue);
+    /* background-color: var(--skyblue); */
 }
 
 .signin-form,
@@ -66,4 +70,21 @@ body {
     margin: 10px auto;
     color: var(--error);
     font-size: var(--normal-font);
+}
+
+.draw-field {
+    position: absolute;
+    z-index: 0;
+    background-color: var(--light-gray);
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    height: 100%;
+    cursor: crosshair;
+    zoom: 100%;
+}
+#draw-field {
+    zoom: 100%;
 }
