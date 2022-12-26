@@ -16,12 +16,12 @@
 
             <label for="time" name="time">Time between frames</label>
             <select name="time-frames" id="time">
-                <option value="0.05s" selected="selected"> 0.05s </option>
-                <option value="0.10s"> 0.10s </option>
-                <option value="0.20s"> 0.20s </option>
-                <option value="0.40s"> 0.40s </option>
-                <option value="1s"> 1s </option>
-                <option value="2s"> 2s </option>
+                <option value="50" selected="selected"> 0.05s </option>
+                <option value="100"> 0.10s </option>
+                <option value="200"> 0.20s </option>
+                <option value="400"> 0.40s </option>
+                <option value="1000"> 1s </option>
+                <option value="2000"> 2s </option>
             </select>
 
             <label for="transition" name="transition">Transition direction</label>
@@ -33,7 +33,7 @@
             </select>
 
             <label for="color">Color</label>
-            <input type="color" id="color" name="color" />
+            <input type="color" id="color" name="color" value="#ffffff"/>
 
             <label for="background">Background color</label>
             <input type="color" id="background" name="background" />
@@ -48,6 +48,9 @@
 
         <button type="button" id="new-frame">Add new frame</button>
         <button type="button" id="remove-frame">X</button>
+    </section>
+    <section id="video">
+        <button type="button" id="make-video">Show video</button>
     </section>
 </body>
 
