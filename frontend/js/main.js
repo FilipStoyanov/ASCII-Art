@@ -154,6 +154,7 @@ function logInForm() {
   formData.forEach(function (value, key) {
     data[key] = value;
   });
+  console.log(`data=${JSON.stringify(data)}`);
   sendRequest('../../server/page_controllers/login.php', { method: 'POST', data: `data=${JSON.stringify(data)}` }, loadLogIn, handleErrorLogIn);
 }
 

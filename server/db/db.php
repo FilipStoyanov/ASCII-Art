@@ -5,6 +5,8 @@ class DataBaseConnection
 
     private $insertUser;
     private $insertFollower;
+    private $insertNewAsciiText;
+    private $selectAsciiPictures;
     private $selectFollower;
     private $selectUser;
     private $selectUserById;
@@ -25,7 +27,7 @@ class DataBaseConnection
     //prepare the sql statements => execute them later
     private function prepareSQLStatements()
     {
-        $sql = 'INSERT INTO user(username, password) VALUES (:username , :password_hash)';
+        $sql = 'INSERT INTO user(username, password_hash) VALUES (:username , :password_hash)';
         $this->insertUser = $this->connection->prepare($sql);
 
         $sql = 'INSERT INTO follower(user, follower) VALUES (:user, :follower)';
@@ -34,11 +36,17 @@ class DataBaseConnection
         $sql = 'SELECT follower FROM follower WHERE user = :user';
         $this->selectFollower = $this->connection->prepare($sql);
 
-        $sql = 'SELECT * FROM user WHERE username = :username AND password = :password';
+        $sql = 'SELECT * FROM user WHERE username = :username AND password_hash = :password';
         $this->selectUser = $this->connection->prepare($sql);
 
         $sql = 'SELECT * FROM user WHERE id = :id';
         $this->selectUserById = $this->connection->prepare($sql);
+
+        $sql = 'INSERT INTO pictures(value, name, color, owner_id) values(:value, :name, :color, :owner_id)';
+        $this->insertNewAsciiText = $this->connection->prepare($sql);
+
+        $sql = 'SELECT name from pictures where owner_id = :owner_id';
+        $this->selectAsciiPictures = $this->connection->prepare($sql);
     }
 
     //$input -> ["username" => value, "passowrd" => value]
@@ -111,6 +119,27 @@ class DataBaseConnection
             return ["success" => false, "error" => "Connection failed: " . $e->getMessage(), "code" => $e->getCode()];
         }
 
+    }
+
+    //$input -> ["value" => value, "name" => value, "color" => value, "owner_id" => value]
+    public function insertNewAsciiText($input) {
+        try {
+            $this->insertNewAsciiText->execute($input);
+            return ["success" => true];
+        } catch(Exception $e) {
+            return ["success" => false, "error" => "Connection failed: " . $e->getMessage(), "code" => $e->getCode()];
+        }
+    }
+
+    //$input -> ["owner_id" => value]
+    public function getAsciiPictures($input) {
+        try {
+            $this->selectAsciiPictures->execute($input);
+            $asciiPictures = $this->selectAsciiPictures->fetchAll();
+            return ["success" => true, "data" => $asciiPictures];
+        }catch(Exception $e) {
+            return ["success" => false, "error" => "Connection failed: " . $e->getMessage(), "code" => $e->getCode()];
+        }
     }
 
     function __destruct()

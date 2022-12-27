@@ -13,10 +13,12 @@ create table if not exists user(
 
 create table if not exists pictures(
 	id int auto_increment,
-    value varchar(255) not null,
+    value longtext not null,
+    color char(7) default "#000000",
     name varchar(255) not null,
     owner_id int not null,
     constraint PK_PICTURE primary key (id),
+    constraint UQ_NAME unique(name, owner_id),
     constraint FK_OWNER foreign key (owner_id) references user(id) on delete cascade
 );
 
