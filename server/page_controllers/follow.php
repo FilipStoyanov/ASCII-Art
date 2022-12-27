@@ -138,3 +138,6 @@ class Follow
     }
 
 }
+
+$follow = new Follow();
+echo $follow->getFollowers();
