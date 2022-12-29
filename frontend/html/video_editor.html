@@ -9,48 +9,78 @@
 </head>
 
 <body>
-    <section class="options">
-        <form id="video-options">
-            <label for="video-title">Video Title</label>
-            <input type="text" id="video-title" name="video-title" required placeholder="Title" />
+    <section class="sections">
+        <!-- <div class="editor-menu"> -->
+            <h2 class="editor-title">ASCII Video Editor</h2>
+            <!-- <form id="video-options">
+                <label for="video-title">Video Title</label>
+                <input type="text" id="video-title" name="video-title" required placeholder="Title" />
+            </form> -->
 
-            <label for="time" name="time">Time between frames</label>
-            <select name="time-frames" id="time">
-                <option value="50" selected="selected"> 0.05s </option>
-                <option value="100"> 0.10s </option>
-                <option value="200"> 0.20s </option>
-                <option value="400"> 0.40s </option>
-                <option value="1000"> 1s </option>
-                <option value="2000"> 2s </option>
-            </select>
+            <ul class="menu">
+                <!-- <li class="menu-item">
+                    <label for="time" name="time">Time between frames</label>
+                    <select name="time-frames" id="time">
+                        <option value="50" selected="selected"> 0.05s </option>
+                        <option value="100"> 0.10s </option>
+                        <option value="200"> 0.20s </option>
+                        <option value="400"> 0.40s </option>
+                        <option value="1000"> 1s </option>
+                        <option value="2000"> 2s </option>
+                    </select>
+                </li> -->
 
-            <label for="transition" name="transition">Transition direction</label>
-            <select name="transition" id="transition">
-                <option value="down" selected="selected"> down </option>
-                <option value="up"> up </option>
-                <option value="left"> left </option>
-                <option value="right"> right </option>
-            </select>
+                <!-- <li class="menu-item">
+                    <label for="transition" name="transition">Transition direction</label>
+                    <select name="transition" id="transition">
+                        <option value="down" selected="selected"> down </option>
+                        <option value="up"> up </option>
+                        <option value="left"> left </option>
+                        <option value="right"> right </option>
+                    </select>
+                </li> -->
 
-            <label for="color">Color</label>
-            <input type="color" id="color" name="color" value="#ffffff"/>
+                <li class="menu-item">
+                    <button class="menu-button" id="chosen-time">Time</button>
+                    <button class="time-btn">X</button>
+                    <div class="timers"></div>
+                </li>
 
-            <label for="background">Background color</label>
-            <input type="color" id="background" name="background" />
-            <!-- TO DO color and background -->
+                <li class="menu-item">
+                    <button class="menu-button color-btn">Color
+                        <label for="color"></label>
+                        <input type="color" id="color" name="color" class="color-palette" />
+                    </button>
+                </li>
 
-            <input type="submit" value="submit" />
-        </form>
+                <li class="menu-item">
+                    <button class="menu-button color-btn">Background Color
+                        <label for="background"></label>
+                        <input type="color" id="background" class="color-palette" name="background" />
+                        <!-- TO DO color and background -->
+                    </button>
+                </li>
+            </ul>
+
+            <form class="ascii-form">
+                <fieldset class="ascii-fieldset">
+                    <label for="ascii-name">Enter Video Name</label>
+                    <input type="text" id="ascii-name" name="ascii-name" placeholder="Video Name" required>
+                    <button type="submit" class="save">Save</button>
+                    <p class="error-msg ascii-error"></p>
+                </fieldset>
+            </form>
+        <!-- </div> -->
     </section>
-    <section id="frames">
-        <label for="frame1" id="frame-label-1">Frame 1</label>
-        <textarea cols="10" rows="5" class="frame" id="frame1"></textarea>
+    <section id="frames" class="sections">
+        <label for="frame1" id="frame-label-1" class="frame-label">Frame 1</label>
+        <textarea cols="10" rows="10" class="frame" id="frame1"></textarea>
 
-        <button type="button" id="new-frame">Add new frame</button>
-        <button type="button" id="remove-frame">X</button>
+        <button type="button" class="menu-button" id="new-frame">Add new frame</button>
+        <button type="button" class="menu-button" id="remove-frame">X</button>
     </section>
-    <section id="video">
-        <button type="button" id="make-video">Show video</button>
+    <section id="video" class="sections">
+        <button type="button" class="menu-button" id="make-video">Show video</button>
     </section>
 </body>
 
