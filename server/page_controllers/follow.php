@@ -35,12 +35,12 @@ class Follow
         if ($_SERVER['REQUEST_METHOD'] == $request_type) {
             $data = (array) json_decode(file_get_contents('php://input'), JSON_UNESCAPED_UNICODE);
             if (!array_key_exists('follower', $data) || $data['follower'] == null) {
-                $this->response['status'] = 'fail';
+                $this->response['success'] = false;
                 $this->response['error_message'] = 'Follower is not chosen.';
                 return json_encode($this->response);
             }
             if (!array_key_exists('user', $data) || $data['user'] == null) {
-                $this->response['status'] = 'fail';
+                $this->response['success'] = false;
                 $this->response['error_message'] = 'User is not chosen.';
                 return json_encode($this->response);
             }
@@ -48,7 +48,7 @@ class Follow
             $user = $data['user'];
             $follower = $data['follower'];
             if (!is_int($user) || !is_int($follower) || $user <= 0 || $follower <= 0) {
-                $this->response['status'] = 'fail';
+                $this->response['success'] = false;
                 $this->response['error_message'] = 'Invalid ids.';
                 return json_encode($this->response);
             }
@@ -61,7 +61,7 @@ class Follow
                 return json_encode($response);
             }
         }
-        $this->response['status'] = 'fail';
+        $this->response['success'] = false;
         $this->response['error_message'] = 'WRONG HTTP Request method.';
         return json_encode($this->response);
     }
@@ -84,11 +84,11 @@ class Follow
 
     private function getFellows($search,$search_key)
     {
-        if ($_SERVER['REQUEST_METHOD'] == 'GET') {
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $data = (array) json_decode(file_get_contents('php://input'), JSON_UNESCAPED_UNICODE);
 
             if (!array_key_exists('user', $data) || $data['user'] == null) {
-                $this->response['status'] = 'fail';
+                $this->response['success'] = false;
                 $this->response['error_message'] = 'User is not chosen.';
                 return json_encode($this->response);
             }
@@ -102,8 +102,11 @@ class Follow
             }
 
             $user = $data['user'];
-            if (!is_int($user) || $user <= 0) {
-                $this->response['status'] = 'fail';
+            if(!is_int($user)){
+                $user = (int) $user;
+            }
+            if ($user <= 0) {
+                $this->response['success'] = false;
                 $this->response['error_message'] = 'Invalid user id.';
                 return json_encode($this->response);
             }
@@ -121,7 +124,7 @@ class Follow
             $response['success'] = true;
             return json_encode($response);
         }
-        $this->response['status'] = 'fail';
+        $this->response['success'] = false;
         $this->response['error_message'] = 'WRONG HTTP Request method.';
         $this->response['error_message'] = 'WRONG HTTP Request method.';
         return json_encode($this->response);

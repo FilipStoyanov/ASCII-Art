@@ -7,6 +7,7 @@
     <script src="../js/follow.js"></script>
   </head>
   <body>
+    <p id="error-msg" class="error-msg error-dup-username"></p>
     <section class="followers">
         <label class="user-id" for="user-id">User Id</label>
         <input
@@ -15,7 +16,7 @@
           id="user-id"
           placeholder="User Id"
         />
-        <button class="login-submit" type="button" onClick="listFollowers()">Find my followers</button>
+        <button class="login-submit" type="button" onClick="listFellows(true)">Find my followers</button>
 
       <table id="followers" name="Followers">
             <tr>
@@ -23,12 +24,26 @@
               <th>Name</th>
               <th>Link</th>
             </tr>
-            <tr>
-                <td>Alfreds Futterkiste</td>
-                <td>Maria Anders</td>
-                <td>Germany</td>
-              </tr>
       </table>
     </section>
+
+    <section class="followings">
+      <label class="user-id" for="user-id">User Id</label>
+      <input
+        class="login-data login-input"
+        name="id"
+        id="user-id"
+        placeholder="User Id"
+      />
+      <button class="login-submit" type="button" onClick="listFellows(false)">Find my followers</button>
+
+    <table id="followers" name="Followers">
+          <tr>
+            <th>Id</th>
+            <th>Name</th>
+            <th>Link</th>
+          </tr>
+    </table>
+  </section>
   </body>
 </html>

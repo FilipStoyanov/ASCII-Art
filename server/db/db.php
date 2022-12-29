@@ -45,7 +45,7 @@ class DataBaseConnection
         $sql = 'SELECT * FROM user WHERE username = :username';
         $this->selectUserByName = $this->connection->prepare($sql);
 
-        $sql = 'SELECT * FROM user WHERE id = :id';
+        $sql = 'SELECT * FROM user WHERE id = :user';
         $this->selectUserById = $this->connection->prepare($sql);
 
     }
@@ -59,7 +59,7 @@ class DataBaseConnection
     private function validateUsers($users)
     {
         for ($i = 0; $i < count($users); ++$i) {
-            if ($this->getUserById($users[$i]) == null) {
+            if ($this->getUserById(['user'=>$users[$i]]) == null) {
                 http_response_code(404);
                 die();
             }
@@ -99,7 +99,7 @@ class DataBaseConnection
         $fellows_ids = array();
         if ($fellows) {
             foreach ($fellows as $key => $id)
-                $current_user = self::getUserById($id);
+                $current_user = $this->getUserById(['user'=>$id]);
             $fellows_ids[] = $current_user;
         }
         return $fellows_ids;
@@ -109,22 +109,11 @@ class DataBaseConnection
     {
         $response = array();
         $result = $this->selectUserByName->execute(["username" => $username]);
-        return $stmt->fetch();
+        return $this->selectUserByName->fetch();
 
     }
 
-    //$input = ["user" => value]
-    public function getFollowers($input)
-    {
 
-        try {
-            $this->selectFollower->execute($input);
-
-            return ["success" => true, "data" => $this->selectFollower];
-        } catch (Exception $e) {
-            return ["success" => false, "error" => "Connection failed: " . $e->getMessage(), "code" => $e->getCode()];
-        }
-    }
 
     //$input -> ["username" => value, "passowrd" => value]
     public function getUserByUsernameAndPassword($input)
@@ -148,14 +137,19 @@ class DataBaseConnection
     //$input -> ["id" => value]
     public function getUserById($input)
     {
+        $response = array();
         try {
-            $this->selectUserById->execute($input);
-
-            return ["success" => true, "data" => $this->selectUserById];
+            $result = $this->selectUserById->execute($input);
+            $user ??= $this->selectUserById->fetch();
+            return $user;
+            if ($user) {
+                return $user;
+            }
         } catch (Exception $e) {
-            return ["success" => false, "error" => "Connection failed: " . $e->getMessage(), "code" => $e->getCode()];
+            return $e;
+            return null;
         }
-
+        return null;
     }
 
     function __destruct()
