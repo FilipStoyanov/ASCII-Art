@@ -1,5 +1,5 @@
 <?php
-include_once("./db/db.php");
+include_once("../db/db.php");
 class Follow
 {
 
@@ -141,3 +141,4 @@ class Follow
 
 $follow = new Follow();
 echo $follow->getFollowers();
+?>

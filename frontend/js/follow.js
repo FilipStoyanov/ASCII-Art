@@ -24,10 +24,10 @@ function listFollowers() {
     //   });
     // }
     // loadTableData(response);
-//     fetch("../../server/index.php")
-//   .then((response) => response.json())
-//   .then((data) => console.log(data));
-    ajax_request.open("GET", "../../server/page_controllers/follow.php");
+  //   fetch("http://localhost:80/project-web-2022/ASCII-Art/server/page_controllers/follow.php")
+  // .then((response) =>{console.log(response); return response.json();})
+  // .then((data) => console.log(data));
+    ajax_request.open("GET", "http://localhost:80/project-web-2022/ASCII-Art/server/page_controllers/follow.php");
     ajax_request.send(formData);
     ajax_request.onreadystatechange = function () {
       if (ajax_request.readyState == 4 && ajax_request.status == 200) {
