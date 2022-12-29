@@ -123,6 +123,7 @@ class Follow
         }
         $this->response['status'] = 'fail';
         $this->response['error_message'] = 'WRONG HTTP Request method.';
+        $this->response['error_message'] = 'WRONG HTTP Request method.';
         return json_encode($this->response);
     }
 

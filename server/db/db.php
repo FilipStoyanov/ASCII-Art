@@ -1,52 +1,59 @@
 <?php
 class DataBaseConnection
 {
-    protected $connection;
+    private $connection;
+
+    private $insertUser;
+    private $insertFollower;
+    private $deleteFollower;
+    private $selectFollower;
+    private $selectUser;
+    private $selectUserByName;
+    private $selectUserById;
 
     public function __construct()
     {
-        $db_credentials = parse_ini_file("config.ini", true);
-        $this->connection = new PDO('mysql:host=localhost; dbname=ascii_art', $db_credentials["user"], $db_credentials["password"]);
-    }
-
-    public function insertNewUser($username, $password)
-    {
-        $response = array();
-        $insertUserQuery = 'insert into user(username, password_hash) VALUES (?, ?)';
-        $hash = sha1($password);
-        $stmt = $this->connection->prepare($insertUserQuery);
         try {
-            $result = $stmt->execute([$username, $hash]);
-            $response['success'] = true;
-            echo json_encode($response);
-        } catch (Exception $e) {
-            $error = $e->errorInfo;
-            $response['success'] = false;
-            $response['errors'] = array();
-            $response['errors']['name'] = "Duplicate username";
-            if ($error[1] == 1062) {
-                echo json_encode($response);
-            }
+
+            $db_credentials = parse_ini_file("config.ini", true);
+            $this->connection = new PDO('mysql:host=localhost; dbname=ascii_art', $db_credentials["user"], $db_credentials["password"]);
+
+            $this->prepareSQLStatements();
+        } catch (PDOException $error) {
+            echo "Connection to db failed: " . $error->getMessage();
         }
     }
 
-    public function insertNewFollower($user, $follower)
+    //prepare the sql statements => execute them later
+    private function prepareSQLStatements()
     {
-        // TODO check whether the same tuple exists in the database
-        $this->validateUsers([$user, $follower]);
-        $response = array();
-        $insertUserQuery = 'insert into follower(user, follower) VALUES (?, ?)';
-        $stmt = $this->connection->prepare($insertUserQuery);
-        $stmt->execute([$user, $follower]);
+        $sql = 'INSERT INTO user(username, password) VALUES (:username , :password_hash)';
+        $this->insertUser = $this->connection->prepare($sql);
+
+        $sql = 'INSERT INTO follower(user, follower) VALUES (:user, :follower)';
+        $this->insertFollower = $this->connection->prepare($sql);
+
+        $sql = 'DELETE FROM follower WHERE user=:user and follower=:follower';
+        $this->deleteFollower = $this->connection->prepare($sql);
+
+        $sql = 'SELECT follower FROM follower WHERE user = :user';
+        $this->selectFollower = $this->connection->prepare($sql);
+
+        $sql = 'SELECT * FROM user WHERE username = :username AND password = :password';
+        $this->selectUser = $this->connection->prepare($sql);
+
+        $sql = 'SELECT * FROM user WHERE username = :username';
+        $this->selectUserByName = $this->connection->prepare($sql);
+
+        $sql = 'SELECT * FROM user WHERE id = :id';
+        $this->selectUserById = $this->connection->prepare($sql);
+
     }
 
     public function deleteFollower($user, $follower)
     {
         $this->validateUsers([$user, $follower]);
-        $response = array();
-        $insertUserQuery = 'delete from follower where user=? and follower=?';
-        $stmt = $this->connection->prepare($insertUserQuery);
-        $stmt->execute([$user, $follower]);
+        $this->deleteFollower->execute(["user" => $user, "password_hash" => $follower]);
     }
 
     private function validateUsers($users)
@@ -59,17 +66,17 @@ class DataBaseConnection
         }
     }
 
-    public function getFollowers($user,$page,$limit)
+    public function getFollowers($user, $page, $limit)
     {
-        return $this->getFellows($user, 'follower', 'user',$page,$limit);
+        return $this->getFellows($user, 'follower', 'user', $page, $limit);
     }
 
 
 
 
-    public function getFollowings($user,$page,$limit)
+    public function getFollowings($user, $page, $limit)
     {
-        return $this->getFellows($user, 'user', 'follower',$page,$limit);
+        return $this->getFellows($user, 'user', 'follower', $page, $limit);
     }
 
     private function getFellows($user, $searched_value, $role, $page, $limit)
@@ -101,53 +108,88 @@ class DataBaseConnection
     public function getUserByName($username)
     {
         $response = array();
-        $getUserQuery = 'select * from user where username = ?';
-        $stmt = $this->connection->prepare($getUserQuery);
-        $result = $stmt->execute([$username]);
+        $result = $this->selectUserByName->execute(["username" => $username]);
         return $stmt->fetch();
+
     }
 
-    public function getUserByUsernameAndPassword($username, $password)
+    //$input = ["user" => value]
+    public function getFollowers($input)
     {
-        $response = array();
-        $getUserQuery = 'select * from user where username = ? and password_hash = ?';
-        $hash = sha1($password);
-        $stmt = $this->connection->prepare($getUserQuery);
 
         try {
-            $result = $stmt->execute([$username, $hash]);
-            $user ??= $stmt->fetch();
-            if ($user) {
-                $response['success'] = true;
-            } else {
-                $response['success'] = false;
-                $response['error'] = "Invalid username or password";
-            }
-            echo json_encode($response);
+            $this->selectFollower->execute($input);
+
+            return ["success" => true, "data" => $this->selectFollower];
         } catch (Exception $e) {
-            $error = $e->errorInfo;
-            $response['success'] = false;
-            $response['error'] = $error[2];
-            echo json_encode($response);
+            return ["success" => false, "error" => "Connection failed: " . $e->getMessage(), "code" => $e->getCode()];
         }
     }
 
-    public function getUserById($id)
+    //$input -> ["username" => value, "passowrd" => value]
+    public function getUserByUsernameAndPassword($input)
     {
-        $response = array();
-        $getUserQuery = 'select * from user where id = ?';
-        $stmt = $this->connection->prepare($getUserQuery);
+
+        $hash = sha1($input["password"]);
 
         try {
-            $result = $stmt->execute([$id]);
-            $user ??= $stmt->fetch();
-            return $user;
+            $this->selectUser->execute(["username" => $input["username"], "password" => $hash]);
+            $user = $this->selectUser->fetch();
             if ($user) {
-                return $user;
+                return ["success" => true];
             }
+
+            return ["success" => false, "error" => "Invalid username or password", "code" => 403];
         } catch (Exception $e) {
-            return null;
+            return ["success" => false, "error" => "Connection failed: " . $e->getMessage(), "code" => $e->getCode()];
         }
-        return null;
+    }
+
+    //$input -> ["id" => value]
+    public function getUserById($input)
+    {
+        try {
+            $this->selectUserById->execute($input);
+
+            return ["success" => true, "data" => $this->selectUserById];
+        } catch (Exception $e) {
+            return ["success" => false, "error" => "Connection failed: " . $e->getMessage(), "code" => $e->getCode()];
+        }
+
+    }
+
+    function __destruct()
+    {
+        $this->connection = null;
+    }
+
+
+
+
+    //$input -> ["username" => value, "passowrd" => value]
+    public function insertNewUser($input)
+    {
+        $hash = sha1($input["password"]);
+        try {
+            $this->insertUser->execute(["username" => $input["username"], "password_hash" => $hash]);
+
+            return ["success" => true];
+        } catch (Exception $e) {
+            return ["success" => false, "error" => "Connection failed: " . $e->getMessage(), "code" => $e->getCode()];
+        }
+    }
+
+    //$input -> ["user" => value, "follower" => value]
+    public function insertNewFollower($input)
+    {
+        try {
+            $this->insertFollower->execute($input);
+
+            return ["success" => true];
+        } catch (Exception $e) {
+
+            return ["success" => false, "error" => "Connection failed: " . $e->getMessage(), "code" => $e->getCode()];
+
+        }
     }
 }
