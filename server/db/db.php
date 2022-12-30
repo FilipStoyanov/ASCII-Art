@@ -16,7 +16,7 @@ class DataBaseConnection
         try {
 
             $db_credentials = parse_ini_file("config.ini", true);
-            $this->connection = new PDO('mysql:host=localhost; dbname=ascii_art', $db_credentials["user"], $db_credentials["password"]);
+            $this->connection = new PDO('mysql:host=localhost; dbname=ascii_art1', $db_credentials["user"], $db_credentials["password"]);
 
             $this->prepareSQLStatements();
         } catch (PDOException $error) {

@@ -18,8 +18,9 @@
         />
         <button class="login-submit" type="button" onClick="listFellows(true)">Find my followers</button>
 
-      <table id="followers" name="Followers">
-            <tr>
+      <table id="followers-tb" name="Followers">
+        <caption>Followers</caption>    
+        <tr>
               <th>Id</th>
               <th>Name</th>
               <th>Link</th>
@@ -28,20 +29,15 @@
     </section>
 
     <section class="followings">
-      <label class="user-id" for="user-id">User Id</label>
-      <input
-        class="login-data login-input"
-        name="id"
-        id="user-id"
-        placeholder="User Id"
-      />
-      <button class="login-submit" type="button" onClick="listFellows(false)">Find my followers</button>
+      <button class="login-submit" type="button" onClick="listFellows(false)">Find my followings</button>
 
-    <table id="followers" name="Followers">
+    <table id="followings-tb" name="Followers">
+      <caption>Followings</caption>
           <tr>
             <th>Id</th>
             <th>Name</th>
             <th>Link</th>
+            <th>Action</th>
           </tr>
     </table>
   </section>

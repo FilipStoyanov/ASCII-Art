@@ -1,36 +1,16 @@
 <?php
 include_once("../db/db.php");
-class Follow
+class Fellow
 {
 
-    private $connection;
     private $response;
 
     public function __construct()
     {
-        $this->connection = new DatabaseConnection();
         $this->response = array();
     }
 
-    public function addFollower()
-    {
-        $addFollower = function ($user, $follower) {
-            return $this->connection->insertNewFollower($user, $follower);
-        };
-        return $this->updateFollower('POST', $addFollower);
-    }
-
-
-
-    public function removeFollower()
-    {
-        $deleteFollower = function ($user, $follower) {
-            return $this->connection->deleteFollower($user, $follower);
-        };
-        return $this->updateFollower('DELETE', $deleteFollower);
-    }
-
-    private function updateFollower($request_type, $update)
+    public function updateFollower($request_type, $update)
     {
         if ($_SERVER['REQUEST_METHOD'] == $request_type) {
             $data = (array) json_decode(file_get_contents('php://input'), JSON_UNESCAPED_UNICODE);
@@ -54,11 +34,11 @@ class Follow
             }
             try {
                 $update($user, $follower);
-                $response['success'] = true;
-                return json_encode($response);
+                $this->response['success'] = true;
+                return json_encode($this->response);
             } catch (Exception $e) {
-                $response['success'] = false;
-                return json_encode($response);
+                $this->response['success'] = false;
+                return json_encode($this->response);
             }
         }
         $this->response['success'] = false;
@@ -66,23 +46,7 @@ class Follow
         return json_encode($this->response);
     }
 
-
-    public function getFollowers()
-    {
-        return $this->getFellows(function ($user, $page, $limit) {
-            return $this->connection->getFollowers($user, $page, $limit);
-        },'followers');
-    }
-
-
-    public function getFollowings()
-    {
-        return $this->getFellows(function ($user, $page, $limit) {
-            return $this->connection->getFollowings($user, $page, $limit);
-        },'followings');
-    }
-
-    private function getFellows($search,$search_key)
+    public function getFellows($search,$search_key)
     {
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $data = (array) json_decode(file_get_contents('php://input'), JSON_UNESCAPED_UNICODE);
@@ -113,16 +77,16 @@ class Follow
             try {
                 $fellows = $search($user, $page, $limit);
             } catch (Exception $e) {
-                $response['success'] = false;
-                $response['error_message'] = $e->getMessage();
-                return json_encode($response);
+                $this->response['success'] = false;
+                $this->response['error_message'] = $e->getMessage();
+                return json_encode($this->response);
             }
             for ($i = 0; $i < count($fellows); ++$i) {
                 $fellows[$i] = $this->dropSensitiveInformation($fellows[$i]);
             }
-            $response[$search_key] = $fellows;
-            $response['success'] = true;
-            return json_encode($response);
+            $this->response[$search_key] = $fellows;
+            $this->response['success'] = true;
+            return json_encode($this->response);
         }
         $this->response['success'] = false;
         $this->response['error_message'] = 'WRONG HTTP Request method.';
@@ -142,7 +106,4 @@ class Follow
     }
 
 }
-
-$follow = new Follow();
-echo $follow->getFollowers();
 ?>
