@@ -1,5 +1,6 @@
 <?php
 include_once("../db/db.php");
+// include_once("./db/db.php");
 class Fellow
 {
 
@@ -27,7 +28,13 @@ class Fellow
 
             $user = $data['user'];
             $follower = $data['follower'];
-            if (!is_int($user) || !is_int($follower) || $user <= 0 || $follower <= 0) {
+            if(!is_int($user)){
+                $user = (int) $user;
+            }
+            if(!is_int($follower)){
+                $follower = (int) $follower;
+            }
+            if ($user <= 0 || $follower <= 0) {
                 $this->response['success'] = false;
                 $this->response['error_message'] = 'Invalid ids.';
                 return json_encode($this->response);
@@ -38,6 +45,7 @@ class Fellow
                 return json_encode($this->response);
             } catch (Exception $e) {
                 $this->response['success'] = false;
+                $this->response['error_message'] = $e->getMessage();
                 return json_encode($this->response);
             }
         }
@@ -81,6 +89,9 @@ class Fellow
                 $this->response['error_message'] = $e->getMessage();
                 return json_encode($this->response);
             }
+            $fellows = array_filter($fellows, function ($v) {
+                return $v !=null;
+            });
             for ($i = 0; $i < count($fellows); ++$i) {
                 $fellows[$i] = $this->dropSensitiveInformation($fellows[$i]);
             }
@@ -89,7 +100,6 @@ class Fellow
             return json_encode($this->response);
         }
         $this->response['success'] = false;
-        $this->response['error_message'] = 'WRONG HTTP Request method.';
         $this->response['error_message'] = 'WRONG HTTP Request method.';
         return json_encode($this->response);
     }

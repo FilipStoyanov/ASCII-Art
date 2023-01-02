@@ -50,18 +50,18 @@ class DataBaseConnection
 
     }
 
-    public function deleteFollower($user, $follower)
+    //$input -> ["user" => value, "follower" => value]
+    public function deleteFollower($input)
     {
-        $this->validateUsers([$user, $follower]);
-        $this->deleteFollower->execute(["user" => $user, "password_hash" => $follower]);
+        $this->validateUsers([$input['user'], $input['follower']]);
+        $this->deleteFollower->execute(["user" => $input['user'], "follower" => $input['follower']]);
     }
 
     private function validateUsers($users)
     {
         for ($i = 0; $i < count($users); ++$i) {
             if ($this->getUserById(['user'=>$users[$i]]) == null) {
-                http_response_code(404);
-                die();
+                throw new Exception('User with id '.+ $users[$i] . ' was not found.');
             }
         }
     }
@@ -82,7 +82,7 @@ class DataBaseConnection
     private function getFellows($user, $searched_value, $role, $page, $limit)
     {
 
-        if ($page != null && $page > 1) {
+        if ($page != null && $page >= 1) {
             $start = (($page - 1) * $limit);
         } else {
             $page = null;
@@ -93,16 +93,17 @@ class DataBaseConnection
             $query = $query . ' limit ' . $start . ', ' . $limit . '';
         }
         $stmt = $this->connection->prepare($query);
-
         $stmt->execute([$user]);
-        $fellows ??= $stmt->fetch();
-        $fellows_ids = array();
-        if ($fellows) {
-            foreach ($fellows as $key => $id)
-                $current_user = $this->getUserById(['user'=>$id]);
-            $fellows_ids[] = $current_user;
+        $fellows_ids ??= $stmt->fetchAll();
+        $fellows = array();
+        if ($fellows_ids) {
+            foreach ($fellows_ids as $fellow_id) {
+                $current_user = $this->getUserById(['user' => $fellow_id[0]]);
+                $fellows[] = $current_user;
+            }
+
         }
-        return $fellows_ids;
+        return $fellows;
     }
 
     public function getUserByName($username)
@@ -110,7 +111,6 @@ class DataBaseConnection
         $response = array();
         $result = $this->selectUserByName->execute(["username" => $username]);
         return $this->selectUserByName->fetch();
-
     }
 
 
@@ -141,12 +141,10 @@ class DataBaseConnection
         try {
             $result = $this->selectUserById->execute($input);
             $user ??= $this->selectUserById->fetch();
-            return $user;
             if ($user) {
                 return $user;
             }
         } catch (Exception $e) {
-            return $e;
             return null;
         }
         return null;
@@ -156,9 +154,6 @@ class DataBaseConnection
     {
         $this->connection = null;
     }
-
-
-
 
     //$input -> ["username" => value, "passowrd" => value]
     public function insertNewUser($input)
@@ -176,14 +171,7 @@ class DataBaseConnection
     //$input -> ["user" => value, "follower" => value]
     public function insertNewFollower($input)
     {
-        try {
-            $this->insertFollower->execute($input);
-
-            return ["success" => true];
-        } catch (Exception $e) {
-
-            return ["success" => false, "error" => "Connection failed: " . $e->getMessage(), "code" => $e->getCode()];
-
-        }
+        $this->validateUsers([$input['user'], $input['follower']]);
+        $this->insertFollower->execute($input);
     }
 }

@@ -1,6 +1,7 @@
 var baseUrl = 'http://localhost:80/project-web-2022/ASCII-Art/server/page_controllers/';
 
 function handleListFellows(response, type, userId) {
+  console.log('type: '.type);
   var tableName = type + '-tb';
   var table = document.getElementById(tableName);
   table.innerHTML = '';
@@ -25,11 +26,11 @@ function handleListFellows(response, type, userId) {
     let removeBtn = document.createElement("button");
     removeBtn.innerHTML = "Remove this user from " + type;
     removeBtn.onclick = function () {
-      if (type == 'follower') {
-        removeFollower(userId, item.id);
+      if (type == 'followers') {
+        removeFollower(userId, item.id,true);
         return;
       }
-      removeFollower(item.id, userId);
+      removeFollower(item.id, userId,false);
     };
     let remove = row.insertCell(3);
     remove.appendChild(removeBtn)
@@ -49,15 +50,16 @@ function handleErrorFollowers(response) {
 }
 
 function listFellows(searchFollowers) {
+  console.log(searchFollowers);
   var id = document.getElementById("user-id");
   var data = { 'user': id.value };
   var url;
-  var type;
+  var type='';
   if (searchFollowers) {
-    url = baseUrl + 'follower.php';
+    url = baseUrl + 'listFollowers.php';
     type = 'followers';
   } else {
-    url = baseUrl + 'following.php';
+    url = baseUrl + 'listFollowings.php';
     type = 'followings';
   }
   sendRequest(url, { method: 'POST', data: JSON.stringify(data) }, (response) => (handleListFellows(response, type, id.value)), handleErrorFollowers);
@@ -95,12 +97,26 @@ function addHeaders(table) {
   }
 }
 
-function removeFollower(user, follower) {
+function removeFollower(user, follower,changeFollowersTable) {
   console.log('Delete follower ' + follower + ' from user ' + user);
-  var url = baseUrl+'removeFollower.php';
-  sendRequest(url, { method: 'DELETE', data: JSON.stringify(data) }, handleRemoveFollower, handleRemoveFollower);
+  var url = baseUrl+'updateFollower.php';
+  var data = { 'user': user ,'follower':follower};
+  sendRequest(url, { method: 'DELETE', data: JSON.stringify(data) }, (response) => handleRemoveFollower(response,changeFollowersTable), handleErrorRemoveFollower);
 }
 
-function handleRemoveFollower(response){
+function handleRemoveFollower(response,searchFollowers){
+  console.log('Successfully deleted follower.');
+  listFellows(searchFollowers);
+}
 
+function handleErrorRemoveFollower(response) {
+  var errorMsg = document.getElementById("error-msg");
+
+  // if (response["error_message"]) {
+
+  errorMsg.style.display = "block";
+  errorMsg.innerHTML = response['error_message'];
+  // } else {
+  //   errorMsg.style.display = "none";
+  // }
 }
