@@ -7,6 +7,7 @@ class DataBaseConnection
     private $insertFollower;
     private $deleteFollower;
     private $selectFollower;
+    private $selectUserAndFollower;
     private $selectUser;
     private $selectUserByName;
     private $selectUserById;
@@ -38,11 +39,15 @@ class DataBaseConnection
 
         $sql = 'SELECT follower FROM follower WHERE user = :user';
         $this->selectFollower = $this->connection->prepare($sql);
+        
+        $sql = 'SELECT * FROM follower WHERE user = :user AND follower = :follower';
+        $this->selectUserAndFollower = $this->connection->prepare($sql);
 
         $sql = 'SELECT * FROM user WHERE username = :username AND password = :password';
         $this->selectUser = $this->connection->prepare($sql);
 
-        $sql = 'SELECT * FROM user WHERE username = :username';
+        // TODO like %:username%
+        $sql = "SELECT * FROM user WHERE username LIKE :username";
         $this->selectUserByName = $this->connection->prepare($sql);
 
         $sql = 'SELECT * FROM user WHERE id = :user';
@@ -108,9 +113,8 @@ class DataBaseConnection
 
     public function getUserByName($username)
     {
-        $response = array();
-        $result = $this->selectUserByName->execute(["username" => $username]);
-        return $this->selectUserByName->fetch();
+        $this->selectUserByName->execute(["username" => $username]);
+        return $this->selectUserByName->fetchAll();
     }
 
 
@@ -173,5 +177,53 @@ class DataBaseConnection
     {
         $this->validateUsers([$input['user'], $input['follower']]);
         $this->insertFollower->execute($input);
+    }
+
+    public function getAllFilteredUsers($userId,$page,$limit){
+        $users = $this->getAllUsers($page, $limit);    
+        // checks which user is follower to out user and set flag is_follower=True and check if it is a following and set is_following=True 
+        $users = array_map(function ($v) use  ($userId){
+            return $this->getFollowStatus($userId,$v);
+        }, $users);
+        return $users;
+    }
+
+    private function getFollowStatus($userId,$other){
+        $other['is_follower'] = $this->isFollower(['user'=>$userId,'follower'=> $other['id']]);
+        $other['is_following'] = $this->isFollower(['user'=>$other['id'],'follower'=> $userId]);
+        return $other;
+    }
+
+    private function isFollower($input){
+        $this->selectUserAndFollower->execute($input);
+        if( $this->selectUserAndFollower->fetch()==null){
+            return false;
+        }
+        return true;
+    }
+
+    public function getAllUsers($page,$limit){
+        if ($page != null && $page >= 1) {
+            $start = (($page - 1) * $limit);
+        } else {
+            $page = null;
+        }
+
+        $query = 'select * from user ';
+        if ($page != null) {
+            $query = $query . ' limit ' . $start . ', ' . $limit . '';
+        }
+        $stmt = $this->connection->prepare($query);
+        $stmt->execute([]);
+        $users_ids ??= $stmt->fetchAll();
+        $users = array();
+        if ($users_ids) {
+            foreach ($users_ids as $id) {
+                $current_user = $this->getUserById(['user' => $id[0]]);
+                $users[] = $current_user;
+            }
+
+        }
+        return $users;
     }
 }
