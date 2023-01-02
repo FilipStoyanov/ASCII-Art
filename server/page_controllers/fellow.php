@@ -28,10 +28,10 @@ class Fellow
 
             $user = $data['user'];
             $follower = $data['follower'];
-            if(!is_int($user)){
+            if (!is_int($user)) {
                 $user = (int) $user;
             }
-            if(!is_int($follower)){
+            if (!is_int($follower)) {
                 $follower = (int) $follower;
             }
             if ($user <= 0 || $follower <= 0) {
@@ -54,7 +54,7 @@ class Fellow
         return json_encode($this->response);
     }
 
-    public function getFellows($search,$search_key)
+    public function getFellows($search, $search_key)
     {
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $data = (array) json_decode(file_get_contents('php://input'), JSON_UNESCAPED_UNICODE);
@@ -65,7 +65,7 @@ class Fellow
                 return json_encode($this->response);
             }
 
-            if (!array_key_exists('page', $data) || $data['page'] == null || !is_int($data['page']) || $data['page']<=0) {
+            if (!array_key_exists('page', $data) || $data['page'] == null || !is_int($data['page']) || $data['page'] <= 0) {
                 $page = null;
                 $limit = null;
             } else {
@@ -74,7 +74,7 @@ class Fellow
             }
 
             $user = $data['user'];
-            if(!is_int($user)){
+            if (!is_int($user)) {
                 $user = (int) $user;
             }
             if ($user <= 0) {
@@ -89,12 +89,13 @@ class Fellow
                 $this->response['error_message'] = $e->getMessage();
                 return json_encode($this->response);
             }
-            $fellows = array_filter($fellows, function ($v) {
-                return $v !=null;
-            });
-            for ($i = 0; $i < count($fellows); ++$i) {
-                $fellows[$i] = $this->dropSensitiveInformation($fellows[$i]);
-            }
+            
+            $fellows = array_values(array_filter($fellows, function ($v) {
+                return $v != null;
+            }));
+            
+            $fellows = array_map(function ($v) {
+                return $this->dropSensitiveInformation($v); },$fellows);
             $this->response[$search_key] = $fellows;
             $this->response['success'] = true;
             return json_encode($this->response);

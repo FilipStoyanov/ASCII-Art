@@ -1,4 +1,5 @@
-var baseUrl = 'http://localhost:80/project-web-2022/ASCII-Art/server/page_controllers/';
+const dir = 'http://localhost:80/project-web-2022/ASCII-Art/';
+const baseUrl = dir + 'server/page_controllers/';
 
 function handleListFellows(response, type, userId) {
   console.log('type: '.type);
@@ -20,17 +21,17 @@ function handleListFellows(response, type, userId) {
     let date = row.insertCell(0);
     date.innerHTML = item.id;
     let name = row.insertCell(1);
-    name.innerHTML = item.name;
+    name.innerHTML = item.username;
     let link = row.insertCell(2);
-    link.innerHTML = 'There will be a link here.';
+    link.appendChild(createLink(item.id));
     let removeBtn = document.createElement("button");
     removeBtn.innerHTML = "Remove this user from " + type;
     removeBtn.onclick = function () {
       if (type == 'followers') {
-        removeFollower(userId, item.id,true);
+        removeFollower(userId, item.id, true);
         return;
       }
-      removeFollower(item.id, userId,false);
+      removeFollower(item.id, userId, false);
     };
     let remove = row.insertCell(3);
     remove.appendChild(removeBtn)
@@ -54,7 +55,7 @@ function listFellows(searchFollowers) {
   var id = document.getElementById("user-id");
   var data = { 'user': id.value };
   var url;
-  var type='';
+  var type = '';
   if (searchFollowers) {
     url = baseUrl + 'listFollowers.php';
     type = 'followers';
@@ -97,14 +98,14 @@ function addHeaders(table) {
   }
 }
 
-function removeFollower(user, follower,changeFollowersTable) {
+function removeFollower(user, follower, changeFollowersTable) {
   console.log('Delete follower ' + follower + ' from user ' + user);
-  var url = baseUrl+'updateFollower.php';
-  var data = { 'user': user ,'follower':follower};
-  sendRequest(url, { method: 'DELETE', data: JSON.stringify(data) }, (response) => handleRemoveFollower(response,changeFollowersTable), handleErrorRemoveFollower);
+  var url = baseUrl + 'updateFollower.php';
+  var data = { 'user': user, 'follower': follower };
+  sendRequest(url, { method: 'DELETE', data: JSON.stringify(data) }, (response) => handleRemoveFollower(response, changeFollowersTable), handleErrorRemoveFollower);
 }
 
-function handleRemoveFollower(response,searchFollowers){
+function handleRemoveFollower(response, searchFollowers) {
   console.log('Successfully deleted follower.');
   listFellows(searchFollowers);
 }
@@ -119,4 +120,13 @@ function handleErrorRemoveFollower(response) {
   // } else {
   //   errorMsg.style.display = "none";
   // }
+}
+
+function createLink(userId) {
+  var a = document.createElement('a');
+  var linkText = document.createTextNode("user info");
+  a.appendChild(linkText);
+  a.target = '_blank';
+  a.href = dir + 'frontend/html/userInfo.html?user=' + userId;
+  return a;
 }
