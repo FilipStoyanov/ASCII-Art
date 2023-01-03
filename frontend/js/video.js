@@ -19,7 +19,7 @@ class Options {
         this.time = time;
         this.color = color;
         this.background = background;
-        this.frames = Array(10);
+        this.frames = [];
     }
 
     update_frames() {
@@ -53,6 +53,61 @@ var Options_vid = new Options("null", 2000, "#ffffff", "#000000");
 //         });
 //     }
 // }
+
+function sendRequest(url, options, successCallback, errorCallback) {
+    var request = new XMLHttpRequest();
+
+    request.onload = function () {
+        var response = JSON.parse(request.responseText);
+
+        if (request.status === 200) {
+            successCallback(response);
+        } else {
+            console.log('Not authorized')
+            errorCallback(response);
+        }
+    }
+
+    request.open(options.method, url, true);
+    request.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+    request.send(options.data);
+}
+
+function refreshAsciiEditor(response) {
+    if (response["success"]) {
+        errorMsgForAsciiName.style.display = "none";
+        //   window.location.assign("editor.html");
+    } else {
+        if (response["errors"]) {
+            errorMsgForAsciiName.style.display = "block";
+            errorMsgForAsciiName.innerHTML = "Ascii picture with this name already exists";
+        } else {
+            errorMsgForAsciiName.style.display = "none";
+        }
+    }
+}
+
+function handleErrorAddAscii(response) {
+    console.log(response);
+    if (response["errors"]) {
+        //   errorMsgForLogin.style.display = "block";
+        //   errorMsgForLogin.innerHTML = "A user with this username already exists.";
+    } else {
+        console.log("error");
+        //   errorMsgForLogin.style.display = "none";
+    }
+}
+
+function saveVideo() {
+
+    document.getElementsByClassName("ascii-form")[0].addEventListener("submit", function (event) {
+        if (Options_vid.length > 2) {
+            // console.log(JSON.stringify(Options_vid));
+            sendRequest('../../server/page_controllers/ascii-video-editor/save-video.php', { method: 'POST', data: `data=${JSON.stringify(Options_vid)}` }, refreshAsciiEditor, handleErrorAddAscii);
+        }
+        event.preventDefault();
+    });
+}
 
 function addNewFrame() {
 
@@ -108,6 +163,11 @@ function makeVideo() {
                 for (let i = 0; i < length; i++) {
                     previous_video[0].remove();
                 }
+            }
+
+            let length = Options_vid.frames.length;
+            for (let i = 0; i < length; i++) {
+                Options_vid.frames.pop();
             }
 
             for (let i = 0; i < number_of_frames; i++) {
@@ -261,4 +321,5 @@ document.addEventListener("DOMContentLoaded", function (event) {
     addAsciiCharacters();
     toggleAsciiCharacters();
     chooseCharacter();
+    saveVideo();
 });
