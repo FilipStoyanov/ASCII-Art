@@ -8,16 +8,19 @@
   </head>
   <body>
     <p id="error-msg" class="error-msg error-dup-username"></p>
-    <section class="followers">
-        <label class="user-id" for="user-id">User Id</label>
-        <input
-          class="login-data login-input"
-          name="id"
-          id="user-id"
-          placeholder="User Id"
-        />
-        <button class="login-submit" type="button" onClick="listFellows(true)">Find my followers</button>
+    <label class="user-id" for="user-id">User Id</label>
+    <input
+      class="login-data login-input"
+      name="id"
+      id="user-id"
+      placeholder="User Id"
+    />
+    <div class="tab">
+      <button class="tablinks" onclick="openTab(event, 'followers-section')">My followers</button>
+      <button class="tablinks" onclick="openTab(event, 'followings-section')">My followings</button>
 
+    </div>
+    <section id="followers-section" class="tabcontent">
       <table id="followers-tb" name="Followers">
         <caption>Followers</caption>    
         <tr>
@@ -28,8 +31,7 @@
       </table>
     </section>
 
-    <section class="followings">
-      <button class="login-submit" type="button" onClick="listFellows(false)">Find my followings</button>
+    <section id="followings-section" class="tabcontent">
 
     <table id="followings-tb" name="Followers">
       <caption>Followings</caption>

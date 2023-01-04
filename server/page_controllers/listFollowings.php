@@ -15,9 +15,12 @@ class Following
 
     public function getFollowings()
     {
+        $url = $_SERVER['REQUEST_URI'];
+        $components = parse_url($url);
+        parse_str($components['query'], $pathParameters);
         return $this->fellow->getFellows(function ($user, $page, $limit) {
             return $this->connection->getFollowings($user, $page, $limit);
-        },'followings');
+        },'followings', $pathParameters);
     }
 
 }

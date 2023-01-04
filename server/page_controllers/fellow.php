@@ -54,26 +54,25 @@ class Fellow
         return json_encode($this->response);
     }
 
-    public function getFellows($search, $search_key)
+    public function getFellows($search, $search_key,$pathParameters)
     {
-        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-            $data = (array) json_decode(file_get_contents('php://input'), JSON_UNESCAPED_UNICODE);
+        if ($_SERVER['REQUEST_METHOD'] == 'GET') {
 
-            if (!array_key_exists('user', $data) || $data['user'] == null) {
+            if (!array_key_exists('user', $pathParameters) || $pathParameters['user'] == null) {
                 $this->response['success'] = false;
                 $this->response['error_message'] = 'User is not chosen.';
                 return json_encode($this->response);
             }
 
-            if (!array_key_exists('page', $data) || $data['page'] == null || !is_int($data['page']) || $data['page'] <= 0) {
+            if (!array_key_exists('page', $pathParameters) || $pathParameters['page'] == null || !is_int($pathParameters['page']) || $pathParameters['page'] <= 0) {
                 $page = null;
                 $limit = null;
             } else {
-                $page = $data['page'];
+                $page = $pathParameters['page'];
                 $limit = 20;
             }
 
-            $user = $data['user'];
+            $user = $pathParameters['user'];
             if (!is_int($user)) {
                 $user = (int) $user;
             }

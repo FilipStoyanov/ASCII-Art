@@ -1,6 +1,29 @@
 const dir = 'http://localhost:80/project-web-2022/ASCII-Art/';
 const baseUrl = dir + 'server/page_controllers/';
 
+function openTab(event, sectionName) {
+  console.log('aaaaaaa');
+  var id = document.getElementById("user-id");
+  if (id.value == '') {
+    var errorMsg = document.getElementById("error-msg");
+    errorMsg.style.display = "block";
+    errorMsg.innerHTML = 'User is not chosen.';
+    return;
+  }
+  var i, tabcontent, tablinks;
+  tabcontent = document.getElementsByClassName("tabcontent");
+  for (i = 0; i < tabcontent.length; i++) {
+    tabcontent[i].style.display = "none";
+  }
+  tablinks = document.getElementsByClassName("tablinks");
+  for (i = 0; i < tablinks.length; i++) {
+    tablinks[i].className = tablinks[i].className.replace(" active", "");
+  }
+  document.getElementById(sectionName).style.display = "block";
+  event.currentTarget.className += " active";
+  listFellows(sectionName == 'followers-section');
+}
+
 function handleListFellows(response, type, userId) {
   console.log('type: '.type);
   var tableName = type + '-tb';
@@ -53,7 +76,6 @@ function handleErrorFollowers(response) {
 function listFellows(searchFollowers) {
   console.log(searchFollowers);
   var id = document.getElementById("user-id");
-  var data = { 'user': id.value };
   var url;
   var type = '';
   if (searchFollowers) {
@@ -63,7 +85,9 @@ function listFellows(searchFollowers) {
     url = baseUrl + 'listFollowings.php';
     type = 'followings';
   }
-  sendRequest(url, { method: 'POST', data: JSON.stringify(data) }, (response) => (handleListFellows(response, type, id.value)), handleErrorFollowers);
+  url+='?user='+id.value+'&&page='+1
+  console.log(url);
+  sendRequest(url, { method: 'GET', data: '' }, (response) => (handleListFellows(response, type, id.value)), handleErrorFollowers);
 }
 
 

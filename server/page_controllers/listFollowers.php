@@ -16,9 +16,12 @@ class Follower
 
     public function getFollowers()
     {
+        $url = $_SERVER['REQUEST_URI'];
+        $components = parse_url($url);
+        parse_str($components['query'], $pathParameters);
         return $this->fellow->getFellows(function ($user, $page, $limit) {
             return $this->connection->getFollowers($user, $page, $limit);
-        },'followers');
+        },'followers',$pathParameters);
     }
 }
 
