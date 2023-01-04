@@ -14,10 +14,6 @@
     zoom: 100%;
 }
 
-.draw-field.delete-symbol {
-    cursor: cell;
-}
-
 #draw-field {
     zoom: 100%;
 }
@@ -42,6 +38,42 @@
     border-radius: 8px;
     padding: 15px;
     margin: 20px;
+}
+
+.ascii-form {
+    display: block;
+}
+
+.editor-menu.update-ascii .ascii-form {
+    display: none;
+}
+
+.ascii-picture-error {
+    margin-top: 0;
+}
+
+.delete-ascii {
+    display: none;
+    color: var(--error);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    font-size: var(--normal-font);
+    border: none;
+    background: none;
+    margin: 15px auto;
+    cursor: pointer;
+}
+
+.ascii-name-update {
+    display: none;
+}
+
+.editor-menu.update-ascii .ascii-name-update {
+    display: block;
+}
+
+.editor-menu.update-ascii .delete-ascii {
+    display: block;
 }
 
 .menu {
@@ -95,7 +127,10 @@
     margin-bottom: 15px;
 }
 
-.letter-btn {
+.selected-ascii {
+    display: flex;
+    align-items: center;
+    justify-content: center;
     position: absolute;
     top: 0;
     right: 0;
@@ -142,7 +177,9 @@
 .color-palette, .fill-color {
     position: absolute;
     right: 5px;
-    top:7.5px;
+    top: 5px;
+    width: 30px;
+    height: 30px;
 }
 
 .fill-btn:focus {
@@ -183,3 +220,101 @@
     text-indent: 10px;
     margin-bottom: 10px;
 }
+
+
+/* Modal */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgb(0,0,0);
+    background-color: rgba(0,0,0,0.8);
+  }
+
+  .editor.show-modal .modal {
+    display: block;
+  }
+  
+  .modal-content {
+    position: relative;
+    background-color: #fefefe;
+    margin: auto;
+    top: 50%;
+    transform: translateY(-60%);
+    padding: 0;
+    border-radius: 10px;
+    width: 30%;
+    box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);
+    -webkit-animation-name: animatetop;
+    -webkit-animation-duration: 0.4s;
+    animation-name: animatetop;
+    animation-duration: 0.4s
+  }
+  
+  .close {
+    color: white;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+  }
+  
+  .close:hover,
+  .close:focus {
+    color: #000;
+    text-decoration: none;
+    cursor: pointer;
+  }
+  
+  .modal-header {
+    padding: 2px 16px;
+    background-color: var(--error);
+    color: white;
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+  }
+  
+  .modal-body {
+    padding: 2px 16px; 
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+  }
+  
+  .modal-footer {
+    padding: 2px 16px;
+    background-color: var(--error);
+    color: white;
+    border-bottom-left-radius: 10px;
+    border-bottom-right-radius: 10px;
+    min-height: 20px;
+  }
+
+
+/* CSS media queries */
+@media screen and (max-width: 1200px) {
+    .editor-menu {
+        position: relative;
+        width: calc(100% - 30px);
+        left: 0;
+        right: 0;
+        max-width: calc(100% - 30px);
+        margin:0;
+    }
+    .editor {
+        display: block;
+    }
+    .draw-field {
+        width: 100%;
+    }
+    .ascii-fieldset input {
+        display: block;
+    }
+    .modal-content {
+        width: 80%;
+    }
+  }

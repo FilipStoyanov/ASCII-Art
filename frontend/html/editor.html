@@ -14,12 +14,13 @@
                 <ul class="menu">
                     <li class="menu-item">
                         <select class="menu-select" id="pictures">
-                            <option selected disabled>Избери ASCII картинка</option>
+                            <option selected value="">Нова ASCII картинка</option>
                         </select>
                     </li>
+                    <li class="error-msg ascii-picture-error"></li>
                     <li class="menu-item">
-                        <button class="menu-button" id="chosen-letter">Символ</button>
-                        <button class="letter-btn">X</button>
+                        <button class="menu-button character-btn" id="letter-btn">Символ <span class="selected-ascii">X</span></button>
+                        <!-- <button class="letter-btn">X</button> -->
                         <div class="letters"></div>
                     </li>
                     <li class="menu-item">
@@ -32,9 +33,6 @@
                         <button class="menu-button fill-btn">Запълване със символи
                     </li>
                     <li class="menu-item">
-                        <button class="menu-button clear-btn">Изчисти запълващ цвят
-                    </li>
-                    <li class="menu-item">
                         <button class="menu-button clear-symbols">Изчисти символи
                     </li>
                 </ul>
@@ -42,12 +40,35 @@
                     <fieldset class="ascii-fieldset">
                         <label for="ascii-name">Въведи име за картинката</label>
                         <input type = "text" id="ascii-name" name = "ascii-name" placeholder="Име на картинката" required> 
-                        <button type="submit" class="save">Запази</button>
+                        <button type="submit" class="save save-new">Запази</button>
                         <p class="error-msg ascii-error"></p>
                     </fieldset>
                 </form>
+                <form class="ascii-name-update">
+                    <fieldset class="ascii-fieldset">
+                        <label for="name-update">Промени името на картинката</label>
+                        <input type = "text" id="name-update" name = "name-update" placeholder="Име на картинката" required> 
+                        <button type="submit" class="save save-update">Запази промените</button>
+                        <p class="error-msg update-ascii-error"></p>
+                    </fieldset>
+                </form>
+                <button type="submit" class="delete-ascii">Изтрий тази Ascii картинка</button>
             </div>
             <canvas class="draw-field" id="drawer"></canvas>
+            <div id="modal" class="modal">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <span class="close">&times;</span>
+                    <h2>Внимание!</h2>
+                  </div>
+                  <div class="modal-body">
+                    <p>Some text in the Modal Body</p>
+                    <p>Some other text...</p>
+                  </div>
+                  <div class="modal-footer">
+                  </div>
+                </div>
+              </div>
         </section>
     </body>
 </html>

@@ -7,9 +7,12 @@ class DataBaseConnection
     private $insertFollower;
     private $insertNewAsciiText;
     private $selectAsciiPictures;
+    private $selectAsciiPicture;
     private $selectFollower;
     private $selectUser;
     private $selectUserById;
+    private $updateAsciiPicture;
+    private $removeAsciiPicture;
 
     public function __construct()
     {
@@ -47,6 +50,15 @@ class DataBaseConnection
 
         $sql = 'SELECT name from pictures where owner_id = :owner_id';
         $this->selectAsciiPictures = $this->connection->prepare($sql);
+
+        $sql = 'SELECT value, color, name from pictures where owner_id = :owner_id and name = :name';
+        $this->selectAsciiPicture = $this->connection->prepare($sql);
+
+        $sql = 'UPDATE pictures set value = :value, color = :color, name = :name where owner_id = :owner_id and name = :previous_name';
+        $this->updateAsciiPicture = $this->connection->prepare($sql);
+
+        $sql = 'DELETE from pictures where owner_id = :owner_id and name = :name';
+        $this->removeAsciiPicture = $this->connection->prepare($sql);
     }
 
     //$input -> ["username" => value, "passowrd" => value]
@@ -121,7 +133,7 @@ class DataBaseConnection
 
     }
 
-    //$input -> ["value" => value, "name" => value, "color" => value, "owner_id" => value]
+    //$input -> ["value" => value, "name" => value, "color" => value, "owner_id" => value, "previous_name" => value]
     public function insertNewAsciiText($input) {
         try {
             $this->insertNewAsciiText->execute($input);
@@ -137,6 +149,37 @@ class DataBaseConnection
             $this->selectAsciiPictures->execute($input);
             $asciiPictures = $this->selectAsciiPictures->fetchAll();
             return ["success" => true, "data" => $asciiPictures];
+        }catch(Exception $e) {
+            return ["success" => false, "error" => "Connection failed: " . $e->getMessage(), "code" => $e->getCode()];
+        }
+    }
+
+    //$input -> ["owner_id" => value, "name" => value]
+    public function getAsciiPictureByName($input) {
+        try {
+            $this->selectAsciiPicture->execute($input);
+            $asciiPicture = $this->selectAsciiPicture->fetchAll();
+            return ["success" => true, "data" => $asciiPicture];
+        }catch(Exception $e) {
+            return ["success" => false, "error" => "Connection failed: " . $e->getMessage(), "code" => $e->getCode()];
+        }
+    }
+
+    //$input -> ["value" => value, "color" => value, "name" => value, "owner_id" => value]
+    public function updateAsciiPicture($input) {
+        try {
+            $this->updateAsciiPicture->execute($input);
+            return ["success" => true];
+        }catch(Exception $e) {
+            return ["success" => false, "error" => "Connection failed: " . $e->getMessage(), "code" => $e->getCode()];
+        }
+    }
+
+    //$input -> ["owner_id" => value, "name" => value]
+    public function deleteAsciiPicture($input) {
+        try {
+            $this->removeAsciiPicture->execute($input);
+            return ["success" => true];
         }catch(Exception $e) {
             return ["success" => false, "error" => "Connection failed: " . $e->getMessage(), "code" => $e->getCode()];
         }
