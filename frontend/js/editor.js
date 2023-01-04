@@ -237,8 +237,8 @@ function getAsciiPicture(value) {
     data["owner_id"] = 1;
     data["name"] = value;
     sendRequest(
-        "../../server/page_controllers/ascii-editor/get-ascii-picture.php",
-        { method: "POST", data: `data=${JSON.stringify(data)}` },
+        `../../server/page_controllers/ascii-editor/get-ascii-picture.php?user=${data['owner_id']}&name=${data['name']}`,
+        { method: "GET", data: '' },
         loadAsciiPicture,
         handleErrorAscii,
     );
@@ -284,10 +284,11 @@ function loadAsciiPicture(response) {
 function loadAllAsciiPictures() {
     var data = {};
     // TODO: get the id of the current user
-    data["owner_id"] = 1;
+    // data["owner_id"] = 1;
+    const userId = 1;
     sendRequest(
-        "../../server/page_controllers/ascii-editor/get-ascii-names.php",
-        { method: "POST", data: `data=${JSON.stringify(data)}` },
+        "../../server/page_controllers/ascii-editor/get-ascii-names.php?user=" + userId,
+        { method: "GET", data: '' },
         addOptionsToSelect,
         handleErrorAscii
     );
