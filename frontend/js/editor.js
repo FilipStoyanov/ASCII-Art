@@ -19,6 +19,7 @@ var drawField = document.getElementsByClassName("draw-field")[0];
 var toggleButtonForColors = document.getElementsByClassName("color-btn")[0];
 var selectFromAsciiNames = document.getElementsByClassName("menu-select")[0];
 var deleteBtn = document.getElementsByClassName("delete-ascii")[0];
+var pageUrl = new URL("http://localhost/ASCII-Art/frontend/html/editor.html");
 
 var updateNameInput = document.getElementById("name-update");
 var selectedAsciiFile;
@@ -176,7 +177,18 @@ function addOptionsToSelect(response) {
         let rows = response[0];
         for (let i = 0; i < rows.length; ++i) {
             selectFromAsciiNames.options[selectFromAsciiNames.options.length] =
-                new Option(rows[i].name, rows[i].name);
+            new Option(rows[i].name, rows[i].name);
+        }
+        const url = window.location.href;
+        const urlObj = new URL(url);
+        let search, searchParams;
+        if(urlObj && urlObj.search) {
+            search = urlObj.search.substring(1);
+            searchParams = JSON.parse('{"' + decodeURI(search).replace(/"/g, '\\"').replace(/&/g, '","').replace(/=/g,'":"') + '"}');
+            if(searchParams && searchParams['ascii-name']) {
+                const option = Array.from(selectFromAsciiNames.options).find(option => option.value === searchParams["ascii-name"]);
+                option.selected = true;
+            }
         }
     }
 }
@@ -188,11 +200,13 @@ function selectOptionFromFileNames() {
             selectedAsciiFile = event.target.value;
             asciiSymbols = [];
             if (selectedAsciiFile) {
+                updateSearchParams(event.target.value);
                 document.getElementsByClassName("editor-menu")[0].classList.add("update-ascii");
                 getAsciiPicture(selectedAsciiFile);
                 updateNameInput.value = selectedAsciiFile;
                 asciiName = selectedAsciiFile;
             } else {
+                deleteSearchParams();
                 document.getElementsByClassName("editor-menu")[0].classList.remove("update-ascii");
             }
         })
@@ -221,6 +235,7 @@ function removeAsciiPicture(name) {
 function deleteAsciiPicture(response) {
     showModalForSeconds(true);
     if (response["success"]) {
+        deleteSearchParams();
         document.getElementsByClassName("modal-header")[0].style.backgroundColor = "#4BB543";
         document.getElementsByClassName("modal-footer")[0].style.backgroundColor = "#4BB543";
         modalContent.innerHTML = "Ascii картинката беше изтрита успешно."
@@ -294,14 +309,31 @@ function loadAllAsciiPictures() {
     );
 }
 
+function loadCurrentAsciiPicture() {
+    const url = window.location.href;
+    const urlObj = new URL(url);
+    let search, searchParams;
+    if(urlObj && urlObj.search) {
+        search = urlObj.search.substring(1);
+        searchParams = JSON.parse('{"' + decodeURI(search).replace(/"/g, '\\"').replace(/&/g, '","').replace(/=/g,'":"') + '"}');
+    }
+    if(searchParams && searchParams['ascii-name']) {
+        getAsciiPicture(searchParams['ascii-name']);
+        document.getElementsByClassName("editor-menu")[0].classList.add("update-ascii");
+        updateNameInput.value = searchParams['ascii-name'];
+        asciiName = selectedAsciiFile;
+    }
+}
+
 // call functions after DOM is loaded
 document.addEventListener("DOMContentLoaded", function (event) {
+    selectOptionFromFileNames();
     loadAllAsciiPictures();
+    loadCurrentAsciiPicture();
     changeAsciiName();
     addAsciiCharacters();
     toggleAsciiCharacters();
     chooseCharacter();
-    selectOptionFromFileNames();
     setColors();
     clickButtonForFillingColor();
     saveAsciiPicture();
@@ -640,7 +672,7 @@ function updateAsciiPicture() {
             // replace later
             data["owner_id"] = 1;
             data["value"] = asciiText;
-            data["name"] = asciiName;
+            data["name"] = updateNameInput.value;
             data["color"] = chosenColor;
             data["previous_name"] = document.getElementsByClassName("menu-select")[0].value;
             event.preventDefault();
@@ -663,9 +695,21 @@ function showModalForSeconds(reload = false) {
     }, 2000);
 }
 
+function updateSearchParams(asciiName) {
+    pageUrl.searchParams.delete("ascii-name");
+    pageUrl.searchParams.append("ascii-name", asciiName);
+    window.history.pushState({}, "", pageUrl);
+}
+
+function deleteSearchParams() {
+    pageUrl.searchParams.delete("ascii-name");
+    window.history.pushState({}, "", pageUrl);
+}
+
 function updatedSuccessfully(response) {
     showModalForSeconds(true);
     if (response["success"]) {
+        updateSearchParams(updateNameInput.value);
         document.getElementsByClassName("modal-header")[0].style.backgroundColor = "#4BB543";
         document.getElementsByClassName("modal-footer")[0].style.backgroundColor = "#4BB543";
         modalContent.innerHTML = "Ascii картинката беше променена успешно."
@@ -677,8 +721,10 @@ function updatedSuccessfully(response) {
 }
 
 function addedSuccessfully(response) {
+    console.log(response);
     if (response["success"]) {
         showModalForSeconds(true);
+        updateSearchParams(response["data"]["name"]);
         document.getElementsByClassName("modal-header")[0].style.backgroundColor = "#4BB543";
         document.getElementsByClassName("modal-footer")[0].style.backgroundColor = "#4BB543";
         modalContent.innerHTML = "Ascii картинката беше добавена успешно";

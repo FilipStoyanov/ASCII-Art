@@ -34,7 +34,7 @@ class AsciiEditor
                 $owner_id = 1; // TODO: get current user id
                 $query = $this->connection->insertNewAsciiText(["value" => json_encode($value), "name" => $name, "color" => $color, "owner_id" => $owner_id]);
                 if ($query["success"]) {
-                    echo json_encode(["success" => true, "message" => "Successfully added ascii text"]);
+                    echo json_encode(["success" => true, "data" => $data, "message" => "Successfully added ascii text"]);
                 } else {
                     echo json_encode(["success" => false, "errors" => $query["error"], "code" => $query["code"], "message" => "Ascii picture with this name already exists."]);
                 }
