@@ -2,10 +2,10 @@ const dir = 'http://localhost:80/project-web-2022/ASCII-Art/';
 const baseUrl = dir + 'server/page_controllers/';
 
 function openTab(event, sectionName) {
-  console.log('aaaaaaa');
+  var errorMsg = document.getElementById("error-msg");
+  errorMsg.style.display = "";
   var id = document.getElementById("user-id");
   if (id.value == '') {
-    var errorMsg = document.getElementById("error-msg");
     errorMsg.style.display = "block";
     errorMsg.innerHTML = 'User is not chosen.';
     return;
