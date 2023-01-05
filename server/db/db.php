@@ -64,10 +64,10 @@ class DataBaseConnection
         $sql = 'SELECT name from pictures where owner_id = :owner_id';
         $this->selectAsciiPictures = $this->connection->prepare($sql);
 
-        $sql = 'SELECT value, color, name from pictures where owner_id = :owner_id and name = :name';
+        $sql = 'SELECT value, color, name, created_at, updated_at from pictures where owner_id = :owner_id and name = :name';
         $this->selectAsciiPicture = $this->connection->prepare($sql);
 
-        $sql = 'UPDATE pictures set value = :value, color = :color, name = :name where owner_id = :owner_id and name = :previous_name';
+        $sql = 'UPDATE pictures set value = :value, color = :color, name = :name, updated_at = current_timestamp where owner_id = :owner_id and name = :previous_name';
         $this->updateAsciiPicture = $this->connection->prepare($sql);
 
         $sql = 'DELETE from pictures where owner_id = :owner_id and name = :name';

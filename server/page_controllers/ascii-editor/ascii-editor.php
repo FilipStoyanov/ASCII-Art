@@ -83,7 +83,7 @@ class AsciiEditor
                 !array_key_exists('user', $pathParameters) || $pathParameters['user'] == null ||
                 !array_key_exists('name', $pathParameters) || $pathParameters['name'] == null
             ) {
-                echo json_encode(["success" => false]);
+                echo json_encode(["success" => false, "error" => "Invalid user id or ascii name "]);
             }
             $user = $pathParameters['user'];
             $asciiName = $pathParameters['name'];

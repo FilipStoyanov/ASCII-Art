@@ -1,10 +1,6 @@
 var canvas = document.querySelector("#drawer");
 var context = canvas.getContext("2d");
 let CELL_SIZE = 20;
-var cameraZoom = 1;
-const MAX_ZOOM = 5;
-const MIN_ZOOM = 0.1;
-const SCROLL_SENSITIVITY = 0.0005;
 var toggleButtonForAsciiLetters =
     document.getElementById("letter-btn");
 var letters = document.getElementsByClassName("letter");
@@ -33,6 +29,22 @@ var modal = document.getElementById("modal");
 var modalContent = document.getElementsByClassName("modal-body")[0]
 var modalCloseBtn = document.getElementsByClassName("close")[0];
 
+function sendRequest(url, options, successCallback, errorCallback) {
+    var request = new XMLHttpRequest();
+    request.onload = function () {
+        var response = JSON.parse(request.responseText);
+        if (request.status === 200) {
+            successCallback(response);
+        } else {
+            console.log("Not authorized");
+            errorCallback(response);
+        }
+    };
+    request.open(options.method, url, true);
+    request.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+    request.send(options.data);
+}
+
 function modalFunctionality() {
 
     modalCloseBtn.onclick = function () {
@@ -48,21 +60,6 @@ function modalFunctionality() {
             window.location.reload();
         }
     }
-}
-function sendRequest(url, options, successCallback, errorCallback) {
-    var request = new XMLHttpRequest();
-    request.onload = function () {
-        var response = JSON.parse(request.responseText);
-        if (request.status === 200) {
-            successCallback(response);
-        } else {
-            console.log("Not authorized");
-            errorCallback(response);
-        }
-    };
-    request.open(options.method, url, true);
-    request.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-    request.send(options.data);
 }
 
 // STORE MATRIX TEXT
@@ -273,7 +270,7 @@ function loadAsciiPicture(response) {
     document.getElementById("color").value = response[0][0].color;
     chosenColor = response[0][0].color;
     const START_X = 0;
-    const START_Y = 0;
+    const START_Y = CELL_SIZE;
     let currentX, currentY;
     let lines = response[0][0].value.substring(1, response[0][0].value.length - 1).split("\\n");
     let color = response[0][0].color;
@@ -289,6 +286,18 @@ function loadAsciiPicture(response) {
                 y: currentY,
                 symbol: lines[i][j],
             };
+            if (currentY / CELL_SIZE < minRow) {
+                minRow = currentY / CELL_SIZE;
+            }
+            if (currentY / CELL_SIZE > maxRow) {
+                maxRow = currentY / CELL_SIZE;
+            }
+            if (currentX / CELL_SIZE < minCol) {
+                minCol = currentX / CELL_SIZE;
+            }
+            if (currentX / CELL_SIZE > maxCol) {
+                maxCol = currentX / CELL_SIZE;
+            }
             currentX += CELL_SIZE;
             ++asciiCounter;
         }
@@ -371,10 +380,6 @@ function initializeDimensions() {
     }
     numberOfColumns = Math.floor(context.canvas.width / CELL_SIZE);
     numberOfRows = Math.floor(canvas.height / CELL_SIZE);
-    minRow = 0;
-    maxRow = numberOfRows;
-    minCol = 0;
-    maxCol = numberOfColumns;
 }
 
 function initializeMatrix() {
@@ -625,7 +630,7 @@ function saveAsciiPicture() {
                 i < maxRow * Math.floor(canvas.width / CELL_SIZE) + maxCol + 1;
                 ++i
             ) {
-                if (i % Math.floor(canvas.width / CELL_SIZE) == 0) {
+                if (i % Math.floor(canvas.width / CELL_SIZE) == 0 && i > minRow * Math.floor(canvas.width / CELL_SIZE) ) {
                     result += "\n";
                 }
                 if (asciiSymbols[i] && asciiSymbols[i].symbol) {
@@ -655,7 +660,7 @@ function updateAsciiPicture() {
         .addEventListener("submit", function (event) {
             let result = "";
             for (
-                let i = minRow * Math.floor(canvas.width / CELL_SIZE) + minCol;
+                let i = minRow * Math.floor(canvas.width / CELL_SIZE) + minCol - 1;
                 i < maxRow * Math.floor(canvas.width / CELL_SIZE) + maxCol + 1;
                 ++i
             ) {
@@ -716,7 +721,7 @@ function updatedSuccessfully(response) {
     } else {
         document.getElementsByClassName("modal-header")[0].style.backgroundColor = "#FF0000";
         document.getElementsByClassName("modal-footer")[0].style.backgroundColor = "#FF0000";
-        modalContent.innerHTML = "Възникна грешка. Картинката НЕ е изтрита успешно. Опитай отново."
+        modalContent.innerHTML = "Възникна грешка. Картинката НЕ е променена успешно. Опитай отново."
     }
 }
 
