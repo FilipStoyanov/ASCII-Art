@@ -1,6 +1,35 @@
 const dir = 'http://localhost:80/project-web-2022/ASCII-Art/';
 const baseUrl = dir + 'server/page_controllers/';
 
+function openTab(event, sectionName) {
+  updateButtonsMode('prevPage', true);
+  updateButtonsMode('nextPage', false);
+  var errorMsg = document.getElementById("error-msg");
+  errorMsg.style.display = "";
+  var id = document.getElementById("user-id");
+  if (id.value == '') {
+    errorMsg.style.display = "block";
+    errorMsg.innerHTML = 'User is not chosen.';
+    return;
+  }
+  var i, tabcontent, tablinks;
+  tabcontent = document.getElementsByClassName("tabcontent");
+  for (i = 0; i < tabcontent.length; i++) {
+    tabcontent[i].style.display = "none";
+  }
+  tablinks = document.getElementsByClassName("tablinks");
+  for (i = 0; i < tablinks.length; i++) {
+    tablinks[i].className = tablinks[i].className.replace(" active", "");
+  }
+  document.getElementById(sectionName).style.display = "block";
+  event.currentTarget.className += " active";
+  sessionStorage.setItem('page', 1);
+  if (sectionName == 'users-section') {
+    listUsers();
+  }
+}
+
+
 function handleListUsers(response, type, userId) {
   var tableName = type + '-tb';
   var table = document.getElementById(tableName);
@@ -9,11 +38,15 @@ function handleListUsers(response, type, userId) {
 
   console.log(response);
   var users = response['users'];
+  if (users.length < 20) {
+    updateButtonsMode('nextPage', true);
+  }
   if (users.length == 0) {
     console.log('No users found.')
     // TODO add message on the UI or something else
     return;
   }
+
   users.forEach(item => {
     let row = table.insertRow();
     let date = row.insertCell(0);
@@ -22,12 +55,11 @@ function handleListUsers(response, type, userId) {
     name.innerHTML = item.username;
     let link = row.insertCell(2);
     link.appendChild(createLink(item.id));
-    let removeFollower = row.insertCell(3);
-    removeFollower.appendChild(createDeleteButton(true, !item.is_follower, userId, item.id));
-    let removeFollowing = row.insertCell(4);
-    removeFollowing.appendChild(createDeleteButton(false, !item.is_following, userId, item.id));
-    let add = row.insertCell(5);
-    add.appendChild(createAddButton(item.is_following, userId, item.id));
+    if (item.id == userId) {
+      addButtons(row, userId, item.id, true, true, true);
+      return;
+    }
+    addButtons(row, userId, item.id, !item.is_follower, !item.is_following, item.is_following);
   });
 }
 
@@ -54,7 +86,7 @@ function listUsers() {
 function lookupUser() {
   var id = document.getElementById("user-id");
   var name = document.getElementById("user-name");
-  var url = baseUrl + 'user.php?user=' + name.value;
+  var url = baseUrl + 'user.php?user=' + name.value + '&&page=' + sessionStorage.getItem('page');
   var type = 'user-by-name';
   sendRequest(url, { method: 'GET', data: '' }, (response) => handleListUsers(response, type, id.value), handleErrorUsers);
 }
@@ -159,4 +191,42 @@ function addFollower(user, follower) {
   var url = baseUrl + 'updateFollower.php';
   var data = { 'user': user, 'follower': follower };
   sendRequest(url, { method: 'POST', data: JSON.stringify(data) }, (response) => handleUpdateFollower(response, 'Successfully added follower.'), handleErrorUpdateFollower);
+}
+
+
+function page(addition, refreshUsers) {
+  var currentPage = parseInt(sessionStorage.getItem('page'));
+  currentPage += parseInt(addition);
+
+  if (addition == -1) {
+    updateButtonsMode('nextPage', false);
+  }
+  if (currentPage <= 1) {
+    updateButtonsMode('prevPage', true);
+  }
+  if (currentPage < 1) { return; }
+  if (currentPage > 1) {
+    updateButtonsMode('prevPage', false);
+  }
+  sessionStorage.setItem('page', currentPage);
+  if (refreshUsers) {
+    listUsers();
+    return;
+  }
+  lookupUser();
+}
+
+function updateButtonsMode(buttonClass, newMode) {
+  var btns = document.getElementsByClassName(buttonClass);
+  Array.from(btns).forEach(btn => { btn.disabled = newMode; });
+}
+
+
+function addButtons(row, userId, otherId, removeFollowerDisabled, removeFollowingDisabled, addFollowerDisabled) {
+  let removeFollower = row.insertCell(3);
+  removeFollower.appendChild(createDeleteButton(true, removeFollowerDisabled, userId, otherId));
+  let removeFollowing = row.insertCell(4);
+  removeFollowing.appendChild(createDeleteButton(false, removeFollowingDisabled, userId, otherId));
+  let add = row.insertCell(5);
+  add.appendChild(createAddButton(addFollowerDisabled, userId, otherId));
 }

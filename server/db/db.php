@@ -9,7 +9,7 @@ class DataBaseConnection
     private $selectFollower;
     private $selectUserAndFollower;
     private $selectUser;
-    private $selectUserByName;
+    // private $selectUserByName;
     private $selectUserById;
 
     public function __construct()
@@ -39,7 +39,7 @@ class DataBaseConnection
 
         $sql = 'SELECT follower FROM follower WHERE user = :user';
         $this->selectFollower = $this->connection->prepare($sql);
-        
+
         $sql = 'SELECT * FROM follower WHERE user = :user AND follower = :follower';
         $this->selectUserAndFollower = $this->connection->prepare($sql);
 
@@ -47,8 +47,8 @@ class DataBaseConnection
         $this->selectUser = $this->connection->prepare($sql);
 
         // TODO like %:username%
-        $sql = "SELECT * FROM user WHERE username LIKE :username";
-        $this->selectUserByName = $this->connection->prepare($sql);
+        // $sql = "SELECT * FROM user WHERE username LIKE :username";
+        // $this->selectUserByName = $this->connection->prepare($sql);
 
         $sql = 'SELECT * FROM user WHERE id = :user';
         $this->selectUserById = $this->connection->prepare($sql);
@@ -65,8 +65,8 @@ class DataBaseConnection
     private function validateUsers($users)
     {
         for ($i = 0; $i < count($users); ++$i) {
-            if ($this->getUserById(['user'=>$users[$i]]) == null) {
-                throw new Exception('User with id '.+ $users[$i] . ' was not found.');
+            if ($this->getUserById(['user' => $users[$i]]) == null) {
+                throw new Exception('User with id ' . +$users[$i] . ' was not found.');
             }
         }
     }
@@ -111,10 +111,21 @@ class DataBaseConnection
         return $fellows;
     }
 
-    public function getUserByName($username)
+    public function getUserByName($username, $page, $limit)
     {
-        $this->selectUserByName->execute(["username" => $username]);
-        return $this->selectUserByName->fetchAll();
+        if ($page != null && $page >= 1) {
+            $start = (($page - 1) * $limit);
+        } else {
+            $page = null;
+        }
+        $sql = "SELECT * FROM user WHERE username LIKE %" . $username . "%";
+
+        if ($page != null) {
+            $sql = $sql . ' limit ' . $start . ', ' . $limit . '';
+        }
+        $stmt = $this->connection->prepare($sql);
+        $stmt->execute([]);
+        return $stmt->fetchAll();
     }
 
 
@@ -179,30 +190,34 @@ class DataBaseConnection
         $this->insertFollower->execute($input);
     }
 
-    public function getAllFilteredUsers($userId,$page,$limit){
-        $users = $this->getAllUsers($page, $limit);    
+    public function getAllFilteredUsers($userId, $page, $limit)
+    {
+        $users = $this->getAllUsers($page, $limit);
         // checks which user is follower to out user and set flag is_follower=True and check if it is a following and set is_following=True 
-        $users = array_map(function ($v) use  ($userId){
-            return $this->getFollowStatus($userId,$v);
+        $users = array_map(function ($v) use ($userId) {
+            return $this->getFollowStatus($userId, $v);
         }, $users);
         return $users;
     }
 
-    private function getFollowStatus($userId,$other){
-        $other['is_follower'] = $this->isFollower(['user'=>$userId,'follower'=> $other['id']]);
-        $other['is_following'] = $this->isFollower(['user'=>$other['id'],'follower'=> $userId]);
+    private function getFollowStatus($userId, $other)
+    {
+        $other['is_follower'] = $this->isFollower(['user' => $userId, 'follower' => $other['id']]);
+        $other['is_following'] = $this->isFollower(['user' => $other['id'], 'follower' => $userId]);
         return $other;
     }
 
-    private function isFollower($input){
+    private function isFollower($input)
+    {
         $this->selectUserAndFollower->execute($input);
-        if( $this->selectUserAndFollower->fetch()==null){
+        if ($this->selectUserAndFollower->fetch() == null) {
             return false;
         }
         return true;
     }
 
-    public function getAllUsers($page,$limit){
+    public function getAllUsers($page, $limit)
+    {
         if ($page != null && $page >= 1) {
             $start = (($page - 1) * $limit);
         } else {

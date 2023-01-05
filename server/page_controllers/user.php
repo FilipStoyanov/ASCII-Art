@@ -25,6 +25,24 @@ class User
                 return json_encode($this->response);
             }
 
+            if (!array_key_exists('page', $pathParameters) || $pathParameters['page'] == null) {
+                $page = null;
+                $limit = null;
+            } else {
+                $page = $pathParameters['page'];
+                $limit = 20;
+            }
+
+            if (!is_int($page)) {
+                $page = (int) $page;
+            }
+
+            if ($page <= 0) {
+                $this->response['success'] = false;
+                $this->response['error_message'] = 'Invalid page.';
+                return json_encode($this->response);
+            }
+            
             $username = $pathParameters['user'];
             if (!is_string($username)) {
                 $this->response['status'] = 'fail';
@@ -33,7 +51,7 @@ class User
             }
 
             try {
-                $users = $this->connection->getUserByName($username);
+                $users = $this->connection->getUserByName($username,$page,$limit);
             } catch (Exception $e) {
                 $response['success'] = false;
                 $response['error_message'] = $e->getMessage();

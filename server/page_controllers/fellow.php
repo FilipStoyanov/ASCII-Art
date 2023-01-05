@@ -64,7 +64,7 @@ class Fellow
                 return json_encode($this->response);
             }
 
-            if (!array_key_exists('page', $pathParameters) || $pathParameters['page'] == null || !is_int($pathParameters['page']) || $pathParameters['page'] <= 0) {
+            if (!array_key_exists('page', $pathParameters) || $pathParameters['page'] == null) {
                 $page = null;
                 $limit = null;
             } else {
@@ -72,6 +72,16 @@ class Fellow
                 $limit = 20;
             }
 
+            if (!is_int($page)) {
+                $page = (int) $page;
+            }
+
+            if ($page <= 0) {
+                $this->response['success'] = false;
+                $this->response['error_message'] = 'Invalid page.';
+                return json_encode($this->response);
+            }
+            
             $user = $pathParameters['user'];
             if (!is_int($user)) {
                 $user = (int) $user;
@@ -81,6 +91,7 @@ class Fellow
                 $this->response['error_message'] = 'Invalid user id.';
                 return json_encode($this->response);
             }
+            
             try {
                 $fellows = $search($user, $page, $limit);
             } catch (Exception $e) {
