@@ -8,6 +8,8 @@ class DataBaseConnection
     private $insertNewAsciiText;
     private $selectAsciiPictures;
     private $selectAsciiPicture;
+    private $selectAllPictures;
+    private $selectAllFriendsPictures;
     private $deleteFollower;
     private $selectFollower;
     private $selectUserAndFollower;
@@ -72,6 +74,9 @@ class DataBaseConnection
 
         $sql = 'DELETE from pictures where owner_id = :owner_id and name = :name';
         $this->removeAsciiPicture = $this->connection->prepare($sql);
+
+        $sql = 'SELECT p.value, p.color, p.name as picture_name, u.username, p.created_at, p.updated_at from pictures p join user u on p.owner_id = u.id where owner_id = :owner_id';
+        $this->selectAllPictures = $this->connection->prepare($sql);
     }
 
     //$input -> ["user" => value, "follower" => value]
@@ -200,6 +205,34 @@ class DataBaseConnection
             $this->selectAsciiPicture->execute($input);
             $asciiPicture = $this->selectAsciiPicture->fetchAll();
             return ["success" => true, "data" => $asciiPicture];
+        }catch(PDOException $e) {
+            return ["success" => false, "error" => "Connection failed: " . $e->getMessage(), "code" => $e->errorInfo[1]];
+        }
+    }
+
+    //$input -> ["user" => value]
+    public function getAllAsciiPictures($input) {
+        try {
+            $this->selectAllPictures->execute($input);
+            $asciiPicture = $this->selectAllPictures->fetchAll();
+            return ["success" => true, "data" => $asciiPicture];
+        }catch(PDOException $e) {
+            return ["success" => false, "error" => "Connection failed: " . $e->getMessage(), "code" => $e->errorInfo[1]];
+        }
+    }
+
+    //$input -> ["owner_id" => value, "page" => value, "pageSize" => value] 
+    public function getAllFriendsPictures($input) {
+        try {
+            $sql = 'SELECT p.value, p.color, p.name as picture_name, p.updated_at from pictures p '.
+            'where p.owner_id in (select f.follower from follower f where user = '.$input['owner_id'] .') order by p.updated_at desc ';
+            if(isset($input["page"]) && $input["page"] >=0 && isset($input["pageSize"]) && $input["pageSize"] >= 0) {
+                $sql = $sql.'limit '.$input["page"].','.$input['pageSize'].';';
+            }
+            $this->selectAllFriendsPictures = $this->connection->prepare($sql);
+            $this->selectAllFriendsPictures->execute([]);
+            $asciiPictures = $this->selectAllFriendsPictures->fetchAll();
+            return ["success" => true, "data" => $asciiPictures];
         }catch(PDOException $e) {
             return ["success" => false, "error" => "Connection failed: " . $e->getMessage(), "code" => $e->errorInfo[1]];
         }

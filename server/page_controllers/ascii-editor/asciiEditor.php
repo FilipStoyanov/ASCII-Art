@@ -28,10 +28,10 @@ class AsciiEditor
             $value = $data['value'];
             $name = $data['name'];
             $color = $data['color'];
+            $owner_id = $data['owner_id'];
             //TODO: validate $color variable
             $this->validateAsciiText($value, $name);
             if ($this->errors['success']) {
-                $owner_id = 1; // TODO: get current user id
                 $query = $this->connection->insertNewAsciiText(["value" => json_encode($value), "name" => $name, "color" => $color, "owner_id" => $owner_id]);
                 if ($query["success"]) {
                     echo json_encode(["success" => true, "data" => $data, "message" => "Successfully added ascii text"]);
@@ -56,6 +56,7 @@ class AsciiEditor
             parse_str($components['query'], $pathParameters);
             if (!array_key_exists('user', $pathParameters) || $pathParameters['user'] == null) {
                 echo json_encode(["success" => false]);
+                return;
             }
             $user = $pathParameters['user'];
             if (!is_int($user)) {
@@ -63,6 +64,7 @@ class AsciiEditor
             }
             if ($user <= 0) {
                 echo json_encode(["success" => false, "error" => "Invalid user id."]);
+                return;
             }
             try {
                 $query = $this->connection->getAsciiPictures(['owner_id' => $user]);
@@ -84,6 +86,7 @@ class AsciiEditor
                 !array_key_exists('name', $pathParameters) || $pathParameters['name'] == null
             ) {
                 echo json_encode(["success" => false, "error" => "Invalid user id or ascii name "]);
+                return;
             }
             $user = $pathParameters['user'];
             $asciiName = $pathParameters['name'];
@@ -92,6 +95,7 @@ class AsciiEditor
             }
             if ($user <= 0) {
                 echo json_encode(["success" => false, "error" => "Invalid user id."]);
+                return;
             }
             try {
                 $picture = $this->connection->getAsciiPictureByName(["owner_id"  => $user, "name" => $asciiName]);
@@ -101,7 +105,8 @@ class AsciiEditor
             } catch (Exception $e) {
                 $response['success'] = false;
                 $response['error_message'] = $e->getMessage();
-                return json_encode($response);
+                echo json_encode($response);
+                return;
             }
         }
     }
@@ -135,6 +140,85 @@ class AsciiEditor
                 echo json_encode(["success" => true]);
             } else {
                 echo json_encode(["success" => false, "errors" => $query["error"], "code" => $query["code"], "message" => "Error with deleting ascii picture with name: $asciiName"]);
+            }
+        }
+    }
+
+    public function getAll()
+    {
+        if ($_SERVER['REQUEST_METHOD'] == 'GET') {
+            $url = $_SERVER['REQUEST_URI'];
+            $components = parse_url($url);
+            parse_str($components['query'], $pathParameters);
+            if (
+                !array_key_exists('user', $pathParameters) || $pathParameters['user'] == null
+            ) {
+                echo json_encode(["success" => false, "error" => "Invalid user id"]);
+                return;
+            }
+            $user = $pathParameters['user'];
+            if (!is_int($user)) {
+                $user = (int) $user;
+            }
+            if ($user <= 0) {
+                echo json_encode(["success" => false, "error" => "Invalid user id."]);
+                return;
+            }
+            try {
+                $picture = $this->connection->getAllAsciiPictures(["owner_id"  => $user]);
+                if ($picture["success"]) {
+                    echo json_encode(["success" => true, $picture['data']]);
+                    return;
+                }
+            } catch (Exception $e) {
+                $response['success'] = false;
+                $response['error_message'] = $e->getMessage();
+                echo json_encode($response);
+                return;
+            }
+        }
+    }
+
+    public function getAllFriendsPictures()
+    {
+        if ($_SERVER['REQUEST_METHOD'] == 'GET') {
+            $url = $_SERVER['REQUEST_URI'];
+            $components = parse_url($url);
+            parse_str($components['query'], $pathParameters);
+            if (
+                !array_key_exists('user', $pathParameters) || $pathParameters['user'] == null
+            ) {
+                echo json_encode(["success" => false, "error" => "Invalid user id"]);
+                return;
+            }
+            $page = null;
+            $pageSize = null;
+            $user = $pathParameters['user'];
+            if(array_key_exists('page', $pathParameters)) {
+                $page = $pathParameters['page'];
+                $page = (int) $page;
+            }
+            if(array_key_exists('pageSize', $pathParameters)) {
+                $pageSize = $pathParameters['pageSize'];
+                $pageSize = (int) $pageSize;
+            }
+            if (!is_int($user)) {
+                $user = (int) $user;
+            }
+            if ($user <= 0) {
+                echo json_encode(["success" => false, "error" => "Invalid user id."]);
+                return;
+            }
+            try {
+                $picture = $this->connection->getAllFriendsPictures(["owner_id"  => $user, "page" => $page*$pageSize, "pageSize" => $pageSize]);
+                if ($picture["success"]) {
+                    echo json_encode(["success" => true, $picture['data']]);
+                    return;
+                }
+            } catch (Exception $e) {
+                $response['success'] = false;
+                $response['error_message'] = $e->getMessage();
+                return json_encode($response);
             }
         }
     }
