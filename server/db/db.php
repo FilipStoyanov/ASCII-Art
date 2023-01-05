@@ -8,6 +8,8 @@ class DataBaseConnection
     private $selectFollower;
     private $selectUser;
     private $selectUserById;
+    private $insertVideo;
+    private $selectVideos;
 
     public function __construct()
     {
@@ -30,6 +32,18 @@ class DataBaseConnection
 
         $sql = 'INSERT INTO follower(user, follower) VALUES (:user, :follower)';
         $this->insertFollower = $this->connection->prepare($sql);
+
+        $sql = 'INSERT INTO videos(title, owner_id,color, background, time_delay, frames) VALUES (
+            :title, 
+            :owner_id, 
+            :color, 
+            :background, 
+            :time,
+            :frames)';
+        $this->insertVideo = $this->connection->prepare($sql);
+
+        $sql = 'SELECT title, time_delay, color, background, frames FROM videos WHERE owner_id = :owner_id';
+        $this->selectVideos = $this->connection->prepare($sql);
 
         $sql = 'SELECT follower FROM follower WHERE user = :user';
         $this->selectFollower = $this->connection->prepare($sql);
@@ -111,6 +125,31 @@ class DataBaseConnection
             return ["success" => false, "error" => "Connection failed: " . $e->getMessage(), "code" => $e->getCode()];
         }
 
+    }
+
+    //
+    public function insertNewAsciiVideo($input)
+    {
+        try {
+            $this->insertVideo->execute($input);
+
+            return ["success" => true];
+        } catch (Exception $e) {
+            return ["success" => false, "error" => "Connection failed: " . $e->getMessage(), "code" => $e->getCode()];
+        }
+    }
+
+    //$input -> ["owner_id" => value]
+    public function getAsciiVideos($input)
+    {
+        try {
+            $this->selectVideos->execute($input);
+            $videos = $this->selectVideos->fetchAll();
+            
+            return ["success" => true, "data" => $videos];
+        } catch (Exception $e) {
+            return ["success" => false, "error" => "Connection failed: " . $e->getMessage(), "code" => $e->getCode()];
+        }
     }
 
     function __destruct()
