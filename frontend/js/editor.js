@@ -95,7 +95,7 @@ function chooseCharacter() {
     for (let i = 0; i < letters.length; ++i) {
         letters[i].addEventListener("click", function () {
             chosenSymbol = letters[i].textContent;
-            toggleButtonForAsciiLetters.innerHTML = `Символ <span class="selected-ascii">${chosenSymbol}</span>`;
+            toggleButtonForAsciiLetters.innerHTML = `Character <span class="selected-ascii">${chosenSymbol}</span>`;
             document.getElementsByClassName("letters")[0].classList.toggle("open");
         });
     }
@@ -235,11 +235,11 @@ function deleteAsciiPicture(response) {
         deleteSearchParams();
         document.getElementsByClassName("modal-header")[0].style.backgroundColor = "#4BB543";
         document.getElementsByClassName("modal-footer")[0].style.backgroundColor = "#4BB543";
-        modalContent.innerHTML = "Ascii картинката беше изтрита успешно."
+        modalContent.innerHTML = "Your Ascii Picture was deleted successfully."
     } else {
         document.getElementsByClassName("modal-header")[0].style.backgroundColor = "#FF0000";
         document.getElementsByClassName("modal-footer")[0].style.backgroundColor = "#FF0000";
-        modalContent.innerHTML = "Възникна грешка. Картинката НЕ е изтрита успешно. Опитай отново."
+        modalContent.innerHTML = "An error has occurred while deleting the Ascii Picture. Try again."
     }
 }
 
@@ -698,7 +698,7 @@ function showModalForSeconds(reload = false) {
         if (reload) {
             window.location.reload();
         }
-    }, 2000);
+    }, 3000);
 }
 
 function updateSearchParams(asciiName) {
@@ -718,11 +718,11 @@ function updatedSuccessfully(response) {
         updateSearchParams(updateNameInput.value);
         document.getElementsByClassName("modal-header")[0].style.backgroundColor = "#4BB543";
         document.getElementsByClassName("modal-footer")[0].style.backgroundColor = "#4BB543";
-        modalContent.innerHTML = "Ascii картинката беше променена успешно."
+        modalContent.innerHTML = "Your Ascii Picture was changed successfully."
     } else {
         document.getElementsByClassName("modal-header")[0].style.backgroundColor = "#FF0000";
         document.getElementsByClassName("modal-footer")[0].style.backgroundColor = "#FF0000";
-        modalContent.innerHTML = "Възникна грешка. Картинката НЕ е променена успешно. Опитай отново."
+        modalContent.innerHTML = "An error has occurred while updating the Ascii Picture. Try again."
     }
 }
 
@@ -732,15 +732,15 @@ function addedSuccessfully(response) {
         updateSearchParams(response["data"]["name"]);
         document.getElementsByClassName("modal-header")[0].style.backgroundColor = "#4BB543";
         document.getElementsByClassName("modal-footer")[0].style.backgroundColor = "#4BB543";
-        modalContent.innerHTML = "Ascii картинката беше добавена успешно";
+        modalContent.innerHTML = "Your Ascii Picture was added successfully.";
     } else {
         if (response["errors"]) {
             if (response["code"] == 1062) {
                 showModalForSeconds();
-                modalContent.innerHTML = "Вие имате запазена картинка с това име. Моля, изберете друго име и опитайте отново."
+                modalContent.innerHTML = "An Ascii Picture with this name already exists. Please, enter a different name and then try again."
             } else {
                 showModalForSeconds();
-                modalContent.innerHTML = "Възникна грешка! Моля опитайте отново."
+                modalContent.innerHTML = "An error has occurred. Try again."
             }
         } else {
             document.getElementsByClassName("editor")[0].classList.remove("show-modal");
@@ -751,7 +751,7 @@ function addedSuccessfully(response) {
 function handleErrorAscii(response) {
     if (response["errors"]) {
         showModalForSeconds();
-        modalContent.innerHTML = "Възникна грешка! Моля опитайте отново."
+        modalContent.innerHTML = "An error has occurred. Try again."
     } else {
         document.getElementsByClassName("editor")[0].classList.remove("show-modal");
     }
