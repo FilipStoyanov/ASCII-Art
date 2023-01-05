@@ -36,7 +36,11 @@ class AsciiEditor
                 if ($query["success"]) {
                     echo json_encode(["success" => true, "data" => $data, "message" => "Successfully added ascii text"]);
                 } else {
-                    echo json_encode(["success" => false, "errors" => $query["error"], "code" => $query["code"], "message" => "Ascii picture with this name already exists."]);
+                    if($query["code"] == 1062) {
+                        echo json_encode(["success" => false, "errors" => $query["error"], "code" => $query["code"], "message" => "Ascii picture with this name already exists."]);
+                    } else {
+                        echo json_encode(["success" => false, "errors" => $query["error"], "code" => $query["code"], "message" => "User with this id is not found"]);
+                    }
                 }
             } else {
                 echo json_encode($this->errors);

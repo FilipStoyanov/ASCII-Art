@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>ASCII ART</title>
+    <link href="../css/main.css" rel="stylesheet" />
+    <script src="../js/users.js"></script>
+  </head>
+  <body>
+    <p id="error-msg" class="error-msg error-dup-username"></p>
+    <section class="users">
+        <label class="user-id" for="user-id">User Id</label>
+        <input
+          class="login-data login-input"
+          name="id"
+          id="user-id"
+          placeholder="User Id"
+        />
+        <button class="login-submit" type="button" onClick="listUsers()">Find my followers</button>
+
+      <table id="users-tb" name="Users">
+        <caption>Users</caption>    
+        <tr>
+              <th>Id</th>
+              <th>Name</th>
+              <th>Link</th>
+            </tr>
+      </table>
+    </section>
+
+    <section class="users">
+      <label class="user-name" for="user-name">Find user by name</label>
+      <input
+        class="login-data login-input"
+        name="name"
+        id="user-name"
+        placeholder="Username"
+      />
+      <!-- TODO lookupUser -->
+      <button class="login-submit" type="button" onClick="lookupUser()">Search</button>
+
+    <table id="user-by-name-tb" name="User">
+      <caption>Users</caption>    
+      <tr>
+            <th>Id</th>
+            <th>Name</th>
+            <th>Link</th>
+          </tr>
+    </table>
+  </section>
+
+ 
+  </body>
+</html>

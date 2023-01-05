@@ -177,15 +177,15 @@ function addOptionsToSelect(response) {
         let rows = response[0];
         for (let i = 0; i < rows.length; ++i) {
             selectFromAsciiNames.options[selectFromAsciiNames.options.length] =
-            new Option(rows[i].name, rows[i].name);
+                new Option(rows[i].name, rows[i].name);
         }
         const url = window.location.href;
         const urlObj = new URL(url);
         let search, searchParams;
-        if(urlObj && urlObj.search) {
+        if (urlObj && urlObj.search) {
             search = urlObj.search.substring(1);
-            searchParams = JSON.parse('{"' + decodeURI(search).replace(/"/g, '\\"').replace(/&/g, '","').replace(/=/g,'":"') + '"}');
-            if(searchParams && searchParams['ascii-name']) {
+            searchParams = JSON.parse('{"' + decodeURI(search).replace(/"/g, '\\"').replace(/&/g, '","').replace(/=/g, '":"') + '"}');
+            if (searchParams && searchParams['ascii-name']) {
                 const option = Array.from(selectFromAsciiNames.options).find(option => option.value === searchParams["ascii-name"]);
                 option.selected = true;
             }
@@ -313,11 +313,11 @@ function loadCurrentAsciiPicture() {
     const url = window.location.href;
     const urlObj = new URL(url);
     let search, searchParams;
-    if(urlObj && urlObj.search) {
+    if (urlObj && urlObj.search) {
         search = urlObj.search.substring(1);
-        searchParams = JSON.parse('{"' + decodeURI(search).replace(/"/g, '\\"').replace(/&/g, '","').replace(/=/g,'":"') + '"}');
+        searchParams = JSON.parse('{"' + decodeURI(search).replace(/"/g, '\\"').replace(/&/g, '","').replace(/=/g, '":"') + '"}');
     }
-    if(searchParams && searchParams['ascii-name']) {
+    if (searchParams && searchParams['ascii-name']) {
         getAsciiPicture(searchParams['ascii-name']);
         document.getElementsByClassName("editor-menu")[0].classList.add("update-ascii");
         updateNameInput.value = searchParams['ascii-name'];
@@ -721,7 +721,6 @@ function updatedSuccessfully(response) {
 }
 
 function addedSuccessfully(response) {
-    console.log(response);
     if (response["success"]) {
         showModalForSeconds(true);
         updateSearchParams(response["data"]["name"]);
@@ -730,8 +729,13 @@ function addedSuccessfully(response) {
         modalContent.innerHTML = "Ascii картинката беше добавена успешно";
     } else {
         if (response["errors"]) {
-            showModalForSeconds();
-            modalContent.innerHTML = "Вие имате запазена картинка с това име. Моля, изберете друго име и опитайте отново."
+            if (response["code"] == 1062) {
+                showModalForSeconds();
+                modalContent.innerHTML = "Вие имате запазена картинка с това име. Моля, изберете друго име и опитайте отново."
+            } else {
+                showModalForSeconds();
+                modalContent.innerHTML = "Възникна грешка! Моля опитайте отново."
+            }
         } else {
             document.getElementsByClassName("editor")[0].classList.remove("show-modal");
         }
