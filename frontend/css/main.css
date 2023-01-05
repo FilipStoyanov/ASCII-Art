@@ -15,10 +15,10 @@
 :root {
     --sm-font: 10px;
     --md-font: 12px;
-    --normal-font: 16px;
+    --normal-font: 14px;
     --lg-font: 20px;
     --xl-font: 25px;
-    --font: "Roboto, sans-serif";
+    --font: "sans-serif";
     --error: #FF0000;
     --skyblue: #87CEEB;
     --white: #ffffff;
