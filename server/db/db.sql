@@ -31,3 +31,18 @@ create table if not exists follower(
     follower int not null,
     constraint PK_FRIEND primary key (id)
 );
+
+create table if not exists videos(
+	id int auto_increment,
+    title varchar(255) not null,
+    owner_id int not null,
+    time_delay int not null,
+    color char(7) default "#ffffff",
+    background char(7) default "#000000",
+    frames longtext not null,
+    created_at datetime default current_timestamp,
+    updated_at datetime default current_timestamp,
+    constraint PK_VIDEO primary key (id),
+    constraint UQ_NAME unique(title, owner_id),
+    constraint FK_OWNER foreign key (owner_id) references user(id) on delete cascade
+);
