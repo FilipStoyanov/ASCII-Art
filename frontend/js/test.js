@@ -48,8 +48,8 @@ function getAllFriendsPictures(ownerId, page, pageSize) {
 
 function displayAsciiPictures(response) {
     if(response["success"] && response[0]) {
-        for(let i=0; i < response[0].length; ++i) {
-            let asciiPicture = response[0][i];
+        for(let currentAscii of response[0]) {
+            let asciiPicture = currentAscii;
             showAsciiPicture(wrapper, asciiPicture);
         }
     } else {
