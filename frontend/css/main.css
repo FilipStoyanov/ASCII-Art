@@ -1,11 +1,3 @@
-/* @import "editor.css";
-
-* {
-    margin: 0;
-    padding: 0;
-} */
-
-@import "video.css";
 *{
     margin: 0;
     padding: 0;
@@ -15,11 +7,12 @@
 :root {
     --sm-font: 10px;
     --md-font: 12px;
-    --normal-font: 14px;
+    --normal-font: 16px;
     --lg-font: 20px;
     --xl-font: 25px;
-    --font: "sans-serif";
+    --font: "Roboto, sans-serif";
     --error: #FF0000;
+    --success: #4BB543;
     --skyblue: #87CEEB;
     --white: #ffffff;
     --light-gray: #ECF0F1;
@@ -28,7 +21,6 @@
 }
 
 body {
-    background-color: var(--skyblue);
 }
 
 .signin-form,
