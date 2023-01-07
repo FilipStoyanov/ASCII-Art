@@ -5,19 +5,28 @@ class DataBaseConnection
 
     private $insertUser;
     private $insertFollower;
+    private $insertNewAsciiText;
+    private $selectAsciiPictures;
+    private $selectAsciiPicture;
+    private $selectAllPictures;
+    private $selectAllFriendsPictures;
     private $deleteFollower;
     private $selectFollower;
     private $selectUserAndFollower;
     private $selectUser;
     // private $selectUserByName;
     private $selectUserById;
+    private $updateAsciiPicture;
+    private $removeAsciiPicture;
+    private $insertVideo;
+    private $selectVideos;
 
     public function __construct()
     {
         try {
 
             $db_credentials = parse_ini_file("config.ini", true);
-            $this->connection = new PDO('mysql:host=localhost; dbname=ascii_art1', $db_credentials["user"], $db_credentials["password"]);
+            $this->connection = new PDO('mysql:host=localhost; dbname=ascii_art', $db_credentials["user"], $db_credentials["password"]);
 
             $this->prepareSQLStatements();
         } catch (PDOException $error) {
@@ -28,12 +37,23 @@ class DataBaseConnection
     //prepare the sql statements => execute them later
     private function prepareSQLStatements()
     {
-        $sql = 'INSERT INTO user(username, password) VALUES (:username , :password_hash)';
+        $sql = 'INSERT INTO user(username, password_hash) VALUES (:username , :password_hash)';
         $this->insertUser = $this->connection->prepare($sql);
 
         $sql = 'INSERT INTO follower(user, follower) VALUES (:user, :follower)';
         $this->insertFollower = $this->connection->prepare($sql);
 
+        $sql = 'INSERT INTO videos(title, owner_id,color, background, time_delay, frames) VALUES (
+            :title, 
+            :owner_id, 
+            :color, 
+            :background, 
+            :time,
+            :frames)';
+        $this->insertVideo = $this->connection->prepare($sql);
+
+        $sql = 'SELECT title, time_delay, color, background, frames FROM videos WHERE owner_id = :owner_id';
+        $this->selectVideos = $this->connection->prepare($sql);
         $sql = 'DELETE FROM follower WHERE user=:user and follower=:follower';
         $this->deleteFollower = $this->connection->prepare($sql);
 
@@ -43,7 +63,7 @@ class DataBaseConnection
         $sql = 'SELECT * FROM follower WHERE user = :user AND follower = :follower';
         $this->selectUserAndFollower = $this->connection->prepare($sql);
 
-        $sql = 'SELECT * FROM user WHERE username = :username AND password = :password';
+        $sql = 'SELECT * FROM user WHERE username = :username AND password_hash = :password';
         $this->selectUser = $this->connection->prepare($sql);
 
         // TODO like %:username%
@@ -53,6 +73,23 @@ class DataBaseConnection
         $sql = 'SELECT * FROM user WHERE id = :user';
         $this->selectUserById = $this->connection->prepare($sql);
 
+        $sql = 'INSERT INTO pictures(value, name, color, owner_id) values(:value, :name, :color, :owner_id)';
+        $this->insertNewAsciiText = $this->connection->prepare($sql);
+
+        $sql = 'SELECT name from pictures where owner_id = :owner_id';
+        $this->selectAsciiPictures = $this->connection->prepare($sql);
+
+        $sql = 'SELECT value, color, name, created_at, updated_at from pictures where owner_id = :owner_id and name = :name';
+        $this->selectAsciiPicture = $this->connection->prepare($sql);
+
+        $sql = 'UPDATE pictures set value = :value, color = :color, name = :name, updated_at = current_timestamp where owner_id = :owner_id and name = :previous_name';
+        $this->updateAsciiPicture = $this->connection->prepare($sql);
+
+        $sql = 'DELETE from pictures where owner_id = :owner_id and name = :name';
+        $this->removeAsciiPicture = $this->connection->prepare($sql);
+
+        $sql = 'SELECT p.value, p.color, p.name as picture_name, u.username, p.created_at, p.updated_at from pictures p join user u on p.owner_id = u.id where owner_id = :owner_id';
+        $this->selectAllPictures = $this->connection->prepare($sql);
     }
 
     //$input -> ["user" => value, "follower" => value]
@@ -164,6 +201,111 @@ class DataBaseConnection
             return null;
         }
         return null;
+    }
+
+    //$input -> ["value" => value, "name" => value, "color" => value, "owner_id" => value, "previous_name" => value]
+    public function insertNewAsciiText($input) {
+        try {
+            $this->insertNewAsciiText->execute($input);
+            return ["success" => true];
+        } catch(PDOException $e) {
+            return ["success" => false, "error" => "Connection failed: " . $e->getMessage(), "code" => $e->errorInfo[1]];
+        }
+    }
+
+    //$input -> ["owner_id" => value]
+    public function getAsciiPictures($input) {
+        try {
+            $this->selectAsciiPictures->execute($input);
+            $asciiPictures = $this->selectAsciiPictures->fetchAll();
+            return ["success" => true, "data" => $asciiPictures];
+        }catch(PDOException $e) {
+            return ["success" => false, "error" => "Connection failed: " . $e->getMessage(), "code" => $e->errorInfo[1]];
+        }
+    }
+
+    //$input -> ["owner_id" => value, "name" => value]
+    public function getAsciiPictureByName($input) {
+        try {
+            $this->selectAsciiPicture->execute($input);
+            $asciiPicture = $this->selectAsciiPicture->fetchAll();
+            return ["success" => true, "data" => $asciiPicture];
+        }catch(PDOException $e) {
+            return ["success" => false, "error" => "Connection failed: " . $e->getMessage(), "code" => $e->errorInfo[1]];
+        }
+    }
+
+    //$input -> ["user" => value]
+    public function getAllAsciiPictures($input) {
+        try {
+            $this->selectAllPictures->execute($input);
+            $asciiPicture = $this->selectAllPictures->fetchAll();
+            return ["success" => true, "data" => $asciiPicture];
+        }catch(PDOException $e) {
+            return ["success" => false, "error" => "Connection failed: " . $e->getMessage(), "code" => $e->errorInfo[1]];
+        }
+    }
+
+    //$input -> ["owner_id" => value, "page" => value, "pageSize" => value] 
+    public function getAllFriendsPictures($input) {
+        try {
+            $sql = 'SELECT p.value, p.color, p.name as picture_name, p.updated_at from pictures p '.
+            'where p.owner_id in (select f.follower from follower f where user = '.$input['owner_id'] .') order by p.updated_at desc ';
+            if(isset($input["page"]) && $input["page"] >=0 && isset($input["pageSize"]) && $input["pageSize"] >= 0) {
+                $sql = $sql.'limit '.$input["page"].','.$input['pageSize'].';';
+            }
+            $this->selectAllFriendsPictures = $this->connection->prepare($sql);
+            $this->selectAllFriendsPictures->execute([]);
+            $asciiPictures = $this->selectAllFriendsPictures->fetchAll();
+            return ["success" => true, "data" => $asciiPictures];
+        }catch(PDOException $e) {
+            return ["success" => false, "error" => "Connection failed: " . $e->getMessage(), "code" => $e->errorInfo[1]];
+        }
+    }
+
+    //$input -> ["value" => value, "color" => value, "name" => value, "owner_id" => value]
+    public function updateAsciiPicture($input) {
+        try {
+            $this->updateAsciiPicture->execute($input);
+            return ["success" => true];
+        }catch(PDOException $e) {
+            return ["success" => false, "error" => "Connection failed: " . $e->getMessage(), "code" => $e->errorInfo[1]];
+        }
+    }
+
+    //$input -> ["owner_id" => value, "name" => value]
+    public function deleteAsciiPicture($input) {
+        try {
+            $this->removeAsciiPicture->execute($input);
+            return ["success" => true];
+        } catch (Exception $e) {
+            return ["success" => false, "error" => "Connection failed: " . $e->getMessage(), "code" => $e->getCode()];
+        }
+    }
+    
+    //
+    public function insertNewAsciiVideo($input)
+    {
+        try {
+            $this->insertVideo->execute($input);
+
+            return ["success" => true];
+        } catch (Exception $e) {
+            return ["success" => false, "error" => "Connection failed: " . $e->getMessage(), "code" => $e->getCode()];
+        }
+    }
+
+    //$input -> ["owner_id" => value]
+    public function getAsciiVideos($input)
+    {
+        try {
+            $this->selectVideos->execute($input);
+            $videos = $this->selectVideos->fetchAll();
+            
+            return ["success" => true, "data" => $videos];
+        } catch (Exception $e) {
+            return ["success" => false, "error" => "Connection failed: " . $e->getMessage(), "code" => $e->getCode()];
+        }
     }
 
     function __destruct()

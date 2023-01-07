@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8" />
+    <title>ASCII ART</title>
+    <link href="../css/main.css" rel="stylesheet" />
+    <link href="../css/video.css" rel="stylesheet" />
+    <script src="../js/video.js" defer></script>
+</head>
+
+<body>
+    <section class="sections">
+        <h2 class="editor-title">ASCII Video Editor</h2>
+
+        <ul class="menu">
+            <li class="menu-item">
+                <button class="menu-button" id="chosen-time">Time</button>
+                <button class="time-btn">X</button>
+                <div class="timers"></div>
+            </li>
+
+            <li class="menu-item">
+                <button class="menu-button color-btn">Color
+                    <label for="color"></label>
+                    <input type="color" id="color" name="color" class="color-palette" />
+                </button>
+            </li>
+
+            <li class="menu-item">
+                <button class="menu-button color-btn">Background Color
+                    <label for="background"></label>
+                    <input type="color" id="background" class="color-palette" name="background" />
+                </button>
+            </li>
+        </ul>
+
+        <form class="ascii-form">
+            <fieldset class="ascii-fieldset">
+                <label for="ascii-name">Enter Video Name</label>
+                <input type="text" id="ascii-name" name="ascii-name" placeholder="Video Name" required>
+                <button type="submit" class="save">Save</button>
+                <p class="error-msg ascii-error"></p>
+            </fieldset>
+        </form>
+        <div id="modal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <span class="close">&times;</span>
+                    <h2>Внимание!</h2>
+                </div>
+                <div class="modal-body">
+                    <p>Some text in the Modal Body</p>
+                    <p>Some other text...</p>
+                </div>
+                <div class="modal-footer">
+                </div>
+            </div>
+        </div>
+    </section>
+    <section id="frames" class="sections">
+        <label for="frame1" id="frame-label-1" class="frame-label">Frame 1</label>
+        <textarea cols="10" rows="10" class="frame" id="frame1"></textarea>
+
+        <button type="button" class="menu-button" id="new-frame">Add new frame</button>
+        <button type="button" class="menu-button" id="remove-frame">X</button>
+    </section>
+    <section id="video" class="sections">
+        <button type="button" class="menu-button" id="make-video">Show video</button>
+    </section>
+    <section class="sections">
+        <button type="button" class="menu-button" id="load-videos">Load Videos</button>
+    </section>
+</body>
+
+</html>
