@@ -14,7 +14,7 @@ body {
 .sections {
     font-family: var(--font);
     background-color: var(--white);
-    max-width: 380px;
+    max-width: 100%;
     height: auto;
     width: 40%;
     position: relative;
@@ -281,4 +281,15 @@ body {
     display: block;
     resize: none;
     width: 100%;
+}
+
+.ascii-picture{
+    display: block;
+    resize: none;
+    width: 100%;
+    white-space:pre-line;
+}
+
+.pictures{
+    width: 80%;
 }

@@ -6,7 +6,7 @@ var stop_video;
 var number_of_frames = 1;
 var times = document.getElementsByClassName("times");
 var buttonToggleTime = document.getElementsByClassName("time-btn")[0];
-const TEXT_ROWS = 10;
+const TEXT_ROWS = 40;
 const TEXT_COLLS = 10;
 var loaded_videos = [];
 
@@ -183,26 +183,23 @@ class Video {
 
     }
 
-    switchFrame(next) {
-        this.current = next;
+
+    play() {
+        let get_last = document.getElementById(`loaded-frame-video-${this.id}-${this.current}`);
+        get_last.style.display = "none";
+
+        if (this.current++ == this.frames.length - 1) {
+            this.current = 0;
+        }
+
+        let get_next = document.getElementById(`loaded-frame-video-${this.id}-${this.current}`);
+        get_next.style.display = "block";
+
+        clearTimeout(this.timer);
+        // console.log(this.timer);
+        this.timer = setTimeout(this.name + '.play()', this.time);
+
     }
-
-}
-
-Video.prototype.play = play_vid;
-function play_vid() {
-    let get_last = document.getElementById(`loaded-frame-video-${this.id}-${this.current}`);
-    get_last.style.display = "none";
-
-    if (this.current++ == this.frames.length - 1) {
-        this.current = 0;
-    }
-
-    let get_next = document.getElementById(`loaded-frame-video-${this.id}-${this.current}`);
-    get_next.style.display = "block";
-
-    clearTimeout(this.timer);
-    this.timer = setTimeout(this.name + '.play()', this.time);
 
 }
 
@@ -229,30 +226,6 @@ function loadUserVideos(response) {
     }
 }
 
-function showLoadedSlides(loaded_videos) {
-
-    for (let i = 0; i < loaded_videos.length; i++) {
-        let slides = document.getElementsByClassName(`video-frame-${loaded_videos[i].id}`);
-
-        for (let i = 0; i < slides.length; i++) {
-            slides[i].style.display = "block";
-        }
-    }
-
-    // slide_index++;
-
-    // if (slide_index > slides.length) {
-    //     slide_index = 1;
-    // }
-    // console.log(slide_index);
-    // console.log(slides.length);
-    // slides[slide_index - 1].style.display = "block";
-
-
-    // video_id = setTimeout(showLoadedSlides(id, slide_index, timeout), timeout);
-
-
-}
 
 
 function handleErrorAscii(response) {
@@ -510,4 +483,64 @@ document.addEventListener("DOMContentLoaded", function (event) {
     saveVideo();
     modalFunctionality();
     loadVideos();
+    getAllAsciiPictures(USER_ID); // get all ascii pictures
+
 });
+
+function getAllAsciiPictures(ownerId) {
+    document.getElementById("load-pictures").addEventListener("click", function (event) {
+        console.log("E");
+        sendRequest(
+            `../../server/page_controllers/ascii-editor/getAllPictures.php?user=${ownerId}`,
+            { method: "GET", data: '' },
+            displayAsciiPictures,
+            handleErrorAscii,
+        );
+    });
+}
+
+function displayAsciiPictures(response) {
+    if (response["success"] && response[0]) {
+        for (let currentAscii of response[0]) {
+            let asciiPicture = currentAscii;
+            let picture_section = document.getElementsByClassName("sections")[4];
+            console.log(picture_section);
+            showAsciiPicture(picture_section, asciiPicture);
+        }
+    } else {
+        // show error message
+    }
+}
+
+
+// element => html element; asciiText => value attribute from PICTURES sql table
+function showAsciiPicture(element, asciiPicture) {
+    if (element && asciiPicture) {
+        // console.log(asciiPicture);
+        let responseAsciiValue = asciiPicture.value;
+        // console.log(responseAsciiValue);
+        // console.log(value_text_node);
+        let asciiColor = asciiPicture.color;
+        let asciiText = responseAsciiValue.substring(1, responseAsciiValue.length - 1).replace(/\\n/g, '\n');
+        // asciiText = asciiText.replace('<br/>', '');
+        // console.log(asciiText);
+        // asciiText = asciiText.replace('\n', '<br/>');
+        console.log("????");
+        console.log(asciiText);
+        let value_text_node = document.createTextNode(asciiText);
+        // let asciiWrapperElement = document.createElement('div');
+        // asciiWrapperElement.className = "ascii-wrapper";
+        let asciiTextElement = document.createElement("pre");
+        // asciiTextElement.className = "ascii-picture";
+        // asciiTextElement.style.color = asciiColor;
+        asciiTextElement.appendChild(value_text_node);
+        // asciiTextElement.innerHTML = responseAsciiValue;
+        // asciiWrapperElement.appendChild(asciiTextElement);
+        element.appendChild(asciiTextElement);
+    }
+}
+
+const USER_ID = "1";
+const ASCII_NAME = "1";
+const PAGINATION_PAGE = 0;
+const PAGINATION_PAGESIZE = 10;
