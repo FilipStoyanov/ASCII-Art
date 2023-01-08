@@ -134,14 +134,17 @@ function addedSuccessfully(response) {
 class Video {
 
 
-    constructor(title, time, color, background, frames) {
+    constructor(title, time, color, background, frames, id, name) {
         this.title = title;
         this.time = time;
         this.color = color;
         this.background = background;
         this.frames = frames;
         this.frames_count = frames.length;
-        this.video_id = null;
+        this.id = id;
+        this.current = 0;
+        this.timer = 0;
+        this.name = name;
     }
 
     addLabels() {
@@ -160,11 +163,12 @@ class Video {
     makeLoadedVideo() {
         for (let i = 0; i < this.frames_count; i++) {
             var new_frame = document.createElement("textarea");
-            new_frame.setAttribute("class", "video-frame");
-            // new_frame.setAttribute("id", `frame-video-${i + 1}`);
-            new_frame.setAttribute("class", "video-frames");
+            new_frame.setAttribute("class", "loaded-video-frames");
+            new_frame.classList.add("class", `video-frame-${this.id}`);
+            new_frame.setAttribute("id", `loaded-frame-video-${this.id}-${i}`);
             new_frame.setAttribute("rows", TEXT_ROWS);
             new_frame.setAttribute("readonly", "");
+
 
             let text_value = this.frames[i];
             new_frame.appendChild(document.createTextNode(text_value));
@@ -176,29 +180,30 @@ class Video {
 
             section.appendChild(new_frame);
         }
-        // if (video_id) {
-        //     clearTimeout(video_id);
-        // }
 
-        // let previous_video = document.getElementsByClassName("video-frames");
-        // if (previous_video) {
-        //     let length = previous_video.length;
-        //     for (let i = 0; i < length; i++) {
-        //         previous_video[0].remove();
-        //     }
-        // }
-
-        // let length = Options_vid.frames.length;
-        // for (let i = 0; i < length; i++) {
-        //     Options_vid.frames.pop();
-        // }
-
-        // showSlides();
-
-        // if (!stop_video) {
-        //     stopButton();
-        // }
     }
+
+    switchFrame(next) {
+        this.current = next;
+    }
+
+}
+
+Video.prototype.play = play_vid;
+function play_vid() {
+    let get_last = document.getElementById(`loaded-frame-video-${this.id}-${this.current}`);
+    get_last.style.display = "none";
+
+    if (this.current++ == this.frames.length - 1) {
+        this.current = 0;
+    }
+
+    let get_next = document.getElementById(`loaded-frame-video-${this.id}-${this.current}`);
+    get_next.style.display = "block";
+
+    clearTimeout(this.timer);
+    this.timer = setTimeout(this.name + '.play()', this.time);
+
 }
 
 
@@ -206,19 +211,47 @@ function loadUserVideos(response) {
     console.log(response);
     if (response["data"]) {
         for (let i = 0; i < response["data"].length; i++) {
+            let new_id = response["data"][i]["id"];
             let new_title = response["data"][i]["title"];
-            let new_time = response["data"][i]["time"];
+            let new_time = response["data"][i]["time_delay"];
             let new_color = response["data"][i]["color"];
             let new_background = response["data"][i]["background"];
             let new_frames = response["data"][i]["frames"];
+            let new_name = `loaded_videos[${i}]`;
 
-            let new_video = new Video(new_title, new_time, new_color, new_background, new_frames);
+            let new_video = new Video(new_title, new_time, new_color, new_background, new_frames, new_id, new_name);
 
             new_video.addLabels();
             new_video.makeLoadedVideo();
             loaded_videos.push(new_video);
+            loaded_videos[i].play();
         }
     }
+}
+
+function showLoadedSlides(loaded_videos) {
+
+    for (let i = 0; i < loaded_videos.length; i++) {
+        let slides = document.getElementsByClassName(`video-frame-${loaded_videos[i].id}`);
+
+        for (let i = 0; i < slides.length; i++) {
+            slides[i].style.display = "block";
+        }
+    }
+
+    // slide_index++;
+
+    // if (slide_index > slides.length) {
+    //     slide_index = 1;
+    // }
+    // console.log(slide_index);
+    // console.log(slides.length);
+    // slides[slide_index - 1].style.display = "block";
+
+
+    // video_id = setTimeout(showLoadedSlides(id, slide_index, timeout), timeout);
+
+
 }
 
 

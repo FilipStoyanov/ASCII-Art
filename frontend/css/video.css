@@ -276,3 +276,9 @@ body {
     display: block;
     text-align: center;
 }
+
+.loaded-video-frames{
+    display: block;
+    resize: none;
+    width: 100%;
+}
