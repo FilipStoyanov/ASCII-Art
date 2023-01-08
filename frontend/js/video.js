@@ -6,7 +6,7 @@ var stop_video;
 var number_of_frames = 1;
 var times = document.getElementsByClassName("times");
 var buttonToggleTime = document.getElementsByClassName("time-btn")[0];
-const TEXT_ROWS = 40;
+const TEXT_ROWS = 41;
 const TEXT_COLLS = 10;
 var loaded_videos = [];
 
@@ -507,6 +507,7 @@ function displayAsciiPictures(response) {
             console.log(picture_section);
             showAsciiPicture(picture_section, asciiPicture);
         }
+        copyToClipboard();
     } else {
         // show error message
     }
@@ -525,14 +526,15 @@ function showAsciiPicture(element, asciiPicture) {
         // asciiText = asciiText.replace('<br/>', '');
         // console.log(asciiText);
         // asciiText = asciiText.replace('\n', '<br/>');
-        console.log("????");
-        console.log(asciiText);
+        // console.log("????");
+        // console.log(asciiText);
         let value_text_node = document.createTextNode(asciiText);
         // let asciiWrapperElement = document.createElement('div');
         // asciiWrapperElement.className = "ascii-wrapper";
         let asciiTextElement = document.createElement("pre");
+        asciiTextElement.setAttribute("class", "ascii-picture");
         // asciiTextElement.className = "ascii-picture";
-        // asciiTextElement.style.color = asciiColor;
+        asciiTextElement.style.color = asciiColor;
         asciiTextElement.appendChild(value_text_node);
         // asciiTextElement.innerHTML = responseAsciiValue;
         // asciiWrapperElement.appendChild(asciiTextElement);
@@ -544,3 +546,15 @@ const USER_ID = "1";
 const ASCII_NAME = "1";
 const PAGINATION_PAGE = 0;
 const PAGINATION_PAGESIZE = 10;
+
+function copyToClipboard() {
+    let pictures = document.getElementsByClassName("ascii-picture");
+
+    for(let i =0; i< pictures.length; i++){
+        pictures[i].addEventListener('click', function(event){
+            let copied_text = pictures[i].innerHTML;
+            console.log(pictures[i].innerHTML);
+            navigator.clipboard.writeText(copied_text);
+        });
+    }
+}
