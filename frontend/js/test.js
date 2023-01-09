@@ -2,6 +2,8 @@ var wrapper = document.getElementsByClassName("wrapper")[0];
 function sendRequest(url, options, successCallback, errorCallback) {
     var request = new XMLHttpRequest();
     request.onload = function () {
+        console.log(url);
+        console.log(request.responseText);
         var response = JSON.parse(request.responseText);
         if (request.status === 200) {
             successCallback(response);
@@ -19,7 +21,7 @@ function sendRequest(url, options, successCallback, errorCallback) {
 // get one ascii picture by owner_id and name
 function getAsciiText (ownerId, name) {
     sendRequest(
-        `../../server/page_controllers/ascii-editor/getAsciiPicture.php?user=${ownerId}&name=${name}`,
+        `http://localhost:80/project-web-2022/ASCII-Art/server/page_controllers/ascii-editor/getAsciiPicture.php?user=${ownerId}&name=${name}`,
         { method: "GET", data: '' },
         displayAsciiPictures,
         handleError,
@@ -29,7 +31,7 @@ function getAsciiText (ownerId, name) {
 // get all ascii pictures by owner_id
 function getAllAsciiPictures(ownerId) {
     sendRequest(
-        `../../server/page_controllers/ascii-editor/getAllPictures.php?user=${ownerId}`,
+        `http://localhost:80/project-web-2022/ASCII-Art/server/page_controllers/ascii-editor/getAllPictures.php?user=${ownerId}`,
         { method: "GET", data: '' },
         displayAsciiPictures,
         handleError,
@@ -67,6 +69,7 @@ function showAsciiPicture (element, asciiPicture) {
         asciiText = asciiText.replace('<br/>', '');
         let asciiWrapperElement = document.createElement('div');
         asciiWrapperElement.className="ascii-wrapper";
+        asciiWrapperElement.style.backgroundColor = 'white';
         let asciiTextElement = document.createElement("pre");
         asciiTextElement.className = "ascii-picture";
         asciiTextElement.style.color = asciiColor;
@@ -81,15 +84,15 @@ function handleError() {
 }
 
 
-const USER_ID = "1";
+const USER_ID = 2;
 const ASCII_NAME = "1";
 const PAGINATION_PAGE = 0;
 const PAGINATION_PAGESIZE = 10;
 
 document.addEventListener("DOMContentLoaded", function (event) {
     // getAsciiText(USER_ID,ASCII_NAME); // get one ascii picture
-    getAllAsciiPictures(USER_ID); // get all ascii pictures
-    // getAllFriendsPictures(USER_ID, PAGINATION_PAGE, PAGINATION_PAGESIZE); // get all friends ascii pictures with pagination
+    // getAllAsciiPictures(USER_ID); // get all ascii pictures
+    getAllFriendsPictures(USER_ID, PAGINATION_PAGE, PAGINATION_PAGESIZE); // get all friends ascii pictures with pagination
 });
 
 

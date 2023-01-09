@@ -16,6 +16,7 @@ create table if not exists pictures(
     value longtext not null,
     color char(7) default "#000000",
     name varchar(255) not null,
+    likes int unsigned not null default 0,
     owner_id int not null,
     created_at datetime default current_timestamp,
     updated_at datetime default current_timestamp,
@@ -29,7 +30,9 @@ create table if not exists follower(
 	id int auto_increment,
     user int not null,
     follower int not null,
-    constraint PK_FRIEND primary key (id)
+    constraint PK_FRIEND primary key (id),
+    constraint FK_USER foreign key (user) references user(id) on delete cascade,
+    constraint FK_FOLLOWER foreign key (follower) references user(id) on delete cascade
 );
 
 create table if not exists videos(
@@ -45,4 +48,15 @@ create table if not exists videos(
     constraint PK_VIDEO primary key (id),
     constraint UQ_NAME unique(title, owner_id),
     constraint FK_OWNER foreign key (owner_id) references user(id) on delete cascade
+);
+
+
+
+create table if not exists liked(
+	id int auto_increment,
+    user int not null,
+    picture int not null,
+    constraint PK_LIKED primary key (id),
+    constraint FK_USER_LIKED foreign key (user) references user(id) on delete cascade,
+    constraint FK_PICTURE_LIKED foreign key (picture) references pictures(id) on delete cascade
 );

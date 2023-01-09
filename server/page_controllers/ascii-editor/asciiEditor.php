@@ -153,28 +153,24 @@ class AsciiEditor
             if (
                 !array_key_exists('user', $pathParameters) || $pathParameters['user'] == null
             ) {
-                echo json_encode(["success" => false, "error" => "Invalid user id"]);
-                return;
+                return json_encode(["success" => false, "error" => "Invalid user id"]);
             }
             $user = $pathParameters['user'];
             if (!is_int($user)) {
                 $user = (int) $user;
             }
             if ($user <= 0) {
-                echo json_encode(["success" => false, "error" => "Invalid user id."]);
-                return;
+                return json_encode(["success" => false, "error" => "Invalid user id."]);
             }
             try {
                 $picture = $this->connection->getAllAsciiPictures(["owner_id"  => $user]);
-                if ($picture["success"]) {
-                    echo json_encode(["success" => true, $picture['data']]);
-                    return;
-                }
+                // if ($picture["success"]) {
+                return json_encode(["success" => true, $picture]);
+                // }
             } catch (Exception $e) {
                 $response['success'] = false;
                 $response['error_message'] = $e->getMessage();
-                echo json_encode($response);
-                return;
+                return json_encode($response);
             }
         }
     }

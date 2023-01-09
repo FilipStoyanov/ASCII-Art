@@ -2,6 +2,7 @@ const dir = 'http://localhost:80/project-web-2022/ASCII-Art/';
 const baseUrl = dir + 'server/page_controllers/';
 
 function openTab(event, sectionName) {
+  sessionStorage.setItem('section',sectionName);
   updateButtonsMode('prevPage', true);
   updateButtonsMode('nextPage', false);
   var errorMsg = document.getElementById("error-msg");
@@ -63,21 +64,58 @@ function handleListUsers(response, type, userId) {
   });
 }
 
+
+// MODAL
+var modal = document.getElementById("modal");
+
+var modalCloseBtn = document.getElementsByClassName("close")[0];
+
 function handleErrorUsers(response) {
-  var errorMsg = document.getElementById("error-msg");
+  // var errorMsg = document.getElementById("error-msg");
 
-  // if (response["error_message"]) {
+  // errorMsg.style.display = "block";
+  // errorMsg.innerHTML = response['error_message'];
+  if ("error_message" in response) {
+    console.error(response['error_message']);
+    showModalForSeconds();
+    var modalContent = document.getElementsByClassName("modal-body")[0]
+    modalContent.innerHTML = "An error has occurred. Try again."
+} else {
+    document.getElementById(sessionStorage.getItem('section')).classList.remove("show-modal");
+}
+}
 
-  errorMsg.style.display = "block";
-  errorMsg.innerHTML = response['error_message'];
-  // } else {
-  //   errorMsg.style.display = "none";
-  // }
+function showModalForSeconds(reload = false) {
+  document.getElementById(sessionStorage.getItem('section')).classList.add("show-modal");
+  setTimeout(() => {
+      document.getElementById(sessionStorage.getItem('section')).classList.remove("show-modal");
+      if (reload) {
+          window.location.reload();
+      }
+  }, 3000);
+}
+
+
+function modalFunctionality() {
+
+  modalCloseBtn.onclick = function () {
+      modal.style.display = "none";
+      document.getElementById("main").classLis.remove("show-modal");
+      window.location.reload();
+  }
+
+  window.onclick = function (event) {
+      if (event.target == modal) {
+          modal.style.display = "none";
+          document.getElementById("main").classList.remove("show-modal");
+          window.location.reload();
+      }
+  }
 }
 
 function listUsers() {
   var id = document.getElementById("user-id");
-  var url = baseUrl + 'users.php?user=' + id.value + '&&page=1';
+  var url = baseUrl + 'users.php?user=' ;//+ id.value + '&&page=' + sessionStorage.getItem('page');
   var type = 'users';
   sendRequest(url, { method: 'GET', data: '' }, (response) => handleListUsers(response, type, id.value), handleErrorUsers);
 }
@@ -137,15 +175,17 @@ function handleUpdateFollower(response, msg) {
 }
 
 function handleErrorUpdateFollower(response) {
-  var errorMsg = document.getElementById("error-msg");
+  // var errorMsg = document.getElementById("error-msg");
 
-  // if (response["error_message"]) {
-
-  errorMsg.style.display = "block";
-  errorMsg.innerHTML = response['error_message'];
-  // } else {
-  //   errorMsg.style.display = "none";
-  // }
+  // errorMsg.style.display = "block";
+  // errorMsg.innerHTML = response['error_message'];
+  if ('error_message' in response) {
+    console.error(response['error_message']);
+    showModalForSeconds();
+    modalContent.innerHTML = "An error has occurred. Try again."
+} else {
+    document.getElementsByClassName("editor")[0].classList.remove("show-modal");
+}
 }
 
 function createLink(userId) {
@@ -197,7 +237,6 @@ function addFollower(user, follower) {
 function page(addition, refreshUsers) {
   var currentPage = parseInt(sessionStorage.getItem('page'));
   currentPage += parseInt(addition);
-
   if (addition == -1) {
     updateButtonsMode('nextPage', false);
   }

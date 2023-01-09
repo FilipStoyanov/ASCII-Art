@@ -1,63 +1,71 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="UTF-8" />
-    <title>ASCII ART</title>
-    <link href="../css/main.css" rel="stylesheet" />
-    <script src="../js/users.js"></script>
-  </head>
-  <body>
-    <p id="error-msg" class="error-msg error-dup-username"></p>
-    <label class="user-id" for="user-id">User Id</label>
-    <input
-      class="login-data login-input"
-      name="id"
-      id="user-id"
-      placeholder="User Id"
-    />
-    <div class="tab">
-      <button class="tablinks" onclick="openTab(event, 'users-section')">All users</button>
-      <button class="tablinks" onclick="openTab(event, 'users-by-name-section')">Find user by name</button>
 
+<head>
+  <meta charset="UTF-8" />
+  <title>ASCII ART</title>
+  <link href="../css/fellow.css" rel="stylesheet" />
+  <script src="../js/users.js"></script>
+</head>
+
+<body>
+  <p id="error-msg" class="error-msg error-dup-username"></p>
+  <label class="user-id" for="user-id">User Id</label>
+  <input class="login-data login-input" name="id" id="user-id" placeholder="User Id" />
+  <div class="tab">
+    <button class="tablinks" onclick="openTab(event, 'users-section')">All users</button>
+    <button class="tablinks" onclick="openTab(event, 'users-by-name-section')">Find user by name</button>
+
+  </div>
+
+  <section id="users-section" class="tabcontent">
+
+    <table id="users-tb" name="Users">
+      <caption>Users</caption>
+      <tr>
+        <th>Id</th>
+        <th>Name</th>
+        <th>Link</th>
+      </tr>
+    </table>
+    <button class='prevPage' onclick="page(-1,true)">prev</button>
+    <button class='nextPage' onclick="page(1,true)">next</button>
+    <div id="modal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <span class="close">&times;</span>
+          <h2>Alert!</h2>
+        </div>
+        <div class="modal-body">
+          <p>Some text in the Modal Body</p>
+          <p>Some other text...</p>
+        </div>
+        <div class="modal-footer">
+        </div>
+      </div>
     </div>
+  </section>
 
-    <section id="users-section" class="tabcontent">
+  <section id="users-by-name-section" class="tabcontent">
+    <label class="user-name" for="user-name">Find user by name</label>
+    <input class="login-data login-input" name="name" id="user-name" placeholder="Username" />
 
-      <table id="users-tb" name="Users">
-        <caption>Users</caption>    
-        <tr>
-              <th>Id</th>
-              <th>Name</th>
-              <th>Link</th>
-            </tr>
-      </table>
-      <button class='prevPage' onclick="page(-1,true)">prev</button>
-      <button class='nextPage' onclick="page(1,true)">next</button>
-    </section>
-
-    <section id="users-by-name-section" class="tabcontent">
-      <label class="user-name" for="user-name">Find user by name</label>
-      <input
-        class="login-data login-input"
-        name="name"
-        id="user-name"
-        placeholder="Username"
-      />
-      <!-- TODO lookupUser -->
-      <button class="login-submit" type="button" onClick="lookupUser()">Search</button>
+    <button class="login-submit" type="button" onClick="lookupUser()">Search</button>
 
     <table id="user-by-name-tb" name="User">
-      <caption>Users</caption>    
+      <caption>Users</caption>
       <tr>
-            <th>Id</th>
-            <th>Name</th>
-            <th>Link</th>
-          </tr>
+        <th>Id</th>
+        <th>Name</th>
+        <th>Link</th>
+      </tr>
     </table>
     <button class='prevPage' onclick="page(-1,false)">prev</button>
     <button class='nextPage' onclick="page(1,false)">next</button>
   </section>
 
- 
-  </body>
+
+
+</body>
+
 </html>

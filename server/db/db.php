@@ -8,6 +8,7 @@ class DataBaseConnection
     private $insertNewAsciiText;
     private $selectAsciiPictures;
     private $selectAsciiPicture;
+    private $getPictureById;
     private $selectAllPictures;
     private $selectAllFriendsPictures;
     private $deleteFollower;
@@ -20,13 +21,16 @@ class DataBaseConnection
     private $removeAsciiPicture;
     private $insertVideo;
     private $selectVideos;
+    private $getLikesCount;
+    private $addLike;
+    private $deleteLike;
+    private $updateLikesCount;
 
     public function __construct()
     {
         try {
-
             $db_credentials = parse_ini_file("config.ini", true);
-            $this->connection = new PDO('mysql:host=localhost; dbname=ascii_art', $db_credentials["user"], $db_credentials["password"]);
+            $this->connection = new PDO('mysql:host=localhost; dbname=ascii_art1', $db_credentials["user"], $db_credentials["password"]);
 
             $this->prepareSQLStatements();
         } catch (PDOException $error) {
@@ -59,7 +63,7 @@ class DataBaseConnection
 
         $sql = 'SELECT follower FROM follower WHERE user = :user';
         $this->selectFollower = $this->connection->prepare($sql);
-        
+
         $sql = 'SELECT * FROM follower WHERE user = :user AND follower = :follower';
         $this->selectUserAndFollower = $this->connection->prepare($sql);
 
@@ -79,6 +83,9 @@ class DataBaseConnection
         $sql = 'SELECT name from pictures where owner_id = :owner_id';
         $this->selectAsciiPictures = $this->connection->prepare($sql);
 
+        $sql = 'SELECT * FORM PICTURES WHERE id = :picture';
+        $this->getPictureById = $this->connection->prepare($sql);
+
         $sql = 'SELECT value, color, name, created_at, updated_at from pictures where owner_id = :owner_id and name = :name';
         $this->selectAsciiPicture = $this->connection->prepare($sql);
 
@@ -90,6 +97,18 @@ class DataBaseConnection
 
         $sql = 'SELECT p.value, p.color, p.name as picture_name, u.username, p.created_at, p.updated_at from pictures p join user u on p.owner_id = u.id where owner_id = :owner_id';
         $this->selectAllPictures = $this->connection->prepare($sql);
+
+        $sql = 'SELECT likes FROM PICTURES WHERE id = :picture';
+        $this->getLikesCount = $this->connection->prepare($sql);
+
+        $sql = 'INSERT INTO LIKED(user,picture) values(:user,:picture)';
+        $this->addLike = $this->connection->prepare($sql);
+
+        $sql = 'DELETE FROM LIKED WHERE user=:user and picture=:picture';
+        $this->deleteLike = $this->connection->prepare($sql);
+
+        $sql = 'UPDATE PICTURES SET LIKES = LIKES + 1 WHERE id=:picture';
+        $this->updateLikesCount = $this->connection->prepare($sql);
     }
 
     //$input -> ["user" => value, "follower" => value]
@@ -102,9 +121,21 @@ class DataBaseConnection
     private function validateUsers($users)
     {
         for ($i = 0; $i < count($users); ++$i) {
-            if ($this->getUserById(['user'=>$users[$i]]) == null) {
-                throw new Exception('User with id '.+ $users[$i] . ' was not found.');
-            }
+            validateUser($users[$i]);
+        }
+    }
+
+    private function validateUser($user)
+    {
+        if ($this->getUserById(['user' => $user]) == null) {
+            throw new Exception('User with id ' . +$user . ' was not found.');
+        }
+    }
+
+    private function validatePicture($picture)
+    {
+        if ($this->getPictureById(['picture' => $picture]) == null) {
+            throw new Exception('Picture with id ' . +$picture . ' was not found.');
         }
     }
 
@@ -148,19 +179,19 @@ class DataBaseConnection
         return $fellows;
     }
 
-    public function getUserByName($username,$page,$limit)
-    {        
+    public function getUserByName($username, $page, $limit)
+    {
         if ($page != null && $page >= 1) {
-        $start = (($page - 1) * $limit);
-    } else {
-        $page = null;
-    }
-    // $username = '%'.$username.'%'
-    $sql = "SELECT * FROM user WHERE username LIKE ".$username;
+            $start = (($page - 1) * $limit);
+        } else {
+            $page = null;
+        }
+        $sql = "SELECT * FROM user WHERE username LIKE '%" . $username . "%'";
 
-    if ($page != null) {
-        $sql = $sql . ' limit ' . $start . ', ' . $limit . '';
-    }
+        if ($page != null) {
+            $sql = $sql . ' limit ' . $start . ', ' . $limit . '';
+        }
+
         $stmt = $this->connection->prepare($sql);
         $stmt->execute([]);
         return $stmt->fetchAll();
@@ -204,77 +235,85 @@ class DataBaseConnection
     }
 
     //$input -> ["value" => value, "name" => value, "color" => value, "owner_id" => value, "previous_name" => value]
-    public function insertNewAsciiText($input) {
+    public function insertNewAsciiText($input)
+    {
         try {
             $this->insertNewAsciiText->execute($input);
             return ["success" => true];
-        } catch(PDOException $e) {
+        } catch (PDOException $e) {
             return ["success" => false, "error" => "Connection failed: " . $e->getMessage(), "code" => $e->errorInfo[1]];
         }
     }
 
     //$input -> ["owner_id" => value]
-    public function getAsciiPictures($input) {
+    public function getAsciiPictures($input)
+    {
         try {
             $this->selectAsciiPictures->execute($input);
             $asciiPictures = $this->selectAsciiPictures->fetchAll();
             return ["success" => true, "data" => $asciiPictures];
-        }catch(PDOException $e) {
+        } catch (PDOException $e) {
             return ["success" => false, "error" => "Connection failed: " . $e->getMessage(), "code" => $e->errorInfo[1]];
         }
     }
 
     //$input -> ["owner_id" => value, "name" => value]
-    public function getAsciiPictureByName($input) {
+    public function getAsciiPictureByName($input)
+    {
         try {
             $this->selectAsciiPicture->execute($input);
             $asciiPicture = $this->selectAsciiPicture->fetchAll();
             return ["success" => true, "data" => $asciiPicture];
-        }catch(PDOException $e) {
+        } catch (PDOException $e) {
             return ["success" => false, "error" => "Connection failed: " . $e->getMessage(), "code" => $e->errorInfo[1]];
         }
     }
 
     //$input -> ["user" => value]
-    public function getAllAsciiPictures($input) {
-        try {
-            $this->selectAllPictures->execute($input);
-            $asciiPicture = $this->selectAllPictures->fetchAll();
-            return ["success" => true, "data" => $asciiPicture];
-        }catch(PDOException $e) {
-            return ["success" => false, "error" => "Connection failed: " . $e->getMessage(), "code" => $e->errorInfo[1]];
-        }
+    public function getAllAsciiPictures($input)
+    {
+        // try {
+        $this->selectAllPictures->execute($input);
+        $asciiPicture = $this->selectAllPictures->fetchAll();
+        return $asciiPicture;
+        // return ["success" => true, "data" => $asciiPicture];
+        // }catch(PDOException $e) {
+        //     return ["success" => false, "error" => "Connection failed: " . $e->getMessage(), "code" => $e->errorInfo[1]];
+        // }
     }
 
     //$input -> ["owner_id" => value, "page" => value, "pageSize" => value] 
-    public function getAllFriendsPictures($input) {
+    public function getAllFriendsPictures($input)
+    {
         try {
-            $sql = 'SELECT p.value, p.color, p.name as picture_name, p.updated_at from pictures p '.
-            'where p.owner_id in (select f.follower from follower f where user = '.$input['owner_id'] .') order by p.updated_at desc ';
-            if(isset($input["page"]) && $input["page"] >=0 && isset($input["pageSize"]) && $input["pageSize"] >= 0) {
-                $sql = $sql.'limit '.$input["page"].','.$input['pageSize'].';';
+            $sql = 'SELECT p.value, p.color, p.name as picture_name, p.updated_at from pictures p ' .
+                'where p.owner_id in (select f.follower from follower f where user = ' . $input['owner_id'] . ') order by p.updated_at desc ';
+            if (isset($input["page"]) && $input["page"] >= 0 && isset($input["pageSize"]) && $input["pageSize"] >= 0) {
+                $sql = $sql . 'limit ' . $input["page"] . ',' . $input['pageSize'] . ';';
             }
             $this->selectAllFriendsPictures = $this->connection->prepare($sql);
             $this->selectAllFriendsPictures->execute([]);
             $asciiPictures = $this->selectAllFriendsPictures->fetchAll();
             return ["success" => true, "data" => $asciiPictures];
-        }catch(PDOException $e) {
+        } catch (PDOException $e) {
             return ["success" => false, "error" => "Connection failed: " . $e->getMessage(), "code" => $e->errorInfo[1]];
         }
     }
 
     //$input -> ["value" => value, "color" => value, "name" => value, "owner_id" => value]
-    public function updateAsciiPicture($input) {
+    public function updateAsciiPicture($input)
+    {
         try {
             $this->updateAsciiPicture->execute($input);
             return ["success" => true];
-        }catch(PDOException $e) {
+        } catch (PDOException $e) {
             return ["success" => false, "error" => "Connection failed: " . $e->getMessage(), "code" => $e->errorInfo[1]];
         }
     }
 
     //$input -> ["owner_id" => value, "name" => value]
-    public function deleteAsciiPicture($input) {
+    public function deleteAsciiPicture($input)
+    {
         try {
             $this->removeAsciiPicture->execute($input);
             return ["success" => true];
@@ -282,7 +321,7 @@ class DataBaseConnection
             return ["success" => false, "error" => "Connection failed: " . $e->getMessage(), "code" => $e->getCode()];
         }
     }
-    
+
     //
     public function insertNewAsciiVideo($input)
     {
@@ -301,7 +340,7 @@ class DataBaseConnection
         try {
             $this->selectVideos->execute($input);
             $videos = $this->selectVideos->fetchAll();
-            
+
             return ["success" => true, "data" => $videos];
         } catch (Exception $e) {
             return ["success" => false, "error" => "Connection failed: " . $e->getMessage(), "code" => $e->getCode()];
@@ -333,30 +372,34 @@ class DataBaseConnection
         $this->insertFollower->execute($input);
     }
 
-    public function getAllFilteredUsers($userId,$page,$limit){
-        $users = $this->getAllUsers($page, $limit);    
+    public function getAllFilteredUsers($userId, $page, $limit)
+    {
+        $users = $this->getAllUsers($page, $limit);
         // checks which user is follower to out user and set flag is_follower=True and check if it is a following and set is_following=True 
-        $users = array_map(function ($v) use  ($userId){
-            return $this->getFollowStatus($userId,$v);
+        $users = array_map(function ($v) use ($userId) {
+            return $this->getFollowStatus($userId, $v);
         }, $users);
         return $users;
     }
 
-    private function getFollowStatus($userId,$other){
-        $other['is_follower'] = $this->isFollower(['user'=>$userId,'follower'=> $other['id']]);
-        $other['is_following'] = $this->isFollower(['user'=>$other['id'],'follower'=> $userId]);
+    private function getFollowStatus($userId, $other)
+    {
+        $other['is_follower'] = $this->isFollower(['user' => $userId, 'follower' => $other['id']]);
+        $other['is_following'] = $this->isFollower(['user' => $other['id'], 'follower' => $userId]);
         return $other;
     }
 
-    private function isFollower($input){
+    private function isFollower($input)
+    {
         $this->selectUserAndFollower->execute($input);
-        if( $this->selectUserAndFollower->fetch()==null){
+        if ($this->selectUserAndFollower->fetch() == null) {
             return false;
         }
         return true;
     }
 
-    public function getAllUsers($page,$limit){
+    public function getAllUsers($page, $limit)
+    {
         if ($page != null && $page >= 1) {
             $start = (($page - 1) * $limit);
         } else {
@@ -380,4 +423,23 @@ class DataBaseConnection
         }
         return $users;
     }
+
+    function getLikesCount($input)
+{
+    $this->getLikesCount->execute($input);
+    return $this->getLikesCount->fetch();
 }
+
+function addLike($input)
+{
+    $this->validateUser($input['user']);
+    $this->validatePicture($input['picture']);
+
+    $this->addLike->execute($input);
+}
+// private $deleteLike;
+// private $updateLikesCount;
+
+
+}
+
