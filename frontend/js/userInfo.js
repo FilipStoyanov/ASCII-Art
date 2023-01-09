@@ -2,8 +2,9 @@ window.onload = function () {
     getUserInfo();
 };
 
-const baseUrl = 'http://localhost:80/project-web-2022/ASCII-Art/server/page_controllers/userInfo.php';
+const baseUrl = 'http://localhost:80/project-web-2022/ASCII-Art/server/page_controllers/users/userInfo.php';
 function getUserInfo() {
+    sessionStorage.setItem('user', 2);
     const queryString = window.location.search;
     const urlParams = new URLSearchParams(queryString);
     const userId = urlParams.get('user');
@@ -13,29 +14,11 @@ function getUserInfo() {
 }
 
 
-function sendRequest(url, options, successCallback, errorCallback) {
-    var request = new XMLHttpRequest();
-
-    request.onload = function () {
-        console.log('raw body: ' + request.responseText);
-        var response = JSON.parse(request.responseText);
-        console.log(response);
-        if (request.status === 200 && response['success']) {
-            successCallback(response);
-        } else {
-            console.log('Not authorized')
-            errorCallback(response);
-        }
-    }
-
-    request.open(options.method, url, false);
-    request.setRequestHeader('Content-Type', 'application/json');
-    request.send(options.data);
-}
 
 function handleUserInfo(response) {
     var userNameEl = document.getElementById('username');
     userNameEl.innerHTML = response['user']['username'];
+    getAllAsciiPictures(response['user']['id']);
 }
 
 function handleErrorUserInfo(response) {
@@ -47,11 +30,12 @@ function handleErrorUserInfo(response) {
 var wrapper = document.getElementsByClassName("wrapper")[0];
 function sendRequest(url, options, successCallback, errorCallback) {
     var request = new XMLHttpRequest();
+    console.log(url);
     request.onload = function () {
         console.log(url);
         console.log(request.responseText);
         var response = JSON.parse(request.responseText);
-        if (request.status === 200) {
+        if (request.status === 200 && response['success']) {
             successCallback(response);
         } else {
             console.log("Not authorized");
@@ -77,7 +61,7 @@ function getAsciiText(ownerId, name) {
 // get all ascii pictures by owner_id
 function getAllAsciiPictures(ownerId) {
     sendRequest(
-        `http://localhost:80/project-web-2022/ASCII-Art/server/page_controllers/ascii-editor/getAllPictures.php?user=${ownerId}`,
+        `http://localhost:80/project-web-2022/ASCII-Art/server/page_controllers/ascii-editor/getAllPictures.php?owner=${ownerId}&&user=${sessionStorage.getItem('user')}`,
         { method: "GET", data: '' },
         displayAsciiPictures,
         handleError,
@@ -95,13 +79,13 @@ function getAllFriendsPictures(ownerId, page, pageSize) {
 }
 
 function displayAsciiPictures(response) {
-    console.log('azzzzzzzzzzzzzzzzzzz');
-    if (response["success"] && response[0]) {
+    if (response["success"] && response['pictures']) {
         var wrapper = document.getElementsByClassName("wrapper")[0];
-        for (let currentAscii of response[0]) {
-            console.log(currentAscii);
-            let asciiPicture = currentAscii;
-            showAsciiPicture(wrapper, asciiPicture);
+        for (let currentAscii of response['pictures']) {
+            let asciiPicture = currentAscii['data'];
+            let isLiked = currentAscii['liked'];
+            let likesCount = currentAscii['likes_count'];
+            showAsciiPicture(wrapper, asciiPicture, isLiked, likesCount);
         }
     } else {
         // show error message
@@ -110,7 +94,7 @@ function displayAsciiPictures(response) {
 
 
 // element => html element; asciiText => value attribute from PICTURES sql table
-function showAsciiPicture(element, asciiPicture) {
+function showAsciiPicture(element, asciiPicture, isLiked, likesCount) {
     if (element && asciiPicture) {
         let responseAsciiValue = asciiPicture.value;
         let asciiColor = asciiPicture.color;
@@ -125,12 +109,12 @@ function showAsciiPicture(element, asciiPicture) {
         asciiTextElement.innerHTML = asciiText;
         asciiWrapperElement.appendChild(asciiTextElement);
         element.appendChild(asciiWrapperElement);
-        addLikeButton(element);
+        addLikeButton(element, asciiPicture['id'], isLiked, likesCount);
     }
 }
 
-function handleError() {
-
+function handleError(response) {
+    console.log(response);
 }
 
 
@@ -141,14 +125,14 @@ const PAGINATION_PAGESIZE = 10;
 
 document.addEventListener("DOMContentLoaded", function (event) {
     // getAsciiText(USER_ID,ASCII_NAME); // get one ascii picture
-    getAllAsciiPictures(sessionStorage.getItem('user')); // get all ascii pictures
+    // getAllAsciiPictures(sessionStorage.getItem('user')); // get all ascii pictures
     // getAllFriendsPictures(USER_ID, PAGINATION_PAGE, PAGINATION_PAGESIZE); // get all friends ascii pictures with pagination
 });
 
 
 
 
-function addLikeButton(el) {
+function addLikeButton(el, pictureId, isLiked, likesCount) {
     let button = document.createElement('a');
 
     button.className = "button button-like";
@@ -158,20 +142,43 @@ function addLikeButton(el) {
     button.appendChild(i);
     let span = document.createElement('span');
     span.innerHTML = 'Like';
+    let likesCountEl = document.createElement('span');
+    likesCountEl.innerHTML = likesCount;
+    likesCountEl.className = 'counter';
+    let likedEl = document.createElement('span');
+    likedEl.innerHTML = isLiked;
+    likedEl.className = 'liked';
+    likedEl.hidden = true;
     button.appendChild(span);
+    button.appendChild(likesCountEl);
+    button.appendChild(likedEl);
     button.addEventListener("click", function (e) {
-        makeButtonLiked(button);
-        addLike();
-        refreshCounter();
-        console.log('LIKED');
+        changeButtonView(button, pictureId);
+        refreshCounter(button);
     });
-
+    if (isLiked) {
+        makeButtonLiked(button);
+    }
     el.appendChild(button);
 }
 
 
-function addLike() {
+function addLike(pictureId) {
+    var data = { 'user': sessionStorage.getItem('user'), 'picture': pictureId };
+    sendRequest(`http://localhost:80/project-web-2022/ASCII-Art/server/page_controllers/feed/likes.php`,
+        { method: "POST", data: JSON.stringify(data) },
+        () => { },
+        handleError,
+    );
+}
 
+function deleteLike(pictureId) {
+    var data = { 'user': sessionStorage.getItem('user'), 'picture': pictureId };
+    sendRequest(`http://localhost:80/project-web-2022/ASCII-Art/server/page_controllers/feed/likes.php`,
+        { method: "DELETE", data: JSON.stringify(data) },
+        () => { },
+        handleError,
+    );
 }
 
 function makeButtonLiked(button) {
@@ -179,4 +186,39 @@ function makeButtonLiked(button) {
     button.style.fontWeight = 'bold';
     button.style.borderWidth = 'thick ';
     button.style.borderColor = 'green';
+}
+
+function makeButtonNotLiked(button) {
+    button.style.color = 'grey';
+    button.style.fontWeight = 'thin';
+    button.style.borderWidth = 'thin';
+    button.style.borderColor = 'grey';
+}
+
+function changeButtonView(button, pictureId) {
+   console.log( button.getElementsByClassName('liked')[0]);
+    let isLiked = button.getElementsByClassName('liked')[0].innerHTML;
+
+    if (isLiked == 'true') {
+        makeButtonNotLiked(button);
+        deleteLike(pictureId);
+        return;
+    }
+    makeButtonLiked(button);
+    addLike(pictureId);
+}
+
+function refreshCounter(button) {
+    let likesCount =parseInt(button.getElementsByClassName('counter')[0].innerHTML);
+    console.log(likesCount);
+    let isLiked = button.getElementsByClassName('liked')[0].innerHTML;
+    if (isLiked == 'true') {
+        likesCount -= 1;
+        button.getElementsByClassName('liked')[0].innerHTML =false;
+    }
+    else {
+        likesCount += 1;
+        button.getElementsByClassName('liked')[0].innerHTML =true;
+    }
+    button.getElementsByClassName('counter')[0].innerHTML = likesCount;
 }

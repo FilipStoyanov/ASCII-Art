@@ -25,6 +25,7 @@ class DataBaseConnection
     private $addLike;
     private $deleteLike;
     private $updateLikesCount;
+    private $selectLikeByUserAndPicture;
 
     public function __construct()
     {
@@ -83,7 +84,7 @@ class DataBaseConnection
         $sql = 'SELECT name from pictures where owner_id = :owner_id';
         $this->selectAsciiPictures = $this->connection->prepare($sql);
 
-        $sql = 'SELECT * FORM PICTURES WHERE id = :picture';
+        $sql = 'SELECT * FROM PICTURES WHERE id = :picture';
         $this->getPictureById = $this->connection->prepare($sql);
 
         $sql = 'SELECT value, color, name, created_at, updated_at from pictures where owner_id = :owner_id and name = :name';
@@ -95,7 +96,7 @@ class DataBaseConnection
         $sql = 'DELETE from pictures where owner_id = :owner_id and name = :name';
         $this->removeAsciiPicture = $this->connection->prepare($sql);
 
-        $sql = 'SELECT p.value, p.color, p.name as picture_name, u.username, p.created_at, p.updated_at from pictures p join user u on p.owner_id = u.id where owner_id = :owner_id';
+        $sql = 'SELECT p.id, p.value, p.color, p.name as picture_name, u.username, p.created_at, p.updated_at from pictures p join user u on p.owner_id = u.id where owner_id = :owner_id';
         $this->selectAllPictures = $this->connection->prepare($sql);
 
         $sql = 'SELECT likes FROM PICTURES WHERE id = :picture';
@@ -107,8 +108,11 @@ class DataBaseConnection
         $sql = 'DELETE FROM LIKED WHERE user=:user and picture=:picture';
         $this->deleteLike = $this->connection->prepare($sql);
 
-        $sql = 'UPDATE PICTURES SET LIKES = LIKES + 1 WHERE id=:picture';
+        $sql = 'UPDATE PICTURES SET LIKES = LIKES + :difference WHERE id=:picture';
         $this->updateLikesCount = $this->connection->prepare($sql);
+
+        $sql = 'SELECT * FROM LIKED WHERE user=:user AND picture=:picture';
+        $this->selectLikeByUserAndPicture = $this->connection->prepare($sql);
     }
 
     //$input -> ["user" => value, "follower" => value]
@@ -134,7 +138,8 @@ class DataBaseConnection
 
     private function validatePicture($picture)
     {
-        if ($this->getPictureById(['picture' => $picture]) == null) {
+        $this->getPictureById->execute(['picture' => $picture]);
+        if ($this->getPictureById->fetch() == null) {
             throw new Exception('Picture with id ' . +$picture . ' was not found.');
         }
     }
@@ -269,17 +274,37 @@ class DataBaseConnection
         }
     }
 
-    //$input -> ["user" => value]
+
+    private function setLikes($user, $pictures)
+    {
+        for ($i = 0; $i < count($pictures); $i++) {
+            $pictures[$i] = ['data' => $pictures[$i], 'liked' => $this->isLiked($user, $pictures[$i]), 'likes_count' => $this->getLikesCount(['picture' => $pictures[$i]['id']])['likes']];
+        }
+        return $pictures;
+    }
+
+    //$input -> ["user" => value, "owner" => value]
     public function getAllAsciiPictures($input)
     {
         // try {
-        $this->selectAllPictures->execute($input);
-        $asciiPicture = $this->selectAllPictures->fetchAll();
-        return $asciiPicture;
+        $this->selectAllPictures->execute(["owner_id" => $input["owner"]]);
+        $asciiPictures = $this->selectAllPictures->fetchAll();
+        $pictures = $this->setLikes($input["user"], $asciiPictures);
+        return $pictures;
         // return ["success" => true, "data" => $asciiPicture];
         // }catch(PDOException $e) {
         //     return ["success" => false, "error" => "Connection failed: " . $e->getMessage(), "code" => $e->errorInfo[1]];
         // }
+    }
+
+
+
+
+    private function isLiked($user, $picture)
+    {
+        $this->selectLikeByUserAndPicture->execute(["user" => $user, "picture" => $picture['id']]);
+        $picture = $this->selectLikeByUserAndPicture->fetch();
+        return $picture != null;
     }
 
     //$input -> ["owner_id" => value, "page" => value, "pageSize" => value] 
@@ -425,21 +450,31 @@ class DataBaseConnection
     }
 
     function getLikesCount($input)
-{
-    $this->getLikesCount->execute($input);
-    return $this->getLikesCount->fetch();
+    {
+        $this->getLikesCount->execute($input);
+        return $this->getLikesCount->fetch();
+    }
+
+    function addLike($input)
+    {
+        $this->validateUser($input['user']);
+        $this->validatePicture($input['picture']);
+
+        $this->addLike->execute($input);
+    }
+
+    function deleteLike($input)
+    {
+        $this->validateUser($input['user']);
+        $this->validatePicture($input['picture']);
+
+        $this->deleteLike->execute($input);
+    }
+
+    function updateLikesCount($input)
+    {
+        $this->updateLikesCount->execute($input);
+    }
+
+
 }
-
-function addLike($input)
-{
-    $this->validateUser($input['user']);
-    $this->validatePicture($input['picture']);
-
-    $this->addLike->execute($input);
-}
-// private $deleteLike;
-// private $updateLikesCount;
-
-
-}
-
