@@ -641,7 +641,7 @@ function saveAsciiPicture() {
                 }
             }
             asciiText = result;
-            data['owner_id'] = 1;
+            data['owner_id'] = 3;
             data["value"] = asciiText;
             data["name"] = asciiName;
             data["color"] = chosenColor;

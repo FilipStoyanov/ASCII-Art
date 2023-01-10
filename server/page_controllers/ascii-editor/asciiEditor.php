@@ -67,7 +67,7 @@ class AsciiEditor
                 return;
             }
             try {
-                $query = $this->connection->getAsciiPictures(['owner_id' => $user]);
+                $query = $this->connection->getAsciiPictures(['owner' => $user]);
                 echo json_encode(["success" => true, $query['data']]);
             } catch (Exception $e) {
                 echo json_encode(["success" => false, "errors" => $query["error"], "code" => $query["code"], "message" => "Error with fetching ascii pictures"]);
@@ -160,6 +160,17 @@ class AsciiEditor
             ) {
                 return json_encode(["success" => false, "error" => "Owner is not chosen."]);
             }
+            if (!array_key_exists('page', $pathParameters) || $pathParameters['page'] == null) {
+                $page = null;
+                $limit = null;
+            } else {
+                $page = $pathParameters['page'];
+                $limit = 10;
+            }
+
+            if (!is_int($page)) {
+                $page = (int) $page;
+            }
             $user = $pathParameters['user'];
             $owner = $pathParameters['owner'];
             if (!is_int($user)) {
@@ -172,7 +183,7 @@ class AsciiEditor
                 return json_encode(["success" => false, "error" => "Invalid user id."]);
             }
             try {
-                $picture = $this->connection->getAllAsciiPictures(["owner" => $owner, "user" => $user]);
+                $picture = $this->connection->getAllAsciiPictures(["owner" => $owner, "user" => $user, 'page' => $page, 'limit' => $limit]);
                 // if ($picture["success"]) {
                 return json_encode(["success" => true, 'pictures' => $picture]);
                 // }
@@ -193,33 +204,29 @@ class AsciiEditor
             if (
                 !array_key_exists('user', $pathParameters) || $pathParameters['user'] == null
             ) {
-                echo json_encode(["success" => false, "error" => "Invalid user id"]);
-                return;
+                return json_encode(["success" => false, "error" => "Invalid user id"]);
             }
-            $page = null;
-            $pageSize = null;
             $user = $pathParameters['user'];
-            if (array_key_exists('page', $pathParameters)) {
+            if (!array_key_exists('page', $pathParameters) || $pathParameters['page'] == null) {
+                $page = null;
+                $limit = null;
+            } else {
                 $page = $pathParameters['page'];
-                $page = (int) $page;
+                $limit = 10;
             }
-            if (array_key_exists('pageSize', $pathParameters)) {
-                $pageSize = $pathParameters['pageSize'];
-                $pageSize = (int) $pageSize;
+
+            if (!is_int($page)) {
+                $page = (int) $page;
             }
             if (!is_int($user)) {
                 $user = (int) $user;
             }
             if ($user <= 0) {
-                echo json_encode(["success" => false, "error" => "Invalid user id."]);
-                return;
+                return json_encode(["success" => false, "error" => "Invalid user id."]);
             }
             try {
-                $picture = $this->connection->getAllFriendsPictures(["owner_id" => $user, "page" => $page * $pageSize, "pageSize" => $pageSize]);
-                if ($picture["success"]) {
-                    echo json_encode(["success" => true, $picture['data']]);
-                    return;
-                }
+                $picture = $this->connection->getAllFriendsPictures(["user" => $user, 'page' => $page, 'limit' => $limit]);
+                return json_encode(["success" => true, 'pictures' => $picture]);
             } catch (Exception $e) {
                 $response['success'] = false;
                 $response['error_message'] = $e->getMessage();

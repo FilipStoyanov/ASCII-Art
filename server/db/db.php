@@ -254,8 +254,23 @@ class DataBaseConnection
     public function getAsciiPictures($input)
     {
         try {
-            $this->selectAsciiPictures->execute($input);
-            $asciiPictures = $this->selectAsciiPictures->fetchAll();
+            // $this->selectAsciiPictures->execute($input);
+            // $asciiPictures = $this->selectAsciiPictures->fetchAll();
+            
+            $page = $input['page'];
+            $limit = $input['limit'];
+            if ($page != null && $page >= 1) {
+                $start = (($page - 1) * $limit);
+            } else {
+                $page = null;
+            }
+    $query = 'SELECT name from pictures where owner_id = :owner_id';
+            if ($page != null) {
+                $query = $query . ' limit ' . $start . ', ' . $limit . '';
+            }
+            $stmt = $this->connection->prepare($query);
+            $stmt->execute(["owner_id" => $input["owner"]]);
+            $asciiPictures = $stmt->fetchAll();
             return ["success" => true, "data" => $asciiPictures];
         } catch (PDOException $e) {
             return ["success" => false, "error" => "Connection failed: " . $e->getMessage(), "code" => $e->errorInfo[1]];
@@ -286,15 +301,24 @@ class DataBaseConnection
     //$input -> ["user" => value, "owner" => value]
     public function getAllAsciiPictures($input)
     {
-        // try {
-        $this->selectAllPictures->execute(["owner_id" => $input["owner"]]);
-        $asciiPictures = $this->selectAllPictures->fetchAll();
+    
+        $page = $input['page'];
+        $limit = $input['limit'];
+        if ($page != null && $page >= 1) {
+            $start = (($page - 1) * $limit);
+        } else {
+            $page = null;
+        }
+$query = 'SELECT p.id, p.value, p.color, p.name as picture_name, u.username, p.created_at, p.updated_at from pictures p join user u on p.owner_id = u.id where owner_id = :owner_id';
+        if ($page != null) {
+            $query = $query . ' limit ' . $start . ', ' . $limit . '';
+        }
+      
+        $stmt = $this->connection->prepare($query);
+        $stmt->execute(["owner_id" => $input['owner']]);
+        $asciiPictures = $stmt->fetchAll();
         $pictures = $this->setLikes($input["user"], $asciiPictures);
         return $pictures;
-        // return ["success" => true, "data" => $asciiPicture];
-        // }catch(PDOException $e) {
-        //     return ["success" => false, "error" => "Connection failed: " . $e->getMessage(), "code" => $e->errorInfo[1]];
-        // }
     }
 
 
@@ -309,20 +333,27 @@ class DataBaseConnection
 
     //$input -> ["owner_id" => value, "page" => value, "pageSize" => value] 
     public function getAllFriendsPictures($input)
-    {
-        try {
-            $sql = 'SELECT p.value, p.color, p.name as picture_name, p.updated_at from pictures p ' .
-                'where p.owner_id in (select f.follower from follower f where user = ' . $input['owner_id'] . ') order by p.updated_at desc ';
-            if (isset($input["page"]) && $input["page"] >= 0 && isset($input["pageSize"]) && $input["pageSize"] >= 0) {
-                $sql = $sql . 'limit ' . $input["page"] . ',' . $input['pageSize'] . ';';
+    {   
+            $page = $input['page'];
+            $limit = $input['limit'];
+            if ($page != null && $page >= 1) {
+                $start = (($page - 1) * $limit);
+            } else {
+                $page = null;
+            }
+          
+            $sql = 'SELECT p.id, p.value, p.color, p.name as picture_name,p.owner_id, p.updated_at from pictures p ' .
+                'where p.owner_id in (select f.user from follower f where follower = ' . $input['user'] . ') order by p.updated_at desc ';
+ 
+            if ($page != null) {
+                $sql = $sql . ' limit ' . $start . ', ' . $limit . '';
             }
             $this->selectAllFriendsPictures = $this->connection->prepare($sql);
             $this->selectAllFriendsPictures->execute([]);
             $asciiPictures = $this->selectAllFriendsPictures->fetchAll();
-            return ["success" => true, "data" => $asciiPictures];
-        } catch (PDOException $e) {
-            return ["success" => false, "error" => "Connection failed: " . $e->getMessage(), "code" => $e->errorInfo[1]];
-        }
+            $pictures = $this->setLikes($input["user"], $asciiPictures);
+            return $pictures;
+     
     }
 
     //$input -> ["value" => value, "color" => value, "name" => value, "owner_id" => value]
