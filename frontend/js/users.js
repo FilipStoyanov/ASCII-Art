@@ -1,8 +1,9 @@
 const dir = 'http://localhost:80/project-web-2022/ASCII-Art/';
-const baseUrl = dir + 'server/page_controllers/';
-
+const baseUrl = dir + 'server/page_controllers/users/';
+const baseFollowUrl = dir + 'server/page_controllers/follow/';
+sessionStorage.setItem('user', 2);
 function openTab(event, sectionName) {
-  sessionStorage.setItem('section',sectionName);
+  sessionStorage.setItem('section', sectionName);
   updateButtonsMode('prevPage', true);
   updateButtonsMode('nextPage', false);
   var errorMsg = document.getElementById("error-msg");
@@ -31,7 +32,7 @@ function openTab(event, sectionName) {
 }
 
 
-function handleListUsers(response, type, userId) {
+function handleListUsers(response, type, userId,listAllUsers) {
   var tableName = type + '-tb';
   var table = document.getElementById(tableName);
   table.innerHTML = '';
@@ -57,10 +58,10 @@ function handleListUsers(response, type, userId) {
     let link = row.insertCell(2);
     link.appendChild(createLink(item.id));
     if (item.id == userId) {
-      addButtons(row, userId, item.id, true, true, true);
+      addButtons(row, userId, item.id, true, true, true,listAllUsers);
       return;
     }
-    addButtons(row, userId, item.id, !item.is_follower, !item.is_following, item.is_following);
+    addButtons(row, userId, item.id, !item.is_follower, !item.is_following, item.is_following,listAllUsers);
   });
 }
 
@@ -80,18 +81,18 @@ function handleErrorUsers(response) {
     showModalForSeconds();
     var modalContent = document.getElementsByClassName("modal-body")[0]
     modalContent.innerHTML = "An error has occurred. Try again."
-} else {
+  } else {
     document.getElementById(sessionStorage.getItem('section')).classList.remove("show-modal");
-}
+  }
 }
 
 function showModalForSeconds(reload = false) {
   document.getElementById(sessionStorage.getItem('section')).classList.add("show-modal");
   setTimeout(() => {
-      document.getElementById(sessionStorage.getItem('section')).classList.remove("show-modal");
-      if (reload) {
-          window.location.reload();
-      }
+    document.getElementById(sessionStorage.getItem('section')).classList.remove("show-modal");
+    if (reload) {
+      window.location.reload();
+    }
   }, 3000);
 }
 
@@ -99,34 +100,34 @@ function showModalForSeconds(reload = false) {
 function modalFunctionality() {
 
   modalCloseBtn.onclick = function () {
-      modal.style.display = "none";
-      document.getElementById("main").classLis.remove("show-modal");
-      window.location.reload();
+    modal.style.display = "none";
+    document.getElementById("main").classLis.remove("show-modal");
+    window.location.reload();
   }
 
   window.onclick = function (event) {
-      if (event.target == modal) {
-          modal.style.display = "none";
-          document.getElementById("main").classList.remove("show-modal");
-          window.location.reload();
-      }
+    if (event.target == modal) {
+      modal.style.display = "none";
+      document.getElementById("main").classList.remove("show-modal");
+      window.location.reload();
+    }
   }
 }
 
 function listUsers() {
-  var id = document.getElementById("user-id");
-  var url = baseUrl + 'users.php?user=' ;//+ id.value + '&&page=' + sessionStorage.getItem('page');
+  // var id = document.getElementById("user-id");
+  var url = baseUrl + 'users.php?user=' + sessionStorage.getItem('user') + '&&page=' + sessionStorage.getItem('page');
   var type = 'users';
-  sendRequest(url, { method: 'GET', data: '' }, (response) => handleListUsers(response, type, id.value), handleErrorUsers);
+  sendRequest(url, { method: 'GET', data: '' }, (response) => handleListUsers(response, type, sessionStorage.getItem('user'),true), handleErrorUsers);
 }
 
 
 function lookupUser() {
-  var id = document.getElementById("user-id");
+  // var id = document.getElementById("user-id");
   var name = document.getElementById("user-name");
-  var url = baseUrl + 'user.php?user=' + name.value + '&&page=' + sessionStorage.getItem('page');
+  var url = baseUrl + 'user.php?user=' + name.value + '&&page=' + sessionStorage.getItem('page') + '&&owner=' + sessionStorage.getItem('user');
   var type = 'user-by-name';
-  sendRequest(url, { method: 'GET', data: '' }, (response) => handleListUsers(response, type, id.value), handleErrorUsers);
+  sendRequest(url, { method: 'GET', data: '' }, (response) => handleListUsers(response, type, sessionStorage.getItem('user'),false), handleErrorUsers);
 }
 
 
@@ -162,16 +163,20 @@ function addHeaders(table) {
   }
 }
 
-function removeFollower(user, follower) {
+function removeFollower(user, follower,listAllUsers) {
   console.log('Delete follower ' + follower + ' from user ' + user);
-  var url = baseUrl + 'updateFollower.php';
+  var url = baseFollowUrl + 'updateFollower.php';
   var data = { 'user': user, 'follower': follower };
-  sendRequest(url, { method: 'DELETE', data: JSON.stringify(data) }, (response) => handleUpdateFollower(response, 'Successfully deleted follower.'), handleErrorUpdateFollower);
+  sendRequest(url, { method: 'DELETE', data: JSON.stringify(data) }, (response) => handleUpdateFollower(listAllUsers, response, 'Successfully deleted follower.'), handleErrorUpdateFollower);
 }
 
-function handleUpdateFollower(response, msg) {
+function handleUpdateFollower(listAllUsers, response, msg) {
   console.log(msg);
-  listUsers();
+  if (listAllUsers) {
+    listUsers();
+    return;
+  }
+  lookupUser();
 }
 
 function handleErrorUpdateFollower(response) {
@@ -183,9 +188,9 @@ function handleErrorUpdateFollower(response) {
     console.error(response['error_message']);
     showModalForSeconds();
     modalContent.innerHTML = "An error has occurred. Try again."
-} else {
+  } else {
     document.getElementsByClassName("editor")[0].classList.remove("show-modal");
-}
+  }
 }
 
 function createLink(userId) {
@@ -197,7 +202,7 @@ function createLink(userId) {
   return a;
 }
 
-function createDeleteButton(removeThisFollower, disable, userId, otherId) {
+function createDeleteButton(removeThisFollower, disable, userId, otherId,listAllUsers) {
   let removeBtn = document.createElement("button");
   if (removeThisFollower) {
     removeBtn.innerHTML = "Remove from followers";
@@ -208,29 +213,29 @@ function createDeleteButton(removeThisFollower, disable, userId, otherId) {
   removeBtn.onclick = function () {
     if (removeThisFollower) {
 
-      removeFollower(userId, otherId);
+      removeFollower(userId, otherId,listAllUsers);
       return;
     }
-    removeFollower(otherId, userId);
+    removeFollower(otherId, userId,listAllUsers);
   };
   return removeBtn;
 }
 
-function createAddButton(disable, userId, otherId) {
+function createAddButton(disable, userId, otherId,listAllUsers) {
   let addBtn = document.createElement("button");
   addBtn.innerHTML = "Follow";
   addBtn.onclick = function () {
-    addFollower(otherId, userId);
+    addFollower(otherId, userId,listAllUsers);
   };
   addBtn.disabled = disable;
   return addBtn;
 }
 
-function addFollower(user, follower) {
+function addFollower(user, follower,listAllUsers) {
   console.log('Add follower ' + follower + ' to user ' + user);
-  var url = baseUrl + 'updateFollower.php';
+  var url = baseFollowUrl + 'updateFollower.php';
   var data = { 'user': user, 'follower': follower };
-  sendRequest(url, { method: 'POST', data: JSON.stringify(data) }, (response) => handleUpdateFollower(response, 'Successfully added follower.'), handleErrorUpdateFollower);
+  sendRequest(url, { method: 'POST', data: JSON.stringify(data) }, (response) => handleUpdateFollower(listAllUsers,response, 'Successfully added follower.'), handleErrorUpdateFollower);
 }
 
 
@@ -261,11 +266,11 @@ function updateButtonsMode(buttonClass, newMode) {
 }
 
 
-function addButtons(row, userId, otherId, removeFollowerDisabled, removeFollowingDisabled, addFollowerDisabled) {
+function addButtons(row, userId, otherId, removeFollowerDisabled, removeFollowingDisabled, addFollowerDisabled,listAllUsers) {
   let removeFollower = row.insertCell(3);
-  removeFollower.appendChild(createDeleteButton(true, removeFollowerDisabled, userId, otherId));
+  removeFollower.appendChild(createDeleteButton(true, removeFollowerDisabled, userId, otherId,listAllUsers));
   let removeFollowing = row.insertCell(4);
-  removeFollowing.appendChild(createDeleteButton(false, removeFollowingDisabled, userId, otherId));
+  removeFollowing.appendChild(createDeleteButton(false, removeFollowingDisabled, userId, otherId,listAllUsers));
   let add = row.insertCell(5);
-  add.appendChild(createAddButton(addFollowerDisabled, userId, otherId));
+  add.appendChild(createAddButton(addFollowerDisabled, userId, otherId,listAllUsers));
 }

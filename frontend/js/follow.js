@@ -1,5 +1,5 @@
 const dir = 'http://localhost:80/project-web-2022/ASCII-Art/';
-const baseUrl = dir + 'server/page_controllers/';
+const baseUrl = dir + 'server/page_controllers/follow/';
 // sessionStorage.setItem('userId',2);
 
 function openTab(event, sectionName) {

@@ -24,6 +24,11 @@ class User
                 $this->response['error_message'] = 'User is not chosen.';
                 return json_encode($this->response);
             }
+            if (!array_key_exists('owner', $pathParameters) || $pathParameters['owner'] == null) {
+                $this->response['status'] = 'fail';
+                $this->response['error_message'] = 'Owner is not chosen.';
+                return json_encode($this->response);
+            }
 
             if (!array_key_exists('page', $pathParameters) || $pathParameters['page'] == null) {
                 $page = null;
@@ -42,6 +47,17 @@ class User
                 $this->response['error_message'] = 'Invalid page.';
                 return json_encode($this->response);
             }
+
+            $owner = $pathParameters['owner'];
+            if (!is_int($owner)) {
+                $owner = (int) $owner;
+            }
+
+            if ($owner <= 0) {
+                $this->response['success'] = false;
+                $this->response['error_message'] = 'Invalid owner id.';
+                return json_encode($this->response);
+            }
             
             $username = $pathParameters['user'];
             if (!is_string($username)) {
@@ -51,7 +67,7 @@ class User
             }
 
             try {
-                $users = $this->connection->getUserByName($username,$page,$limit);
+                $users = $this->connection->getUserByName($username,$page,$limit,$owner);
             } catch (Exception $e) {
                 $response['success'] = false;
                 $response['error_message'] = $e->getMessage();

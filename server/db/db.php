@@ -125,7 +125,7 @@ class DataBaseConnection
     private function validateUsers($users)
     {
         for ($i = 0; $i < count($users); ++$i) {
-            validateUser($users[$i]);
+            $this->validateUser($users[$i]);
         }
     }
 
@@ -184,7 +184,7 @@ class DataBaseConnection
         return $fellows;
     }
 
-    public function getUserByName($username, $page, $limit)
+    public function getUserByName($username, $page, $limit, $userId)
     {
         if ($page != null && $page >= 1) {
             $start = (($page - 1) * $limit);
@@ -199,7 +199,12 @@ class DataBaseConnection
 
         $stmt = $this->connection->prepare($sql);
         $stmt->execute([]);
-        return $stmt->fetchAll();
+        $users = $stmt->fetchAll();
+        // checks which user is follower to out user and set flag is_follower=True and check if it is a following and set is_following=True 
+        $users = array_map(function ($v) use ($userId) {
+            return $this->getFollowStatus($userId, $v);
+        }, $users);
+        return $users;
     }
 
 
@@ -256,7 +261,7 @@ class DataBaseConnection
         try {
             // $this->selectAsciiPictures->execute($input);
             // $asciiPictures = $this->selectAsciiPictures->fetchAll();
-            
+
             $page = $input['page'];
             $limit = $input['limit'];
             if ($page != null && $page >= 1) {
@@ -264,7 +269,7 @@ class DataBaseConnection
             } else {
                 $page = null;
             }
-    $query = 'SELECT name from pictures where owner_id = :owner_id';
+            $query = 'SELECT name from pictures where owner_id = :owner_id';
             if ($page != null) {
                 $query = $query . ' limit ' . $start . ', ' . $limit . '';
             }
@@ -301,7 +306,7 @@ class DataBaseConnection
     //$input -> ["user" => value, "owner" => value]
     public function getAllAsciiPictures($input)
     {
-    
+
         $page = $input['page'];
         $limit = $input['limit'];
         if ($page != null && $page >= 1) {
@@ -309,11 +314,11 @@ class DataBaseConnection
         } else {
             $page = null;
         }
-$query = 'SELECT p.id, p.value, p.color, p.name as picture_name, u.username, p.created_at, p.updated_at from pictures p join user u on p.owner_id = u.id where owner_id = :owner_id';
+        $query = 'SELECT p.id, p.value, p.color, p.name as picture_name, u.username, p.created_at, p.updated_at from pictures p join user u on p.owner_id = u.id where owner_id = :owner_id';
         if ($page != null) {
             $query = $query . ' limit ' . $start . ', ' . $limit . '';
         }
-      
+
         $stmt = $this->connection->prepare($query);
         $stmt->execute(["owner_id" => $input['owner']]);
         $asciiPictures = $stmt->fetchAll();
@@ -333,33 +338,34 @@ $query = 'SELECT p.id, p.value, p.color, p.name as picture_name, u.username, p.c
 
     //$input -> ["owner_id" => value, "page" => value, "pageSize" => value] 
     public function getAllFriendsPictures($input)
-    {   
-            $page = $input['page'];
-            $limit = $input['limit'];
-            if ($page != null && $page >= 1) {
-                $start = (($page - 1) * $limit);
-            } else {
-                $page = null;
-            }
-          
-            $sql = 'SELECT p.id, p.value, p.color, p.name as picture_name,p.owner_id, p.updated_at from pictures p ' .
-                'where p.owner_id in (select f.user from follower f where follower = ' . $input['user'] . ') order by p.updated_at desc ';
- 
-            if ($page != null) {
-                $sql = $sql . ' limit ' . $start . ', ' . $limit . '';
-            }
-            $this->selectAllFriendsPictures = $this->connection->prepare($sql);
-            $this->selectAllFriendsPictures->execute([]);
-            $asciiPictures = $this->selectAllFriendsPictures->fetchAll();
-            $pictures = $this->setLikes($input["user"], $asciiPictures);
-            $pictures = $this->setUsers($pictures);
-            return $pictures;
-     
+    {
+        $page = $input['page'];
+        $limit = $input['limit'];
+        if ($page != null && $page >= 1) {
+            $start = (($page - 1) * $limit);
+        } else {
+            $page = null;
+        }
+
+        $sql = 'SELECT p.id, p.value, p.color, p.name as picture_name,p.owner_id, p.updated_at from pictures p ' .
+            'where p.owner_id in (select f.user from follower f where follower = ' . $input['user'] . ') order by p.updated_at desc ';
+
+        if ($page != null) {
+            $sql = $sql . ' limit ' . $start . ', ' . $limit . '';
+        }
+        $this->selectAllFriendsPictures = $this->connection->prepare($sql);
+        $this->selectAllFriendsPictures->execute([]);
+        $asciiPictures = $this->selectAllFriendsPictures->fetchAll();
+        $pictures = $this->setLikes($input["user"], $asciiPictures);
+        $pictures = $this->setUsers($pictures);
+        return $pictures;
+
     }
 
-   function setUsers($pictures){
+    function setUsers($pictures)
+    {
         for ($i = 0; $i < count($pictures); $i++) {
-            $pictures[$i] = ['data' => $pictures[$i]['data'], 'liked' => $pictures[$i]['liked'], 'likes_count' =>  $pictures[$i]['likes_count'],'owner'=>$this->getUserById(['user'=>(int)$pictures[$i]['data']['owner_id']])];
+            $pictures[$i] = ['data' => $pictures[$i]['data'], 'liked' => $pictures[$i]['liked'], 'likes_count' => $pictures[$i]['likes_count'], 'owner' => $this->getUserById(['user' => (int) $pictures[$i]['data']['owner_id']])];
         }
         return $pictures;
     }

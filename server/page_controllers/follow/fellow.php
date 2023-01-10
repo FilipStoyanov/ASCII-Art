@@ -20,6 +20,7 @@ class Fellow
                 $this->response['error_message'] = 'Follower is not chosen.';
                 return json_encode($this->response);
             }
+     
             if (!array_key_exists('user', $data) || $data['user'] == null) {
                 $this->response['success'] = false;
                 $this->response['error_message'] = 'User is not chosen.';
