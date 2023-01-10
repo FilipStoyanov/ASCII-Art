@@ -184,9 +184,7 @@ class AsciiEditor
             }
             try {
                 $picture = $this->connection->getAllAsciiPictures(["owner" => $owner, "user" => $user, 'page' => $page, 'limit' => $limit]);
-                // if ($picture["success"]) {
-                return json_encode(["success" => true, 'pictures' => $picture]);
-                // }
+                return json_encode(["success" => true, 'pictures' => $picture]); 
             } catch (Exception $e) {
                 $response['success'] = false;
                 $response['error_message'] = $e->getMessage();
@@ -229,7 +227,7 @@ class AsciiEditor
                 return json_encode(["success" => true, 'pictures' => $picture]);
             } catch (Exception $e) {
                 $response['success'] = false;
-                $response['error_message'] = $e->getMessage();
+                $response['error'] = $e->getMessage();
                 return json_encode($response);
             }
         }

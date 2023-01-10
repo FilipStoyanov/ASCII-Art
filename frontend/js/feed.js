@@ -53,7 +53,8 @@ function displayAsciiPictures(response) {
             let asciiPicture = currentAscii['data'];
             let isLiked = currentAscii['liked'];
             let likesCount = currentAscii['likes_count'];
-            showAsciiPicture(wrapper, asciiPicture, isLiked, likesCount);
+            let owner = currentAscii['owner'];
+            showAsciiPicture(wrapper, asciiPicture, isLiked, likesCount,owner['username']);
         }
     } else {
         // show error message
@@ -61,38 +62,47 @@ function displayAsciiPictures(response) {
 }
 
 
-function showAsciiPicture(element, asciiPicture, isLiked, likesCount) {
+function showAsciiPicture(element, asciiPicture, isLiked, likesCount,ownerName) {
     if (element && asciiPicture) {
-        console.log('finished');
-        let responseAsciiValue = asciiPicture.value;
-        let asciiColor = asciiPicture.color;
-        let asciiText = responseAsciiValue.substring(1, responseAsciiValue.length - 1).replace(/\\n/g, '<br/>');
-        asciiText = asciiText.replace('<br/>', '');
-        let asciiWrapperElement = document.createElement('div');
-        asciiWrapperElement.className = "ascii-wrapper";
-        asciiWrapperElement.style.backgroundColor = 'white';
-        let asciiTextElement = document.createElement("pre");
-        asciiTextElement.className = "ascii-picture";
-        asciiTextElement.style.color = asciiColor;
-        asciiTextElement.innerHTML = asciiText;
-        asciiWrapperElement.appendChild(asciiTextElement);
         let nameEl = document.createElement('span');
         nameEl.style.fontWeight = 'bold';
-        nameEl.innerHTML = 'Picture name: ' + asciiPicture['picture_name'];
-
+        nameEl.innerHTML = 'Picture name: '+asciiPicture['picture_name'];
         let updatedEl = document.createElement('span');
         updatedEl.style.fontWeight = 'bold';
         updatedEl.innerHTML = 'Last update on: ' + asciiPicture['updated_at'];
-        element.appendChild(asciiWrapperElement);
+        element.appendChild(createAscciWrapperEl(asciiPicture));
         element.appendChild(nameEl);
         addLikeButton(element, asciiPicture['id'], isLiked, likesCount);
+        element.appendChild(createLink(asciiPicture['owner_id'],ownerName));
         element.appendChild(updatedEl);
-        console.log('finished');
     }
 }
 
+function createAscciWrapperEl(asciiPicture) {
+    let responseAsciiValue = asciiPicture.value;
+    let asciiColor = asciiPicture.color;
+    let asciiText = responseAsciiValue.substring(1, responseAsciiValue.length - 1).replace(/\\n/g, '<br/>');
+    asciiText = asciiText.replace('<br/>', '');
+    let asciiWrapperElement = document.createElement('div');
+    asciiWrapperElement.className = "ascii-wrapper";
+    asciiWrapperElement.style.backgroundColor = 'white';
+    let asciiTextElement = document.createElement("pre");
+    asciiTextElement.className = "ascii-picture";
+    asciiTextElement.style.color = asciiColor;
+    asciiTextElement.innerHTML = asciiText;
+    asciiWrapperElement.appendChild(asciiTextElement);
+    return asciiWrapperElement;
+}
+
 function handleError(response) {
+    var modalContent = document.getElementsByClassName("modal-body")[0]
     console.log(response);
+    if (response["error"]) {
+        showModalForSeconds();
+        modalContent.innerHTML = "An error has occurred. Try again."
+    } else {
+        document.getElementsByClassName("editor")[0].classList.remove("show-modal");
+    }
 }
 
 // Like button
@@ -231,4 +241,27 @@ function flushPictures(){
     while (wrapper.firstChild) {
         wrapper.removeChild(wrapper.lastChild);
       }
+}
+
+
+// Create a link
+function createLink(userId,username) {
+    var a = document.createElement('a');
+    var linkText = document.createTextNode("User: "+username);
+    a.appendChild(linkText);
+    a.target = '_blank';
+    a.href =  '../html/userInfo.html?user=' + userId;
+    return a;
+  }
+  
+
+//  Modal
+  function showModalForSeconds(reload = false) {
+    document.getElementsByClassName("feed")[0].classList.add("show-modal");
+    setTimeout(() => {
+        document.getElementsByClassName("feed")[0].classList.remove("show-modal");
+        if (reload) {
+            window.location.reload();
+        }
+    }, 3000);
 }

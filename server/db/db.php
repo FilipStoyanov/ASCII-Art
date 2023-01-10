@@ -352,8 +352,16 @@ $query = 'SELECT p.id, p.value, p.color, p.name as picture_name, u.username, p.c
             $this->selectAllFriendsPictures->execute([]);
             $asciiPictures = $this->selectAllFriendsPictures->fetchAll();
             $pictures = $this->setLikes($input["user"], $asciiPictures);
+            $pictures = $this->setUsers($pictures);
             return $pictures;
      
+    }
+
+   function setUsers($pictures){
+        for ($i = 0; $i < count($pictures); $i++) {
+            $pictures[$i] = ['data' => $pictures[$i]['data'], 'liked' => $pictures[$i]['liked'], 'likes_count' =>  $pictures[$i]['likes_count'],'owner'=>$this->getUserById(['user'=>(int)$pictures[$i]['data']['owner_id']])];
+        }
+        return $pictures;
     }
 
     //$input -> ["value" => value, "color" => value, "name" => value, "owner_id" => value]

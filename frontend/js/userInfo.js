@@ -5,7 +5,7 @@ window.onload = function () {
 
 const baseUrl = 'http://localhost:80/project-web-2022/ASCII-Art/server/page_controllers/';
 const userInfoUrl = baseUrl + 'users/userInfo.php';
-const allPicturesUrl = baseUrl+'ascii-editor/getAllPictures.php';
+const allPicturesUrl = baseUrl + 'ascii-editor/getAllPictures.php';
 function getUserInfo() {
     sessionStorage.setItem('user', 2);
     const queryString = window.location.search;
@@ -64,7 +64,7 @@ function getAsciiText(ownerId, name) {
 // get all ascii pictures by owner_id
 function getAllAsciiPictures() {
     sendRequest(
-        allPicturesUrl+`?owner=${sessionStorage.getItem('owner')}&&user=${sessionStorage.getItem('user')}&&page=${sessionStorage.getItem('page')}`,
+        allPicturesUrl + `?owner=${sessionStorage.getItem('owner')}&&user=${sessionStorage.getItem('user')}&&page=${sessionStorage.getItem('page')}`,
         { method: "GET", data: '' },
         displayAsciiPictures,
         handleError,
@@ -108,26 +108,34 @@ function displayAsciiPictures(response) {
 // element => html element; asciiText => value attribute from PICTURES sql table
 function showAsciiPicture(element, asciiPicture, isLiked, likesCount) {
     if (element && asciiPicture) {
-        let responseAsciiValue = asciiPicture.value;
-        let asciiColor = asciiPicture.color;
-        let asciiText = responseAsciiValue.substring(1, responseAsciiValue.length - 1).replace(/\\n/g, '<br/>');
-        asciiText = asciiText.replace('<br/>', '');
-        let asciiWrapperElement = document.createElement('div');
-        asciiWrapperElement.className = "ascii-wrapper";
-        asciiWrapperElement.style.backgroundColor = 'white';
-        let asciiTextElement = document.createElement("pre");
-        asciiTextElement.className = "ascii-picture";
-        asciiTextElement.style.color = asciiColor;
-        asciiTextElement.innerHTML = asciiText;
-        asciiWrapperElement.appendChild(asciiTextElement);
+
         let nameEl = document.createElement('span');
         nameEl.style.fontWeight = 'bold';
         nameEl.innerHTML = 'Picture name: ' + asciiPicture['picture_name'];
-
-        element.appendChild(asciiWrapperElement);
+        let updatedEl = document.createElement('span');
+        updatedEl.style.fontWeight = 'bold';
+        updatedEl.innerHTML = 'Last update on: ' + asciiPicture['updated_at'];
+        element.appendChild(createAscciWrapperEl(asciiPicture));
         element.appendChild(nameEl);
         addLikeButton(element, asciiPicture['id'], isLiked, likesCount);
+        element.appendChild(updatedEl);
     }
+}
+
+function createAscciWrapperEl(asciiPicture) {
+    let responseAsciiValue = asciiPicture.value;
+    let asciiColor = asciiPicture.color;
+    let asciiText = responseAsciiValue.substring(1, responseAsciiValue.length - 1).replace(/\\n/g, '<br/>');
+    asciiText = asciiText.replace('<br/>', '');
+    let asciiWrapperElement = document.createElement('div');
+    asciiWrapperElement.className = "ascii-wrapper";
+    asciiWrapperElement.style.backgroundColor = 'white';
+    let asciiTextElement = document.createElement("pre");
+    asciiTextElement.className = "ascii-picture";
+    asciiTextElement.style.color = asciiColor;
+    asciiTextElement.innerHTML = asciiText;
+    asciiWrapperElement.appendChild(asciiTextElement);
+    return asciiWrapperElement;
 }
 
 function handleError(response) {
@@ -273,9 +281,9 @@ function setupPages() {
     sessionStorage.setItem('page', 1);
 }
 
-function flushPictures(){
+function flushPictures() {
     var wrapper = document.getElementsByClassName("wrapper")[0];
     while (wrapper.firstChild) {
         wrapper.removeChild(wrapper.lastChild);
-      }
+    }
 }
