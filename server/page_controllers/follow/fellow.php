@@ -1,5 +1,5 @@
 <?php
-include_once("../db/db.php");
+include_once("../../db/db.php");
 // include_once("./db/db.php");
 class Fellow
 {
@@ -20,6 +20,7 @@ class Fellow
                 $this->response['error_message'] = 'Follower is not chosen.';
                 return json_encode($this->response);
             }
+     
             if (!array_key_exists('user', $data) || $data['user'] == null) {
                 $this->response['success'] = false;
                 $this->response['error_message'] = 'User is not chosen.';
@@ -54,26 +55,35 @@ class Fellow
         return json_encode($this->response);
     }
 
-    public function getFellows($search, $search_key)
+    public function getFellows($search, $search_key,$pathParameters)
     {
-        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-            $data = (array) json_decode(file_get_contents('php://input'), JSON_UNESCAPED_UNICODE);
+        if ($_SERVER['REQUEST_METHOD'] == 'GET') {
 
-            if (!array_key_exists('user', $data) || $data['user'] == null) {
+            if (!array_key_exists('user', $pathParameters) || $pathParameters['user'] == null) {
                 $this->response['success'] = false;
                 $this->response['error_message'] = 'User is not chosen.';
                 return json_encode($this->response);
             }
 
-            if (!array_key_exists('page', $data) || $data['page'] == null || !is_int($data['page']) || $data['page'] <= 0) {
+            if (!array_key_exists('page', $pathParameters) || $pathParameters['page'] == null) {
                 $page = null;
                 $limit = null;
             } else {
-                $page = $data['page'];
+                $page = $pathParameters['page'];
                 $limit = 20;
             }
 
-            $user = $data['user'];
+            if (!is_int($page)) {
+                $page = (int) $page;
+            }
+
+            if ($page <= 0) {
+                $this->response['success'] = false;
+                $this->response['error_message'] = 'Invalid page.';
+                return json_encode($this->response);
+            }
+            
+            $user = $pathParameters['user'];
             if (!is_int($user)) {
                 $user = (int) $user;
             }
@@ -82,6 +92,7 @@ class Fellow
                 $this->response['error_message'] = 'Invalid user id.';
                 return json_encode($this->response);
             }
+            
             try {
                 $fellows = $search($user, $page, $limit);
             } catch (Exception $e) {
