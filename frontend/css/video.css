@@ -14,7 +14,7 @@ body {
 .sections {
     font-family: var(--font);
     background-color: var(--white);
-    max-width: 380px;
+    max-width: 100%;
     height: auto;
     width: 40%;
     position: relative;
@@ -275,4 +275,31 @@ body {
 .loaded-video-title {
     display: block;
     text-align: center;
+}
+
+.loaded-video-frames{
+    display: block;
+    resize: none;
+    width: 100%;
+}
+
+.ascii-picture{
+    display: block;
+    /* resize: none; */
+    /* width: 100%; */
+    /* white-space:pre-line; */
+    width:fit-content;
+    box-shadow: 0px 3px 3px -2px rgb(0 0 0 / 20%), 0px 3px 4px 0px rgb(0 0 0 / 14%), 0px 1px 8px 0px rgb(0 0 0 / 12%);
+    border-radius: 30px;
+    padding-left: 2%;
+    padding-right: 2%;
+    margin-bottom: 10px;
+}
+
+.ascii-picture:hover{
+    cursor: pointer;
+}
+
+.pictures{
+    width: 80%;
 }

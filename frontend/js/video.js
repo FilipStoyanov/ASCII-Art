@@ -3,10 +3,10 @@ var new_frame_button = document.getElementById('new-frame');
 var remove_frame_button = document.getElementById('remove-frame');
 var make_video = document.getElementById('make-video');
 var stop_video;
-var number_of_frames = 1;
+var number_of_frames = 0;
 var times = document.getElementsByClassName("times");
 var buttonToggleTime = document.getElementsByClassName("time-btn")[0];
-const TEXT_ROWS = 10;
+const TEXT_ROWS = 41;
 const TEXT_COLLS = 10;
 var loaded_videos = [];
 
@@ -134,14 +134,17 @@ function addedSuccessfully(response) {
 class Video {
 
 
-    constructor(title, time, color, background, frames) {
+    constructor(title, time, color, background, frames, id, name) {
         this.title = title;
         this.time = time;
         this.color = color;
         this.background = background;
         this.frames = frames;
         this.frames_count = frames.length;
-        this.video_id = null;
+        this.id = id;
+        this.current = 0;
+        this.timer = 0;
+        this.name = name;
     }
 
     addLabels() {
@@ -160,11 +163,12 @@ class Video {
     makeLoadedVideo() {
         for (let i = 0; i < this.frames_count; i++) {
             var new_frame = document.createElement("textarea");
-            new_frame.setAttribute("class", "video-frame");
-            // new_frame.setAttribute("id", `frame-video-${i + 1}`);
-            new_frame.setAttribute("class", "video-frames");
+            new_frame.setAttribute("class", "loaded-video-frames");
+            new_frame.classList.add("class", `video-frame-${this.id}`);
+            new_frame.setAttribute("id", `loaded-frame-video-${this.id}-${i}`);
             new_frame.setAttribute("rows", TEXT_ROWS);
             new_frame.setAttribute("readonly", "");
+
 
             let text_value = this.frames[i];
             new_frame.appendChild(document.createTextNode(text_value));
@@ -176,50 +180,73 @@ class Video {
 
             section.appendChild(new_frame);
         }
-        // if (video_id) {
-        //     clearTimeout(video_id);
-        // }
 
-        // let previous_video = document.getElementsByClassName("video-frames");
-        // if (previous_video) {
-        //     let length = previous_video.length;
-        //     for (let i = 0; i < length; i++) {
-        //         previous_video[0].remove();
-        //     }
-        // }
+    }
 
-        // let length = Options_vid.frames.length;
-        // for (let i = 0; i < length; i++) {
-        //     Options_vid.frames.pop();
-        // }
 
-        // showSlides();
+    play() {
+        let get_last = document.getElementById(`loaded-frame-video-${this.id}-${this.current}`);
+        get_last.style.display = "none";
 
-        // if (!stop_video) {
-        //     stopButton();
-        // }
+        if (this.current++ == this.frames.length - 1) {
+            this.current = 0;
+        }
+
+        let get_next = document.getElementById(`loaded-frame-video-${this.id}-${this.current}`);
+        get_next.style.display = "block";
+
+        clearTimeout(this.timer);
+        // console.log(this.timer);
+        this.timer = setTimeout(this.name + '.play()', this.time);
+
+    }
+
+}
+
+function deleteLoadedVideos() {
+    let loaded_titles = document.getElementsByClassName("loaded-video-title");
+
+    if (loaded_titles) {
+        let length = loaded_titles.length;
+        let section = document.getElementsByClassName("sections")[4];
+
+        for (let i = 0; i < length; i++) {
+            section.removeChild(loaded_titles[0]);
+        }
+
+        let loaded_videos_for_del = document.getElementsByClassName("loaded-video-frames")
+        length = loaded_videos_for_del.length;
+
+        for (let i = 0; i < length; i++) {
+            section.removeChild(loaded_videos_for_del[0]);
+        }
     }
 }
 
-
 function loadUserVideos(response) {
-    console.log(response);
+    // console.log(response);
+    deleteLoadedVideos();
+
     if (response["data"]) {
         for (let i = 0; i < response["data"].length; i++) {
+            let new_id = response["data"][i]["id"];
             let new_title = response["data"][i]["title"];
-            let new_time = response["data"][i]["time"];
+            let new_time = response["data"][i]["time_delay"];
             let new_color = response["data"][i]["color"];
             let new_background = response["data"][i]["background"];
             let new_frames = response["data"][i]["frames"];
+            let new_name = `loaded_videos[${i}]`;
 
-            let new_video = new Video(new_title, new_time, new_color, new_background, new_frames);
+            let new_video = new Video(new_title, new_time, new_color, new_background, new_frames, new_id, new_name);
 
             new_video.addLabels();
             new_video.makeLoadedVideo();
             loaded_videos.push(new_video);
+            loaded_videos[i].play();
         }
     }
 }
+
 
 
 function handleErrorAscii(response) {
@@ -260,6 +287,17 @@ function changeAsciiName() {
         });
 }
 
+function autoPasteText(textarea) {
+    textarea.addEventListener('click', async () => {
+        try {
+            let text = await navigator.clipboard.readText();
+            textarea.value = text;
+        } catch (error) {
+            console.log("The clipboard was empty");
+        }
+    })
+}
+
 function addNewFrame() {
 
     new_frame_button.addEventListener("click", function () {
@@ -278,6 +316,8 @@ function addNewFrame() {
             new_frame.setAttribute("rows", TEXT_ROWS);
             new_frame.setAttribute("class", "frame");
             new_frame.setAttribute("id", `frame${number_of_frames}`);
+
+            autoPasteText(new_frame);
 
             let frames = document.getElementById("frames");
 
@@ -302,8 +342,8 @@ function removeFrame() {
 }
 
 function makeVideo() {
-    if (number_of_frames >= 1) {
-        make_video.addEventListener("click", function () {
+    make_video.addEventListener("click", function () {
+        if (number_of_frames >= 1) {
             if (video_id) {
                 clearTimeout(video_id);
             }
@@ -347,8 +387,8 @@ function makeVideo() {
             if (!stop_video) {
                 stopButton();
             }
-        });
-    }
+        }
+    });
 }
 
 let slideIndex = 0;
@@ -477,4 +517,92 @@ document.addEventListener("DOMContentLoaded", function (event) {
     saveVideo();
     modalFunctionality();
     loadVideos();
+    getAllAsciiPictures(USER_ID); // get all ascii pictures
+
 });
+
+function getAllAsciiPictures(ownerId) {
+    document.getElementById("load-pictures").addEventListener("click", function (event) {
+        sendRequest(
+            `../../server/page_controllers/ascii-editor/getAllPictures.php?user=${ownerId}`,
+            { method: "GET", data: '' },
+            displayAsciiPictures,
+            handleErrorAscii,
+        );
+    });
+}
+
+function removeLoadedPictures() {
+    let loaded_pictures = document.getElementsByClassName("ascii-picture");
+
+    if (loaded_pictures) {
+        let length = loaded_pictures.length;
+        let section = document.getElementsByClassName("sections")[4];
+
+        for (let i = 0; i < length; i++) {
+            section.removeChild(loaded_pictures[0]);
+        }
+    }
+}
+
+function displayAsciiPictures(response) {
+
+    removeLoadedPictures();
+
+    if (response["success"] && response[0]) {
+        for (let currentAscii of response[0]) {
+            let asciiPicture = currentAscii;
+            let picture_section = document.getElementsByClassName("sections")[4];
+            showAsciiPicture(picture_section, asciiPicture);
+        }
+        copyToClipboard();
+    } else {
+        // show error message
+    }
+}
+
+
+// element => html element; asciiText => value attribute from PICTURES sql table
+function showAsciiPicture(element, asciiPicture) {
+    if (element && asciiPicture) {
+        // console.log(asciiPicture);
+        let responseAsciiValue = asciiPicture.value;
+        // console.log(responseAsciiValue);
+        // console.log(value_text_node);
+        let asciiColor = asciiPicture.color;
+        let asciiText = responseAsciiValue.substring(1, responseAsciiValue.length - 1).replace(/\\n/g, '\n');
+        // asciiText = asciiText.replace('<br/>', '');
+        // console.log(asciiText);
+        // asciiText = asciiText.replace('\n', '<br/>');
+        // console.log("????");
+        // console.log(asciiText);
+        let value_text_node = document.createTextNode(asciiText);
+        // let asciiWrapperElement = document.createElement('div');
+        // asciiWrapperElement.className = "ascii-wrapper";
+        let asciiTextElement = document.createElement("pre");
+        asciiTextElement.setAttribute("class", "ascii-picture");
+        // asciiTextElement.className = "ascii-picture";
+        asciiTextElement.style.color = asciiColor;
+        asciiTextElement.appendChild(value_text_node);
+        // asciiTextElement.innerHTML = responseAsciiValue;
+        // asciiWrapperElement.appendChild(asciiTextElement);
+        element.appendChild(asciiTextElement);
+    }
+}
+
+const USER_ID = "1";
+const ASCII_NAME = "1";
+const PAGINATION_PAGE = 0;
+const PAGINATION_PAGESIZE = 10;
+
+function copyToClipboard() {
+    let pictures = document.getElementsByClassName("ascii-picture");
+
+    for (let i = 0; i < pictures.length; i++) {
+        pictures[i].addEventListener('click', function (event) {
+            let copied_text = pictures[i].innerHTML;
+            console.log(pictures[i].innerHTML);
+            navigator.clipboard.writeText(copied_text);
+        });
+    }
+}

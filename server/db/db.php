@@ -57,7 +57,7 @@ class DataBaseConnection
             :frames)';
         $this->insertVideo = $this->connection->prepare($sql);
 
-        $sql = 'SELECT title, time_delay, color, background, frames FROM videos WHERE owner_id = :owner_id';
+        $sql = 'SELECT id,title, time_delay, color, background, frames FROM videos WHERE owner_id = :owner_id';
         $this->selectVideos = $this->connection->prepare($sql);
         $sql = 'DELETE FROM follower WHERE user=:user and follower=:follower';
         $this->deleteFollower = $this->connection->prepare($sql);
