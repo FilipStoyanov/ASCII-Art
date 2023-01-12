@@ -3,7 +3,7 @@ var new_frame_button = document.getElementById('new-frame');
 var remove_frame_button = document.getElementById('remove-frame');
 var make_video = document.getElementById('make-video');
 var stop_video;
-var number_of_frames = 1;
+var number_of_frames = 0;
 var times = document.getElementsByClassName("times");
 var buttonToggleTime = document.getElementsByClassName("time-btn")[0];
 const TEXT_ROWS = 41;
@@ -203,9 +203,30 @@ class Video {
 
 }
 
+function deleteLoadedVideos() {
+    let loaded_titles = document.getElementsByClassName("loaded-video-title");
+
+    if (loaded_titles) {
+        let length = loaded_titles.length;
+        let section = document.getElementsByClassName("sections")[4];
+
+        for (let i = 0; i < length; i++) {
+            section.removeChild(loaded_titles[0]);
+        }
+
+        let loaded_videos_for_del = document.getElementsByClassName("loaded-video-frames")
+        length = loaded_videos_for_del.length;
+
+        for (let i = 0; i < length; i++) {
+            section.removeChild(loaded_videos_for_del[0]);
+        }
+    }
+}
 
 function loadUserVideos(response) {
-    console.log(response);
+    // console.log(response);
+    deleteLoadedVideos();
+
     if (response["data"]) {
         for (let i = 0; i < response["data"].length; i++) {
             let new_id = response["data"][i]["id"];
@@ -266,6 +287,17 @@ function changeAsciiName() {
         });
 }
 
+function autoPasteText(textarea) {
+    textarea.addEventListener('click', async () => {
+        try {
+            let text = await navigator.clipboard.readText();
+            textarea.value = text;
+        } catch (error) {
+            console.log("The clipboard was empty");
+        }
+    })
+}
+
 function addNewFrame() {
 
     new_frame_button.addEventListener("click", function () {
@@ -284,6 +316,8 @@ function addNewFrame() {
             new_frame.setAttribute("rows", TEXT_ROWS);
             new_frame.setAttribute("class", "frame");
             new_frame.setAttribute("id", `frame${number_of_frames}`);
+
+            autoPasteText(new_frame);
 
             let frames = document.getElementById("frames");
 
@@ -308,8 +342,8 @@ function removeFrame() {
 }
 
 function makeVideo() {
-    if (number_of_frames >= 1) {
-        make_video.addEventListener("click", function () {
+    make_video.addEventListener("click", function () {
+        if (number_of_frames >= 1) {
             if (video_id) {
                 clearTimeout(video_id);
             }
@@ -353,8 +387,8 @@ function makeVideo() {
             if (!stop_video) {
                 stopButton();
             }
-        });
-    }
+        }
+    });
 }
 
 let slideIndex = 0;
@@ -489,7 +523,6 @@ document.addEventListener("DOMContentLoaded", function (event) {
 
 function getAllAsciiPictures(ownerId) {
     document.getElementById("load-pictures").addEventListener("click", function (event) {
-        console.log("E");
         sendRequest(
             `../../server/page_controllers/ascii-editor/getAllPictures.php?user=${ownerId}`,
             { method: "GET", data: '' },
@@ -499,12 +532,27 @@ function getAllAsciiPictures(ownerId) {
     });
 }
 
+function removeLoadedPictures() {
+    let loaded_pictures = document.getElementsByClassName("ascii-picture");
+
+    if (loaded_pictures) {
+        let length = loaded_pictures.length;
+        let section = document.getElementsByClassName("sections")[4];
+
+        for (let i = 0; i < length; i++) {
+            section.removeChild(loaded_pictures[0]);
+        }
+    }
+}
+
 function displayAsciiPictures(response) {
+
+    removeLoadedPictures();
+
     if (response["success"] && response[0]) {
         for (let currentAscii of response[0]) {
             let asciiPicture = currentAscii;
             let picture_section = document.getElementsByClassName("sections")[4];
-            console.log(picture_section);
             showAsciiPicture(picture_section, asciiPicture);
         }
         copyToClipboard();
@@ -550,8 +598,8 @@ const PAGINATION_PAGESIZE = 10;
 function copyToClipboard() {
     let pictures = document.getElementsByClassName("ascii-picture");
 
-    for(let i =0; i< pictures.length; i++){
-        pictures[i].addEventListener('click', function(event){
+    for (let i = 0; i < pictures.length; i++) {
+        pictures[i].addEventListener('click', function (event) {
             let copied_text = pictures[i].innerHTML;
             console.log(pictures[i].innerHTML);
             navigator.clipboard.writeText(copied_text);
