@@ -45,6 +45,50 @@ function showModalForSeconds(reload = false) {
     }, 2000);
 }
 
+getVideo(getParameters());
+function getParameters() {
+    const url = window.location.href;
+    const urlObj = new URL(url);
+    let search, searchParams;
+    if (urlObj && urlObj.search) {
+        search = urlObj.search.substring(1);
+        searchParams = JSON.parse('{"' + decodeURI(search).replace(/"/g, '\\"').replace(/&/g, '","').replace(/=/g, '":"') + '"}');
+    }
+
+    console.log(searchParams["id"]);
+    return searchParams;
+}
+
+function getVideo(params) {
+    //get onwer from session
+    let owner_id = 1;
+    let id = params["id"];
+
+    sendRequest(
+        `../../server/page_controllers/ascii-video-editor/get-video.php?owner_id=${owner_id}&id=${id}`,
+        { method: "GET", data: '' },
+        displayVideo,
+        handleErrorAscii,
+    );
+}
+
+function displayVideo(response) {
+//LOAD THE FRAMES HERE
+    console.log(response);
+    // removeLoadedPictures();
+
+    // if (response["success"] && response[0]) {
+    //     for (let currentAscii of response[0]) {
+    //         let asciiPicture = currentAscii;
+    //         let picture_section = document.getElementsByClassName("sections")[4];
+    //         showAsciiPicture(picture_section, asciiPicture);
+    //     }
+    //     copyToClipboard();
+    // } else {
+    //     // show error message
+    // }
+}
+
 
 
 class Options {
@@ -70,25 +114,6 @@ class Options {
 }
 
 var Options_vid = new Options("null", 2000, "#ffffff", "#000000");
-
-// function submitOptionsForm() {
-
-//     if (options_form) {
-//         options_form.addEventListener("submit", function (event) {
-//             let formTitle = document.getElementById("video-title").value;
-//             let formTime = document.getElementById("time").value;
-//             let formTransition = document.getElementById("transition").value;
-//             let formColor = document.getElementById("color").value;
-//             let formBackground = document.getElementById("background").value;
-
-//             Options_vid = new Options(formTitle, formTime, formTransition, formColor, formBackground);
-//             Options_vid.update_frames();
-
-//             console.log(Options_vid);
-//             event.preventDefault();
-//         });
-//     }
-// }
 
 function sendRequest(url, options, successCallback, errorCallback) {
     var request = new XMLHttpRequest();
@@ -131,226 +156,6 @@ function addedSuccessfully(response) {
     }
 }
 
-class Video {
-
-
-    constructor(title, time, color, background, frames, id, name) {
-        this.title = title;
-        this.time = time;
-        this.color = color;
-        this.background = background;
-        this.frames = frames;
-        this.frames_count = frames.length;
-        this.id = id;
-        this.current = 0;
-        this.timer = 0;
-        this.name = name;
-    }
-
-    addLabels() {
-        let label = document.createElement("label");
-        let title = document.createTextNode(this.title);
-
-        label.setAttribute("class", "loaded-video-title");
-
-        label.appendChild(title);
-
-        let display_section = document.getElementsByClassName("sections")[3];
-
-        display_section.appendChild(label);
-    }
-
-    makeLoadedVideo() {
-        for (let i = 0; i < this.frames_count; i++) {
-            var new_frame = document.createElement("textarea");
-            new_frame.setAttribute("class", "loaded-video-frames");
-            new_frame.classList.add("class", `video-frame-${this.id}`);
-            new_frame.setAttribute("id", `loaded-frame-video-${this.id}-${i}`);
-            new_frame.setAttribute("rows", TEXT_ROWS);
-            new_frame.setAttribute("readonly", "");
-
-
-            let text_value = this.frames[i];
-            new_frame.appendChild(document.createTextNode(text_value));
-
-            new_frame.style.color = this.color;
-            new_frame.style.background = this.background;
-
-            let section = document.getElementsByClassName("sections")[3];
-
-            section.appendChild(new_frame);
-        }
-
-    }
-
-
-    play() {
-        let get_last = document.getElementById(`loaded-frame-video-${this.id}-${this.current}`);
-        get_last.style.display = "none";
-
-        if (this.current++ == this.frames.length - 1) {
-            this.current = 0;
-        }
-
-        let get_next = document.getElementById(`loaded-frame-video-${this.id}-${this.current}`);
-        get_next.style.display = "block";
-
-        clearTimeout(this.timer);
-        // console.log(this.timer);
-        this.timer = setTimeout(this.name + '.play()', this.time);
-
-    }
-
-    addDeleteButton() {
-        let delete_button = document.createElement("button");
-        let context = document.createTextNode("Delete");
-        delete_button.appendChild(context);
-
-        delete_button.setAttribute("type", "button");
-        delete_button.setAttribute("id", `delete-button-${this.id}`);
-        delete_button.setAttribute("class", "menu-button");
-        delete_button.classList.add("delete-button");
-
-
-        let video_section = document.getElementsByClassName("sections")[3];
-
-        video_section.appendChild(delete_button);
-
-        let delete_video = document.getElementById(`delete-button-${this.id}`);
-
-        var title = this.title;
-        var owner_id = this.owner_id;
-        delete_video.addEventListener("click", function () {
-            console.log(title);
-
-            var data = {};
-            data["owner_id"] = 1;
-            data["title"] = title;
-
-            sendRequest(
-                "../../server/page_controllers/ascii-video-editor/delete-video.php",
-                { method: "DELETE", data: JSON.stringify(data) },
-                deletedSuccessfully,
-                handleErrorAscii,
-            );
-        })
-    }
-
-    addEditButton() {
-        let edit_button = document.createElement("button");
-        let context = document.createTextNode("Edit");
-        edit_button.appendChild(context);
-
-        edit_button.setAttribute("type", "button");
-        edit_button.setAttribute("id", `edit-button-${this.id}`);
-        edit_button.setAttribute("class", "menu-button");
-        edit_button.classList.add("edit-button");
-
-
-        let video_section = document.getElementsByClassName("sections")[3];
-
-        video_section.appendChild(edit_button);
-
-        let edit_video = document.getElementById(`edit-button-${this.id}`);
-
-        var title = this.title;
-        var id = this.id;
-        edit_video.addEventListener("click", function () {
-            console.log(title);
-
-            var data = {};
-            data["owner_id"] = 1;
-            data["title"] = title;
-
-            const url = `http://localhost/ASCII-Art/frontend/html/edit-video.html?id=${id}&title=${title}`;
-            window.location.href = url;
-        })
-    }
-
-}
-
-function deletedSuccessfully(response) {
-    if (response["success"]) {
-        showModalForSeconds(true);
-        document.getElementsByClassName("modal-header")[0].style.backgroundColor = "#4BB543";
-        document.getElementsByClassName("modal-body")[0].style.backgroundColor = "#4BB543";
-        modalContent.innerHTML = "Ascii видеото беше изтрито успешно";
-
-        for (let i = 0; i < loaded_videos.length; i++) {
-            clearTimeout(loaded_videos[i].timer);
-        }
-
-        document.getElementById("load-videos").click();
-    } else {
-        if (response["errors"]) {
-            // if (response["code"] == 23000) {
-            //     showModalForSeconds();
-            //     modalContent.innerHTML = "Вие имате запазена видео с това име. Моля, изберете друго име и опитайте отново."
-            // } else {
-            showModalForSeconds();
-            modalContent.innerHTML = "Възникна грешка! Моля опитайте отново."
-            // }
-        } else {
-            document.getElementsByClassName("editor")[0].classList.remove("show-modal");
-        }
-    }
-}
-
-function deleteLoadedVideos() {
-    let loaded_titles = document.getElementsByClassName("loaded-video-title");
-
-    if (loaded_titles) {
-        let length = loaded_titles.length;
-        let section = document.getElementsByClassName("sections")[3];
-        let delete_buttons = document.getElementsByClassName("delete-button");
-        let edit_buttons = document.getElementsByClassName("edit-button");
-
-        for (let i = 0; i < length; i++) {
-            section.removeChild(loaded_titles[0]);
-            section.removeChild(delete_buttons[0]);
-            section.removeChild(edit_buttons[0]);
-        }
-
-        let loaded_videos_for_del = document.getElementsByClassName("loaded-video-frames")
-        length = loaded_videos_for_del.length;
-
-        for (let i = 0; i < length; i++) {
-            section.removeChild(loaded_videos_for_del[0]);
-        }
-
-        loaded_videos = [];
-    }
-}
-
-function loadUserVideos(response) {
-    // console.log(response);
-    deleteLoadedVideos();
-    console.log("I loaded");
-    if (response["data"]) {
-        for (let i = 0; i < response["data"].length; i++) {
-            let new_id = response["data"][i]["id"];
-            let new_title = response["data"][i]["title"];
-            let new_time = response["data"][i]["time_delay"];
-            let new_color = response["data"][i]["color"];
-            let new_background = response["data"][i]["background"];
-            let new_frames = response["data"][i]["frames"];
-            let new_name = `loaded_videos[${i}]`;
-
-            let new_video = new Video(new_title, new_time, new_color, new_background, new_frames, new_id, new_name);
-
-            new_video.addLabels();
-            new_video.makeLoadedVideo();
-            new_video.addDeleteButton();
-            new_video.addEditButton();
-            loaded_videos.push(new_video);
-            loaded_videos[i].play();
-            console.log(`added video ${i} ${new_title}`);
-        }
-
-    }
-}
-
-
 
 function handleErrorAscii(response) {
     if (response["errors"]) {
@@ -371,16 +176,6 @@ function saveVideo() {
     });
 }
 
-function loadVideos() {
-
-    document.getElementById("load-videos").addEventListener("click", function (event) {
-        var data = {};
-        data["owner_id"] = 1;
-
-        sendRequest(`../../server/page_controllers/ascii-video-editor/get-videos.php?owner_id=${data["owner_id"]}`, { method: 'GET', data: "" }, loadUserVideos, handleErrorAscii);
-        event.preventDefault();
-    });
-}
 
 function changeAsciiName() {
     document
@@ -619,7 +414,6 @@ document.addEventListener("DOMContentLoaded", function (event) {
     changeAsciiName();
     saveVideo();
     modalFunctionality();
-    loadVideos();
     getAllAsciiPictures(USER_ID); // get all ascii pictures
 
 });

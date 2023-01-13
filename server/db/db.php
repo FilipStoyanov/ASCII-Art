@@ -10,6 +10,7 @@ class DataBaseConnection
     private $selectAsciiPicture;
     private $selectAllPictures;
     private $selectAllFriendsPictures;
+    private $selectAllFriendsVideos;
     private $deleteFollower;
     private $selectFollower;
     private $selectUserAndFollower;
@@ -20,6 +21,7 @@ class DataBaseConnection
     private $removeAsciiPicture;
     private $insertVideo;
     private $selectVideos;
+    private $selectVideo;
     private $deleteVideo;
 
     public function __construct()
@@ -55,6 +57,9 @@ class DataBaseConnection
 
         $sql = 'SELECT id,title, time_delay, color, background, frames FROM videos WHERE owner_id = :owner_id';
         $this->selectVideos = $this->connection->prepare($sql);
+
+        $sql = 'SELECT id,title, time_delay, color, background, frames FROM videos WHERE owner_id = :owner_id and id = :id';
+        $this->selectVideo = $this->connection->prepare($sql);
 
         $sql = 'DELETE FROM videos WHERE owner_id = :owner_id and title = :title';
         $this->deleteVideo = $this->connection->prepare($sql);
@@ -261,6 +266,24 @@ class DataBaseConnection
         }
     }
 
+    //$input -> ["owner_id" => value, "page" => value, "pageSize" => value] 
+    public function getAllFriendsVideos($input)
+    {
+        try {
+            $sql = 'SELECT v.frames, v.color, v.background, v.title, v.time_delay, v.updated_at from videos v ' .
+                'where v.owner_id in (select f.follower from follower f where user = ' . $input['owner_id'] . ') order by v.updated_at desc ';
+            if (isset($input["page"]) && $input["page"] >= 0 && isset($input["pageSize"]) && $input["pageSize"] >= 0) {
+                $sql = $sql . 'limit ' . $input["page"] . ',' . $input['pageSize'] . ';';
+            }
+            $this->selectAllFriendsVideos = $this->connection->prepare($sql);
+            $this->selectAllFriendsVideos->execute([]);
+            $asciiVideos = $this->selectAllFriendsVideos->fetchAll();
+            return ["success" => true, "data" => $asciiVideos];
+        } catch (PDOException $e) {
+            return ["success" => false, "error" => "Connection failed: " . $e->getMessage(), "code" => $e->errorInfo[1]];
+        }
+    }
+
     //$input -> ["value" => value, "color" => value, "name" => value, "owner_id" => value]
     public function updateAsciiPicture($input)
     {
@@ -303,6 +326,19 @@ class DataBaseConnection
             $videos = $this->selectVideos->fetchAll();
 
             return ["success" => true, "data" => $videos];
+        } catch (Exception $e) {
+            return ["success" => false, "error" => "Connection failed: " . $e->getMessage(), "code" => $e->getCode()];
+        }
+    }
+
+    //$input -> ["owner_id" => value,"id" => video]
+    public function getAsciiVideo($input)
+    {
+        try {
+            $this->selectVideo->execute($input);
+            $video = $this->selectVideo->fetchAll();
+
+            return ["success" => true, "data" => $video];
         } catch (Exception $e) {
             return ["success" => false, "error" => "Connection failed: " . $e->getMessage(), "code" => $e->getCode()];
         }
