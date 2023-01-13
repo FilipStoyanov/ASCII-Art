@@ -112,9 +112,49 @@ class AsciiVideoEditor
             // echo json_encode(["success" => false, "errors" => $query["error"], "code" => $query["code"], "message" => "Error with fetching ascii videos"]);
 
         }
+
+
+
     }
+    public function delete_video()
+    {
+        if ($_SERVER['REQUEST_METHOD'] == 'DELETE') {
+            // $data = json_decode($_POST['data'], true);
+            $data = (array) json_decode(file_get_contents('php://input'), true);
+            $title = $data['title'];
+            $owner_id = $data['owner_id'];
 
 
+            $this->validateAsciiText($title);
+
+            if ($this->errors['success']) {
+
+                $query = $this->connection->deleteAsciiVideo([
+                    "title" => $title,
+                    "owner_id" => $owner_id
+                ]);
+
+                if ($query["success"]) {
+                    echo json_encode([
+                        "success" => true,
+                        "message" => "Video deleted"
+                    ]);
+                } else {
+                    echo json_encode([
+                        "success" => false,
+                        "errors" => $query["error"],
+                        "code" => $query["code"],
+                        "message" => "Failed to delete video."
+                    ]);
+                }
+            } else {
+                echo json_encode($this->errors);
+            }
+        }
+
+
+    }
+}
 
 // public function getAsciiPicturesForUser()
 // {
@@ -129,4 +169,3 @@ class AsciiVideoEditor
 //         }
 //     }
 // }
-}

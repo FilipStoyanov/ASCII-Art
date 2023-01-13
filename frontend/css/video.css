@@ -303,3 +303,10 @@ body {
 .pictures{
     width: 80%;
 }
+
+.delete-button,
+.edit-button{
+    margin-top: 10px;
+    margin-left: 1%;
+    width: 49%;
+}

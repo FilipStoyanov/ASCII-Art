@@ -201,6 +201,103 @@ class Video {
 
     }
 
+    addDeleteButton() {
+        let delete_button = document.createElement("button");
+        let context = document.createTextNode("Delete");
+        delete_button.appendChild(context);
+
+        delete_button.setAttribute("type", "button");
+        delete_button.setAttribute("id", `delete-button-${this.id}`);
+        delete_button.setAttribute("class", "menu-button");
+        delete_button.classList.add("delete-button");
+
+
+        let video_section = document.getElementsByClassName("sections")[3];
+
+        video_section.appendChild(delete_button);
+
+        let delete_video = document.getElementById(`delete-button-${this.id}`);
+
+        var title = this.title;
+        var owner_id = this.owner_id;
+        delete_video.addEventListener("click", function () {
+            console.log(title);
+
+            var data = {};
+            data["owner_id"] = 1;
+            data["title"] = title;
+
+            sendRequest(
+                "../../server/page_controllers/ascii-video-editor/delete-video.php",
+                { method: "DELETE", data: JSON.stringify(data) },
+                deletedSuccessfully,
+                handleErrorAscii,
+            );
+        })
+    }
+
+    addEditButton() {
+        let edit_button = document.createElement("button");
+        let context = document.createTextNode("Edit");
+        edit_button.appendChild(context);
+
+        edit_button.setAttribute("type", "button");
+        edit_button.setAttribute("id", `edit-button-${this.id}`);
+        edit_button.setAttribute("class", "menu-button");
+        edit_button.classList.add("edit-button");
+
+
+        let video_section = document.getElementsByClassName("sections")[3];
+
+        video_section.appendChild(edit_button);
+
+        let edit_video = document.getElementById(`edit-button-${this.id}`);
+
+        var title = this.title;
+        var owner_id = this.owner_id;
+        edit_video.addEventListener("click", function () {
+            console.log(title);
+
+            var data = {};
+            data["owner_id"] = 1;
+            data["title"] = title;
+
+            sendRequest(
+                "../../server/page_controllers/ascii-video-editor/delete-video.php",
+                { method: "DELETE", data: JSON.stringify(data) },
+                deletedSuccessfully,
+                handleErrorAscii,
+            );
+        })
+    }
+
+}
+
+function deletedSuccessfully(response) {
+    if (response["success"]) {
+        showModalForSeconds(true);
+        document.getElementsByClassName("modal-header")[0].style.backgroundColor = "#4BB543";
+        document.getElementsByClassName("modal-body")[0].style.backgroundColor = "#4BB543";
+        modalContent.innerHTML = "Ascii видеото беше изтрито успешно";
+
+        for (let i = 0; i < loaded_videos.length; i++) {
+            clearTimeout(loaded_videos[i].timer);
+        }
+
+        document.getElementById("load-videos").click();
+    } else {
+        if (response["errors"]) {
+            // if (response["code"] == 23000) {
+            //     showModalForSeconds();
+            //     modalContent.innerHTML = "Вие имате запазена видео с това име. Моля, изберете друго име и опитайте отново."
+            // } else {
+            showModalForSeconds();
+            modalContent.innerHTML = "Възникна грешка! Моля опитайте отново."
+            // }
+        } else {
+            document.getElementsByClassName("editor")[0].classList.remove("show-modal");
+        }
+    }
 }
 
 function deleteLoadedVideos() {
@@ -208,10 +305,14 @@ function deleteLoadedVideos() {
 
     if (loaded_titles) {
         let length = loaded_titles.length;
-        let section = document.getElementsByClassName("sections")[4];
+        let section = document.getElementsByClassName("sections")[3];
+        let delete_buttons = document.getElementsByClassName("delete-button");
+        let edit_buttons = document.getElementsByClassName("edit-button");
 
         for (let i = 0; i < length; i++) {
             section.removeChild(loaded_titles[0]);
+            section.removeChild(delete_buttons[0]);
+            section.removeChild(edit_buttons[0]);
         }
 
         let loaded_videos_for_del = document.getElementsByClassName("loaded-video-frames")
@@ -220,13 +321,15 @@ function deleteLoadedVideos() {
         for (let i = 0; i < length; i++) {
             section.removeChild(loaded_videos_for_del[0]);
         }
+
+        loaded_videos = [];
     }
 }
 
 function loadUserVideos(response) {
     // console.log(response);
     deleteLoadedVideos();
-
+    console.log("I loaded");
     if (response["data"]) {
         for (let i = 0; i < response["data"].length; i++) {
             let new_id = response["data"][i]["id"];
@@ -241,9 +344,13 @@ function loadUserVideos(response) {
 
             new_video.addLabels();
             new_video.makeLoadedVideo();
+            new_video.addDeleteButton();
+            new_video.addEditButton();
             loaded_videos.push(new_video);
             loaded_videos[i].play();
+            console.log(`added video ${i} ${new_title}`);
         }
+
     }
 }
 
