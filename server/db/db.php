@@ -23,6 +23,7 @@ class DataBaseConnection
     private $selectVideos;
     private $selectVideo;
     private $deleteVideo;
+    private $updateVideo;
 
     public function __construct()
     {
@@ -63,6 +64,11 @@ class DataBaseConnection
 
         $sql = 'DELETE FROM videos WHERE owner_id = :owner_id and title = :title';
         $this->deleteVideo = $this->connection->prepare($sql);
+
+        $sql = 'UPDATE videos 
+        set title = :title, color = :color, background = :background, time_delay = :time, frames = :frames, updated_at = current_timestamp 
+        where owner_id = :owner_id and id = :id';
+        $this->updateVideo = $this->connection->prepare($sql);
 
         $sql = 'DELETE FROM follower WHERE user=:user and follower=:follower';
         $this->deleteFollower = $this->connection->prepare($sql);
@@ -351,6 +357,17 @@ class DataBaseConnection
             $this->deleteVideo->execute($input);
             return ["success" => true];
         } catch (Exception $e) {
+            return ["success" => false, "error" => "Connection failed: " . $e->getMessage(), "code" => $e->getCode()];
+        }
+    }
+
+    //$input -> ["title" => value, "color" => value, "background" => value, "time_delay" => value, "owner_id" => value, "frames" => value]
+    public function updateAsciiVideo($input)
+    {
+        try {
+            $this->updateVideo->execute($input);
+            return ["success" => true];
+        } catch (PDOException $e) {
             return ["success" => false, "error" => "Connection failed: " . $e->getMessage(), "code" => $e->getCode()];
         }
     }

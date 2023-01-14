@@ -18,7 +18,7 @@ var modalCloseBtn = document.getElementsByClassName("close")[0];
 function modalFunctionality() {
 
     modalCloseBtn.onclick = function () {
-        console.log("AA");
+        // console.log("AA");
         modal.style.display = "none";
         document.getElementsByClassName("sections")[0].classList.remove("show-modal");
         // window.location.reload();
@@ -55,7 +55,7 @@ function getParameters() {
         searchParams = JSON.parse('{"' + decodeURI(search).replace(/"/g, '\\"').replace(/&/g, '","').replace(/=/g, '":"') + '"}');
     }
 
-    console.log(searchParams["id"]);
+    // console.log(searchParams["id"]);
     return searchParams;
 }
 
@@ -73,8 +73,24 @@ function getVideo(params) {
 }
 
 function displayVideo(response) {
-//LOAD THE FRAMES HERE
-    console.log(response);
+    //LOAD THE FRAMES HERE
+    // console.log(response);
+    // console.log(response["data"][0]["frames"]);
+
+    let frames = response["data"][0]["frames"];
+    for (let i = 0; i < frames.length; i++) {
+        new_frame_button.click();
+        let current_frame = document.getElementById(`frame${i + 1}`);
+        current_frame.value = frames[i];
+    }
+
+    let loaded_title = response["data"][0]["title"];
+    document.getElementById("ascii-name").value = loaded_title;
+    Options_vid.title = loaded_title;
+    Options_vid.id = response["data"][0]["id"];
+    
+    // GET THE ONWER FROM SESSION
+    Options_vid.owner_id = 1;
     // removeLoadedPictures();
 
     // if (response["success"] && response[0]) {
@@ -170,7 +186,7 @@ function saveVideo() {
 
     document.getElementsByClassName("ascii-form")[0].addEventListener("submit", function (event) {
         if (Options_vid.frames.length >= 2) {
-            sendRequest('../../server/page_controllers/ascii-video-editor/save-video.php', { method: 'POST', data: `data=${JSON.stringify(Options_vid)}` }, addedSuccessfully, handleErrorAscii);
+            sendRequest('../../server/page_controllers/ascii-video-editor/update-video.php', { method: 'POST', data: `data=${JSON.stringify(Options_vid)}` }, addedSuccessfully, handleErrorAscii);
         }
         event.preventDefault();
     });
@@ -449,7 +465,7 @@ function displayAsciiPictures(response) {
     if (response["success"] && response[0]) {
         for (let currentAscii of response[0]) {
             let asciiPicture = currentAscii;
-            let picture_section = document.getElementsByClassName("sections")[4];
+            let picture_section = document.getElementsByClassName("sections")[3];
             showAsciiPicture(picture_section, asciiPicture);
         }
         copyToClipboard();
@@ -498,7 +514,7 @@ function copyToClipboard() {
     for (let i = 0; i < pictures.length; i++) {
         pictures[i].addEventListener('click', function (event) {
             let copied_text = pictures[i].innerHTML;
-            console.log(pictures[i].innerHTML);
+            // console.log(pictures[i].innerHTML);
             navigator.clipboard.writeText(copied_text);
         });
     }

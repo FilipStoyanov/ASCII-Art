@@ -21,9 +21,23 @@ class AsciiVideoEditor
         }
     }
 
+    public function validateAsciiFrames($frames)
+    {
+        for ($i = 0; $i < sizeof($frames); $i++) {
+            if (mb_strlen($frames[$i]) > 0) {
+                $this->errors['success'] = true;
+            }
+        }
+
+        if ($this->errors["success"] != true) {
+            $this->errors['success'] = false;
+        }
+
+    }
+
     public function add()
     {
-        if ($_POST) {
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $data = json_decode($_POST['data'], true);
             $title = $data['title'];
             $time = $data['time'];
@@ -45,6 +59,57 @@ class AsciiVideoEditor
                     "background" => $background,
                     "time" => $time,
                     "frames" => $serialized_frames
+                ]);
+
+                if ($query["success"]) {
+                    echo json_encode([
+                        "success" => true,
+                        "message" => "Video saved"
+                    ]);
+                } else {
+                    echo json_encode([
+                        "success" => false,
+                        "errors" => $query["error"],
+                        "code" => $query["code"],
+                        "message" => "Video with this name already exists."
+                    ]);
+                }
+            } else {
+                echo json_encode($this->errors);
+            }
+        }
+    }
+
+
+    public function update()
+    {
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            $data = json_decode($_POST['data'], true);
+            $title = $data['title'];
+            $time = $data['time'];
+            $color = $data['color'];
+            $background = $data['background'];
+            $frames = $data['frames'];
+            $id = $data["id"];
+            $owner_id = $data["owner_id"];
+
+            // var_dump($_POST);
+
+
+            $this->validateAsciiText($title);
+            $this->validateAsciiFrames($frames);
+
+            if ($this->errors['success']) {
+                $serialized_frames = serialize($frames);
+
+                $query = $this->connection->updateAsciiVideo([
+                    "title" => $title,
+                    "color" => $color,
+                    "background" => $background,
+                    "time" => $time,
+                    "frames" => $serialized_frames,
+                    "owner_id" => $owner_id,
+                    "id" => $id
                 ]);
 
                 if ($query["success"]) {
@@ -150,7 +215,7 @@ class AsciiVideoEditor
 
             if ($query["success"]) {
                 $unserialised_frames = unserialize($query["data"][0]["frames"]);
-                
+
                 $query["data"][0]["frames"] = $unserialised_frames;
                 // var_dump($query["data"][0]["frames"]);
 
@@ -164,11 +229,6 @@ class AsciiVideoEditor
                     "message" => "Could not load the video."
                 ]);
             }
-
-            // $response['success'] = false;
-            // $response['error_message'] = $e->getMessage();
-            // return json_encode($response);  
-            // echo json_encode(["success" => false, "errors" => $query["error"], "code" => $query["code"], "message" => "Error with fetching ascii videos"]);
 
         }
     }
