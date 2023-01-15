@@ -1,36 +1,10 @@
+
 window.onload = function () {
     setupPages();
-    getUserInfo();
+    getAllFriendsPictures();
 };
 
-const baseUrl = 'http://localhost:80/project-web-2022/ASCII-Art/server/page_controllers/';
-const userInfoUrl = baseUrl + 'users/userInfo.php';
-const allPicturesUrl = baseUrl + 'ascii-editor/getAllPictures.php';
-function getUserInfo() {
-    sessionStorage.setItem('user', 2);
-    const queryString = window.location.search;
-    const urlParams = new URLSearchParams(queryString);
-    const userId = urlParams.get('user');
-    var url = userInfoUrl + '?user=' + userId;
-    sessionStorage.setItem('owner', userId);
-    sendRequest(url, { method: 'GET', data: '' }, handleUserInfo, handleErrorUserInfo);
-}
 
-
-
-function handleUserInfo(response) {
-    var userNameEl = document.getElementById('username');
-    userNameEl.innerHTML = response['user']['username'];
-    getAllAsciiPictures();
-}
-
-function handleErrorUserInfo(response) {
-    errorMsg.style.display = "block";
-    errorMsg.innerHTML = response['error_message'];
-}
-
-
-var wrapper = document.getElementsByClassName("wrapper")[0];
 function sendRequest(url, options, successCallback, errorCallback) {
     var request = new XMLHttpRequest();
     console.log(url);
@@ -51,30 +25,11 @@ function sendRequest(url, options, successCallback, errorCallback) {
 }
 
 
-// get one ascii picture by owner_id and name
-function getAsciiText(ownerId, name) {
-    sendRequest(
-        `http://localhost:80/project-web-2022/ASCII-Art/server/page_controllers/ascii-editor/getAsciiPicture.php?user=${ownerId}&name=${name}`,
-        { method: "GET", data: '' },
-        displayAsciiPictures,
-        handleError,
-    );
-}
-
-// get all ascii pictures by owner_id
-function getAllAsciiPictures() {
-    sendRequest(
-        allPicturesUrl + `?owner=${sessionStorage.getItem('owner')}&&user=${sessionStorage.getItem('user')}&&page=${sessionStorage.getItem('page')}`,
-        { method: "GET", data: '' },
-        displayAsciiPictures,
-        handleError,
-    );
-}
-
 // get all friends' ascii pictures
-function getAllFriendsPictures(ownerId, page, pageSize) {
+function getAllFriendsPictures() {
+    console.log(sessionStorage.getItem('page'));
     sendRequest(
-        `../../server/page_controllers/ascii-editor/getAllFriendsPictures.php?user=${ownerId}&page=${page}&pageSize=${pageSize}`,
+        `../../server/page_controllers/ascii-editor/getAllFriendsPictures.php?user=${sessionStorage.getItem('user')}&&page=${sessionStorage.getItem('page')}`,
         { method: "GET", data: '' },
         displayAsciiPictures,
         handleError,
@@ -94,10 +49,12 @@ function displayAsciiPictures(response) {
             return;
         }
         for (let currentAscii of pictures) {
+            console.log('finished');
             let asciiPicture = currentAscii['data'];
             let isLiked = currentAscii['liked'];
             let likesCount = currentAscii['likes_count'];
-            showAsciiPicture(wrapper, asciiPicture, isLiked, likesCount);
+            let owner = currentAscii['owner'];
+            showAsciiPicture(wrapper, asciiPicture, isLiked, likesCount,owner['username']);
         }
     } else {
         // show error message
@@ -105,19 +62,18 @@ function displayAsciiPictures(response) {
 }
 
 
-// element => html element; asciiText => value attribute from PICTURES sql table
-function showAsciiPicture(element, asciiPicture, isLiked, likesCount) {
+function showAsciiPicture(element, asciiPicture, isLiked, likesCount,ownerName) {
     if (element && asciiPicture) {
-
         let nameEl = document.createElement('span');
         nameEl.style.fontWeight = 'bold';
-        nameEl.innerHTML = 'Picture name: ' + asciiPicture['picture_name'];
+        nameEl.innerHTML = 'Picture name: '+asciiPicture['picture_name'];
         let updatedEl = document.createElement('span');
         updatedEl.style.fontWeight = 'bold';
         updatedEl.innerHTML = 'Last update on: ' + asciiPicture['updated_at'];
         element.appendChild(createAscciWrapperEl(asciiPicture));
         element.appendChild(nameEl);
         addLikeButton(element, asciiPicture['id'], isLiked, likesCount);
+        element.appendChild(createLink(asciiPicture['owner_id'],ownerName));
         element.appendChild(updatedEl);
     }
 }
@@ -139,22 +95,15 @@ function createAscciWrapperEl(asciiPicture) {
 }
 
 function handleError(response) {
+    var modalContent = document.getElementsByClassName("modal-body")[0]
     console.log(response);
+    if (response["error"]) {
+        showModalForSeconds();
+        modalContent.innerHTML = "An error has occurred. Try again."
+    } else {
+        document.getElementsByClassName("editor")[0].classList.remove("show-modal");
+    }
 }
-
-
-const USER_ID = 2;
-const ASCII_NAME = "1";
-const PAGINATION_PAGE = 0;
-const PAGINATION_PAGESIZE = 10;
-
-document.addEventListener("DOMContentLoaded", function (event) {
-    // getAsciiText(USER_ID,ASCII_NAME); // get one ascii picture
-    // getAllAsciiPictures(sessionStorage.getItem('user')); // get all ascii pictures
-    // getAllFriendsPictures(USER_ID, PAGINATION_PAGE, PAGINATION_PAGESIZE); // get all friends ascii pictures with pagination
-});
-
-
 
 // Like button
 function addLikeButton(el, pictureId, isLiked, likesCount) {
@@ -251,6 +200,11 @@ function refreshCounter(button) {
 
 
 
+
+
+
+
+
 // Pagination
 function page(addition) {
     var currentPage = parseInt(sessionStorage.getItem('page'));
@@ -267,7 +221,7 @@ function page(addition) {
     }
     sessionStorage.setItem('page', currentPage);
     flushPictures();
-    getAllAsciiPictures();
+    getAllFriendsPictures();
 }
 
 function updateButtonsMode(buttonClass, newMode) {
@@ -276,14 +230,38 @@ function updateButtonsMode(buttonClass, newMode) {
 }
 
 function setupPages() {
+    sessionStorage.setItem('user',3);// TO DO delete
     updateButtonsMode('prevPage', true);
     updateButtonsMode('nextPage', false);
     sessionStorage.setItem('page', 1);
 }
 
-function flushPictures() {
+function flushPictures(){
     var wrapper = document.getElementsByClassName("wrapper")[0];
     while (wrapper.firstChild) {
         wrapper.removeChild(wrapper.lastChild);
-    }
+      }
+}
+
+
+// Create a link
+function createLink(userId,username) {
+    var a = document.createElement('a');
+    var linkText = document.createTextNode("User: "+username);
+    a.appendChild(linkText);
+    a.target = '_blank';
+    a.href =  '../html/userInfo.html?user=' + userId;
+    return a;
+  }
+  
+
+//  Modal
+  function showModalForSeconds(reload = false) {
+    document.getElementsByClassName("feed")[0].classList.add("show-modal");
+    setTimeout(() => {
+        document.getElementsByClassName("feed")[0].classList.remove("show-modal");
+        if (reload) {
+            window.location.reload();
+        }
+    }, 3000);
 }

@@ -1,8 +1,34 @@
 const dir = 'http://localhost:80/project-web-2022/ASCII-Art/';
-const baseUrl = dir + 'server/page_controllers/';
+const baseUrl = dir + 'server/page_controllers/follow/';
+// sessionStorage.setItem('userId',2);
+
+function openTab(event, sectionName) {
+  updateButtonsMode('prevPage',true);
+  updateButtonsMode('nextPage',false);
+  var errorMsg = document.getElementById("error-msg");
+  errorMsg.style.display = "";
+  var id = document.getElementById("user-id");
+  if (id.value == '') {
+    errorMsg.style.display = "block";
+    errorMsg.innerHTML = 'User is not chosen.';
+    return;
+  }
+  var i, tabcontent, tablinks;
+  tabcontent = document.getElementsByClassName("tabcontent");
+  for (i = 0; i < tabcontent.length; i++) {
+    tabcontent[i].style.display = "none";
+  }
+  tablinks = document.getElementsByClassName("tablinks");
+  for (i = 0; i < tablinks.length; i++) {
+    tablinks[i].className = tablinks[i].className.replace(" active", "");
+  }
+  document.getElementById(sectionName).style.display = "block";
+  event.currentTarget.className += " active";
+  sessionStorage.setItem('page', 1);
+  listFellows(sectionName == 'followers-section');
+}
 
 function handleListFellows(response, type, userId) {
-  console.log('type: '.type);
   var tableName = type + '-tb';
   var table = document.getElementById(tableName);
   table.innerHTML = '';
@@ -11,9 +37,14 @@ function handleListFellows(response, type, userId) {
   console.log(response);
   var followers = response[type];
   console.log(followers);
+  if (followers.length < 20) {
+    updateButtonsMode('nextPage',true);
+  }
+
   if (followers.length == 0) {
     console.log('No users found.')
     // TODO add message on the UI or something else
+
     return;
   }
   followers.forEach(item => {
@@ -51,9 +82,7 @@ function handleErrorFollowers(response) {
 }
 
 function listFellows(searchFollowers) {
-  console.log(searchFollowers);
   var id = document.getElementById("user-id");
-  var data = { 'user': id.value };
   var url;
   var type = '';
   if (searchFollowers) {
@@ -63,7 +92,10 @@ function listFellows(searchFollowers) {
     url = baseUrl + 'listFollowings.php';
     type = 'followings';
   }
-  sendRequest(url, { method: 'POST', data: JSON.stringify(data) }, (response) => (handleListFellows(response, type, id.value)), handleErrorFollowers);
+  console.log('page' + sessionStorage.getItem("page"));
+  url += '?user=' + id.value + '&&page=' + sessionStorage.getItem("page");
+  console.log(url);
+  sendRequest(url, { method: 'GET', data: '' }, (response) => (handleListFellows(response, type, id.value)), handleErrorFollowers);
 }
 
 
@@ -107,7 +139,8 @@ function removeFollower(user, follower, changeFollowersTable) {
 
 function handleRemoveFollower(response, searchFollowers) {
   console.log('Successfully deleted follower.');
-  listFellows(searchFollowers);
+  sessionStorage.setItem("page", 1);
+  listFellows(searchFollowers);//TODO decide whether to go back to first page on delete
 }
 
 function handleErrorRemoveFollower(response) {
@@ -129,4 +162,28 @@ function createLink(userId) {
   a.target = '_blank';
   a.href = dir + 'frontend/html/userInfo.html?user=' + userId;
   return a;
+}
+
+
+function page(addition, refreshFollowers) {
+  var currentPage = parseInt(sessionStorage.getItem('page'));
+  currentPage += parseInt(addition);
+  console.log(currentPage);
+  if (addition == -1) {
+    updateButtonsMode('nextPage',false);
+  }
+  if (currentPage <= 1) {
+    updateButtonsMode('prevPage',true);
+  }
+  if (currentPage < 1) { return; }
+  if (currentPage > 1) {
+    updateButtonsMode('prevPage',false);
+  }
+  sessionStorage.setItem('page', currentPage);
+  listFellows(refreshFollowers);
+}
+
+function updateButtonsMode(buttonClass,newMode){
+  var btns = document.getElementsByClassName(buttonClass);
+  Array.from(btns).forEach(btn => { btn.disabled = newMode; });
 }
