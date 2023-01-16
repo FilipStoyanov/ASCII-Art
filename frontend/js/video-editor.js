@@ -88,7 +88,7 @@ function displayVideo(response) {
     document.getElementById("ascii-name").value = loaded_title;
     Options_vid.title = loaded_title;
     Options_vid.id = response["data"][0]["id"];
-    
+
     // GET THE ONWER FROM SESSION
     Options_vid.owner_id = 1;
     // removeLoadedPictures();
@@ -431,6 +431,7 @@ document.addEventListener("DOMContentLoaded", function (event) {
     saveVideo();
     modalFunctionality();
     getAllAsciiPictures(USER_ID); // get all ascii pictures
+    scrollLeftRight();
 
 });
 
@@ -518,4 +519,46 @@ function copyToClipboard() {
             navigator.clipboard.writeText(copied_text);
         });
     }
+}
+
+var scroll_timeout;
+function scrollLeftRight() {
+    var left = document.getElementById("left");
+    var right = document.getElementById("right");
+    let body = document.body;
+
+    left.addEventListener("mousedown", function (e) {
+        scroll_timeout = setInterval(function () {
+            body.scrollLeft -= 10;
+        })
+    });
+
+    left.addEventListener("mouseup", function (e) {
+        // document.body.scrollLeft -= 20;
+        if (body.scrollLeft == 0) {
+            left.style.display = "none";
+        }
+
+        if (body.scrollLeft != body.scrollWidth - body.clientWidth) {
+            right.style.display = "block";
+        }
+        clearInterval(scroll_timeout);
+    });
+
+    right.addEventListener("mousedown", function (e) {
+        scroll_timeout = setInterval(function () {
+            body.scrollLeft += 10;
+        })
+    });
+
+    right.addEventListener("mouseup", function (e) {
+        if (document.body.scrollLeft != 0) {
+            left.style.display = "block"
+        }
+        let int_scrollLeft = parseInt(body.scrollLeft, 10);
+        if (int_scrollLeft + 1 >= body.scrollWidth - body.clientWidth) {
+            right.style.display = "none";
+        }
+        clearInterval(scroll_timeout);
+    });
 }

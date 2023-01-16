@@ -2,6 +2,8 @@ body {
     background: var(--skyblue);
 }
 
+
+
 .editor {
     display: flex;
     position: absolute;
@@ -14,15 +16,33 @@ body {
 .sections {
     font-family: var(--font);
     background-color: var(--white);
-    max-width: 100%;
-    height: auto;
-    width: 40%;
     position: relative;
     z-index: 1;
     box-shadow: 0px 3px 3px -2px rgb(0 0 0 / 20%), 0px 3px 4px 0px rgb(0 0 0 / 14%), 0px 1px 8px 0px rgb(0 0 0 / 12%);
     border-radius: 8px;
     padding: 15px;
     margin: 20px;
+    overflow-x: hidden;
+    overflow-y: auto;
+    min-width: 448px;
+    width: 448px;
+    max-height: 95%;
+    scrollbar-color: #87ceeb #fed1bd;
+    margin-bottom: 10px;
+}
+
+.sections::-webkit-scrollbar {
+    width: 8px;
+}
+
+.sections::-webkit-scrollbar-track {
+    background: #ffffff;
+}
+
+.sections::-webkit-scrollbar-thumb {
+    background-color: #fed1bd;
+    border-radius: 10px;
+    border: 2px inset lightsteelblue;
 }
 
 .menu {
@@ -277,18 +297,18 @@ body {
     text-align: center;
 }
 
-.loaded-video-frames{
+.loaded-video-frames {
     display: block;
     resize: none;
     width: 100%;
 }
 
-.ascii-picture{
+.ascii-picture {
     display: block;
     /* resize: none; */
     /* width: 100%; */
     /* white-space:pre-line; */
-    width:fit-content;
+    width: fit-content;
     box-shadow: 0px 3px 3px -2px rgb(0 0 0 / 20%), 0px 3px 4px 0px rgb(0 0 0 / 14%), 0px 1px 8px 0px rgb(0 0 0 / 12%);
     border-radius: 30px;
     padding-left: 2%;
@@ -296,17 +316,66 @@ body {
     margin-bottom: 10px;
 }
 
-.ascii-picture:hover{
+.ascii-picture:hover {
     cursor: pointer;
 }
 
-.pictures{
-    width: 80%;
-}
 
 .delete-button,
-.edit-button{
+.edit-button {
     margin-top: 10px;
     margin-left: 1%;
     width: 49%;
+}
+
+html,
+body {
+    overflow-y: hidden;
+    overflow-x: hidden;
+    display: flex;
+    flex-direction: row;
+    /* flex-wrap: wrap; */
+    /* justify-content: space-evenly; */
+    align-items: baseline;
+    /* align-content: flex-start; */
+    flex-basis: 100%;
+    height: 100%;
+}
+
+#right {
+    right: 0;
+    bottom: 20%;
+}
+
+#left {
+    left: 0;
+    bottom: 20%;
+    display: none;
+}
+
+.fake-scroll {
+    position: fixed;
+    cursor: pointer;
+    margin: 0 5px 0 5px;
+    z-index: 10;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+.fa{
+    color: #fed1bd;
+}
+
+@media only screen and (max-width: 600px) {
+    body{
+        flex-wrap: wrap;
+        overflow-y: auto;
+    }
+
+    .fake-scroll {
+        display: none;
+    }
 }
