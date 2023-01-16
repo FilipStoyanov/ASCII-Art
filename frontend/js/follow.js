@@ -72,10 +72,10 @@ function handleListFellows(response, type, userId) {
 function handleErrorFollowers(response) {
   var errorMsg = document.getElementById("error-msg");
 
-  // if (response["error_message"]) {
+  // if (response["error"]) {
 
   errorMsg.style.display = "block";
-  errorMsg.innerHTML = response['error_message'];
+  errorMsg.innerHTML = response['error'];
   // } else {
   //   errorMsg.style.display = "none";
   // }
@@ -146,10 +146,10 @@ function handleRemoveFollower(response, searchFollowers) {
 function handleErrorRemoveFollower(response) {
   var errorMsg = document.getElementById("error-msg");
 
-  // if (response["error_message"]) {
+  // if (response["error"]) {
 
   errorMsg.style.display = "block";
-  errorMsg.innerHTML = response['error_message'];
+  errorMsg.innerHTML = response['error'];
   // } else {
   //   errorMsg.style.display = "none";
   // }

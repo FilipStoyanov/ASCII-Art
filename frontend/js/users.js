@@ -75,9 +75,9 @@ function handleErrorUsers(response) {
   // var errorMsg = document.getElementById("error-msg");
 
   // errorMsg.style.display = "block";
-  // errorMsg.innerHTML = response['error_message'];
-  if ("error_message" in response) {
-    console.error(response['error_message']);
+  // errorMsg.innerHTML = response['error'];
+  if ("error" in response) {
+    console.error(response['error']);
     showModalForSeconds();
     var modalContent = document.getElementsByClassName("modal-body")[0]
     modalContent.innerHTML = "An error has occurred. Try again."
@@ -183,9 +183,9 @@ function handleErrorUpdateFollower(response) {
   // var errorMsg = document.getElementById("error-msg");
 
   // errorMsg.style.display = "block";
-  // errorMsg.innerHTML = response['error_message'];
-  if ('error_message' in response) {
-    console.error(response['error_message']);
+  // errorMsg.innerHTML = response['error'];
+  if ('error' in response) {
+    console.error(response['error']);
     showModalForSeconds();
     modalContent.innerHTML = "An error has occurred. Try again."
   } else {

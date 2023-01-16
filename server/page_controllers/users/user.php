@@ -21,12 +21,12 @@ class User
 
             if (!array_key_exists('user', $pathParameters) || $pathParameters['user'] == null) {
                 $this->response['status'] = 'fail';
-                $this->response['error_message'] = 'User is not chosen.';
+                $this->response['error'] = 'User is not chosen.';
                 return json_encode($this->response);
             }
             if (!array_key_exists('owner', $pathParameters) || $pathParameters['owner'] == null) {
                 $this->response['status'] = 'fail';
-                $this->response['error_message'] = 'Owner is not chosen.';
+                $this->response['error'] = 'Owner is not chosen.';
                 return json_encode($this->response);
             }
 
@@ -44,7 +44,7 @@ class User
 
             if ($page <= 0) {
                 $this->response['success'] = false;
-                $this->response['error_message'] = 'Invalid page.';
+                $this->response['error'] = 'Invalid page.';
                 return json_encode($this->response);
             }
 
@@ -55,14 +55,14 @@ class User
 
             if ($owner <= 0) {
                 $this->response['success'] = false;
-                $this->response['error_message'] = 'Invalid owner id.';
+                $this->response['error'] = 'Invalid owner id.';
                 return json_encode($this->response);
             }
             
             $username = $pathParameters['user'];
             if (!is_string($username)) {
                 $this->response['status'] = 'fail';
-                $this->response['error_message'] = 'Invalid user name.';
+                $this->response['error'] = 'Invalid user name.';
                 return json_encode($this->response);
             }
 
@@ -70,13 +70,13 @@ class User
                 $users = $this->connection->getUserByName($username,$page,$limit,$owner);
             } catch (Exception $e) {
                 $response['success'] = false;
-                $response['error_message'] = $e->getMessage();
+                $response['error'] = $e->getMessage();
                 return json_encode($response);
             }
 
             if (!$users) {
                 $response['success'] = false;
-                $response['error_message'] = 'User with name ' . $username . ' was not found.';
+                $response['error'] = 'User with name ' . $username . ' was not found.';
                 return json_encode($response);
             }
 
@@ -92,7 +92,7 @@ class User
             return json_encode($response);
         }
         $this->response['status'] = 'fail';
-        $this->response['error_message'] = 'WRONG HTTP Request method.';
+        $this->response['error'] = 'WRONG HTTP Request method.';
         return json_encode($this->response);
     }
 

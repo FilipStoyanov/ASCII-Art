@@ -42,7 +42,7 @@ class UpdateFollower
             return $this->removeFollower();
         }
         $this->response['success'] = false;
-        $this->response['error_message'] = 'WRONG HTTP Request method.';
+        $this->response['error'] = 'WRONG HTTP Request method.';
         return json_encode($this->response);
     }
 }

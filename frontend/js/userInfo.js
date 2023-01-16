@@ -1,18 +1,41 @@
-window.onload = function () {
+window.addEventListener("load", (event) => {
+    sessionStorage.setItem('user', 2);//TODO delete
+    const queryString = window.location.search;
+    const urlParams = new URLSearchParams(queryString);
+    const userId = urlParams.get('user');
+    sessionStorage.setItem('owner', userId);
+});
+function openTab(event, sectionName) {
+
+    var errorMsg = document.getElementById("error-msg");
+    errorMsg.style.display = "";
+
+    var i, tabcontent, tablinks;
+    tabcontent = document.getElementsByClassName("tabcontent");
+    for (i = 0; i < tabcontent.length; i++) {
+        tabcontent[i].style.display = "none";
+    }
+    tablinks = document.getElementsByClassName("tablinks");
+    for (i = 0; i < tablinks.length; i++) {
+        tablinks[i].className = tablinks[i].className.replace(" active", "");
+    }
+    document.getElementById(sectionName).style.display = "block";
+    event.currentTarget.className += " active";
     setupPages();
-    getUserInfo();
-};
+    sessionStorage.setItem('current_section', sectionName);
+    if (sectionName == 'user-info-img-section') {
+        getUserInfoImages();
+        return;
+    }
+    getUserInfoVideos();
+}
 
 const baseUrl = 'http://localhost:80/project-web-2022/ASCII-Art/server/page_controllers/';
 const userInfoUrl = baseUrl + 'users/userInfo.php';
 const allPicturesUrl = baseUrl + 'ascii-editor/getAllPictures.php';
-function getUserInfo() {
-    sessionStorage.setItem('user', 2);
-    const queryString = window.location.search;
-    const urlParams = new URLSearchParams(queryString);
-    const userId = urlParams.get('user');
-    var url = userInfoUrl + '?user=' + userId;
-    sessionStorage.setItem('owner', userId);
+function getUserInfoImages() {
+    var url = userInfoUrl + '?user=' + sessionStorage.getItem('owner');
+
     sendRequest(url, { method: 'GET', data: '' }, handleUserInfo, handleErrorUserInfo);
 }
 
@@ -26,7 +49,7 @@ function handleUserInfo(response) {
 
 function handleErrorUserInfo(response) {
     errorMsg.style.display = "block";
-    errorMsg.innerHTML = response['error_message'];
+    errorMsg.innerHTML = response['error'];
 }
 
 
@@ -266,8 +289,11 @@ function page(addition) {
         updateButtonsMode('prevPage', false);
     }
     sessionStorage.setItem('page', currentPage);
-    flushPictures();
-    getAllAsciiPictures();
+    flush();
+    if (sessionStorage.getItem('current_section') == 'user-infor-img-section') {
+        getAllAsciiPictures(); return;
+    }
+    getUserInfoVideos();
 }
 
 function updateButtonsMode(buttonClass, newMode) {
@@ -281,9 +307,149 @@ function setupPages() {
     sessionStorage.setItem('page', 1);
 }
 
-function flushPictures() {
-    var wrapper = document.getElementsByClassName("wrapper")[0];
-    while (wrapper.firstChild) {
-        wrapper.removeChild(wrapper.lastChild);
+function flush() {
+    for (let i = 0; i < 2; i++) {
+        var wrapper = document.getElementsByClassName("wrapper")[i];
+        while (wrapper.firstChild) {
+            wrapper.removeChild(wrapper.lastChild);
+        }
     }
+}
+
+function getUserInfoVideos() {
+    console.log(sessionStorage.getItem('owner'));
+    sendRequest(`../../server/page_controllers/ascii-video-editor/get-videos.php?owner_id=${sessionStorage.getItem('owner')}&&page=${sessionStorage.getItem('page')}`, { method: 'GET', data: "" }, loadUserVideos, handleErrorAscii);
+}
+
+function loadUserVideos(response) {
+    let videos = response["data"];
+    if (videos.length < 10) {
+        updateButtonsMode('nextPage', true);
+    }
+
+    deleteLoadedVideos();
+
+    if (videos) {
+        for (let i = 0; i < videos.length; i++) {
+            let new_id = videos[i]["id"];
+            let new_title = videos[i]["title"];
+            let new_time = videos[i]["time_delay"];
+            let new_color = videos[i]["color"];
+            let new_background = videos[i]["background"];
+            let new_frames = videos[i]["frames"];
+            let new_name = `loaded_videos[${i}]`;
+
+            let new_video = new Video(new_title, new_time, new_color, new_background, new_frames, new_id, new_name);
+
+            new_video.addLabels();
+            new_video.makeLoadedVideo();
+            loaded_videos.push(new_video);
+            loaded_videos[i].play();
+        }
+    }
+}
+
+function deleteLoadedVideos() {
+    let loaded_titles = document.getElementsByClassName("loaded-video-title");
+
+    if (loaded_titles) {
+        let length = loaded_titles.length;
+        let section = document.getElementsByClassName("sections")[0];
+
+        for (let i = 0; i < length; i++) {
+            section.removeChild(loaded_titles[0]);
+        }
+
+        let loaded_videos_for_del = document.getElementsByClassName("loaded-video-frames")
+        length = loaded_videos_for_del.length;
+
+        for (let i = 0; i < length; i++) {
+            section.removeChild(loaded_videos_for_del[0]);
+        }
+    }
+}
+
+function handleErrorAscii(response) {
+    if (response["errors"]) {
+        showModalForSeconds();
+        modalContent.innerHTML = "An error has occurred. Try again."
+    } else {
+        document.getElementsByClassName("editor")[0].classList.remove("show-modal");
+    }
+}
+
+
+const TEXT_ROWS = 41;
+var loaded_videos = [];
+
+class Video {
+
+
+    constructor(title, time, color, background, frames, id, name) {
+        this.title = title;
+        this.time = time;
+        this.color = color;
+        this.background = background;
+        this.frames = frames;
+        this.frames_count = frames.length;
+        this.id = id;
+        this.current = 0;
+        this.timer = 0;
+        this.name = name;
+    }
+
+    addLabels() {
+        let label = document.createElement("label");
+        let title = document.createTextNode(this.title);
+
+        label.setAttribute("class", "loaded-video-title");
+
+        label.appendChild(title);
+
+        let display_section = document.getElementById("videos-wrapper");
+
+        display_section.appendChild(label);
+    }
+
+    makeLoadedVideo() {
+        for (let i = 0; i < this.frames_count; i++) {
+            var new_frame = document.createElement("textarea");
+            new_frame.setAttribute("class", "loaded-video-frames");
+            new_frame.classList.add("class", `video-frame-${this.id}`);
+            new_frame.setAttribute("id", `loaded-frame-video-${this.id}-${i}`);
+            new_frame.setAttribute("rows", TEXT_ROWS);
+            new_frame.setAttribute("readonly", "");
+
+
+            let text_value = this.frames[i];
+            new_frame.appendChild(document.createTextNode(text_value));
+
+            new_frame.style.color = this.color;
+            new_frame.style.background = this.background;
+
+            let section = document.getElementById("videos-wrapper");
+
+            section.appendChild(new_frame);
+        }
+
+    }
+
+
+    play() {
+        let get_last = document.getElementById(`loaded-frame-video-${this.id}-${this.current}`);
+        get_last.style.display = "none";
+
+        if (this.current++ == this.frames.length - 1) {
+            this.current = 0;
+        }
+
+        let get_next = document.getElementById(`loaded-frame-video-${this.id}-${this.current}`);
+        get_next.style.display = "block";
+
+        clearTimeout(this.timer);
+        // console.log(this.timer);
+        this.timer = setTimeout(this.name + '.play()', this.time);
+
+    }
+
 }

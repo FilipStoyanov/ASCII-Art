@@ -10,10 +10,17 @@
 
 <body>
     <p id="error-msg" class="error-msg error-dup-username"></p>
-    <section class="user-info">
 
-        <h1>User Info</h1>
-        <h2 class="user-info" id='username'></h2>
+    <h1>User Info</h1>
+    <h2 class="user-info" id='username'></h2>
+    <div class="tab">
+      <button class="tablinks" onclick="openTab(event, 'user-info-video-section')">Videos</button>
+      <button class="tablinks" onclick="openTab(event, 'user-info-img-section')">Images</button>
+  
+    </div>
+
+    <section id="user-info-img-section" class="tabcontent">
+
         <section class='images'>
             <div class="wrapper">
 
@@ -35,6 +42,30 @@
               </div>
             </div>
           </div>
+    </section>
+    <section id="user-info-video-section" class="tabcontent">
+
+      <section class='videos'>
+          <div class="wrapper" id="videos-wrapper">
+
+          </div>
+          <button class='prevPage' onclick="page(-1,false)">prev</button>
+          <button class='nextPage' onclick="page(1,false)">next</button>
+      </section>
+      <div id="modal" class="modal">
+          <div class="modal-content">
+            <div class="modal-header">
+              <span class="close">&times;</span>
+              <h2>Alert!</h2>
+            </div>
+            <div class="modal-body">
+              <p>Some text in the Modal Body</p>
+              <p>Some other text...</p>
+            </div>
+            <div class="modal-footer">
+            </div>
+          </div>
+        </div>
     </section>
 </body>
 
