@@ -173,6 +173,11 @@ class AsciiVideoEditor
 
             try {
                 $videos = $this->connection->getFriendsVideos(['user' => $user, 'page' => $page, 'limit' => $limit]);
+                for ($i = 0; $i < count( $videos); $i++) {
+                    $unserialised_frames = unserialize( $videos[$i]["frames"]);
+                    $videos[$i]["frames"] = $unserialised_frames;
+                }
+
                 return json_encode(["success" => true, 'data' => $videos]);
             } catch (Exception $e) {
                 $this->response['success'] = false;

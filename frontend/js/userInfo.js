@@ -289,10 +289,12 @@ function page(addition) {
         updateButtonsMode('prevPage', false);
     }
     sessionStorage.setItem('page', currentPage);
-    flush();
     if (sessionStorage.getItem('current_section') == 'user-infor-img-section') {
+        flush();
         getAllAsciiPictures(); return;
     }
+    flushVideos();
+    flush();
     getUserInfoVideos();
 }
 
@@ -314,6 +316,16 @@ function flush() {
             wrapper.removeChild(wrapper.lastChild);
         }
     }
+}
+
+function flushVideos(){
+    let videos = sessionStorage.getItem('videos');
+    for (let index = 0; index < videos.length; index++) {
+        clearTimeout(videos[index].timer);
+        videos[index].current = 0;
+    }
+    sessionStorage.setItem('videos',[]);
+    loaded_videos = [];
 }
 
 function getUserInfoVideos() {
@@ -346,6 +358,7 @@ function loadUserVideos(response) {
             loaded_videos.push(new_video);
             loaded_videos[i].play();
         }
+        sessionStorage.setItem('videos',loaded_videos);
     }
 }
 
@@ -414,8 +427,7 @@ class Video {
     makeLoadedVideo() {
         for (let i = 0; i < this.frames_count; i++) {
             var new_frame = document.createElement("textarea");
-            new_frame.setAttribute("class", "loaded-video-frames");
-            new_frame.classList.add("class", `video-frame-${this.id}`);
+            new_frame.classList.add("loaded-video-frames", `video-frame-${this.id}`);
             new_frame.setAttribute("id", `loaded-frame-video-${this.id}-${i}`);
             new_frame.setAttribute("rows", TEXT_ROWS);
             new_frame.setAttribute("readonly", "");

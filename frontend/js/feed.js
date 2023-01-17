@@ -295,7 +295,7 @@ function getAllFriendsVideos() {
 
 function loadUserVideos(response) {
     let videos = response["data"];
-
+console.log('videos '+videos.length);
     if (videos.length < 10) {
         updateButtonsMode('nextPage', true);
     }
@@ -303,7 +303,7 @@ function loadUserVideos(response) {
     deleteLoadedVideos();
 
     if (videos) {
-        for (let i = 0; i < videos.length; i++) {
+        for (let i = 0; i < 1; i++) {
             let new_id = videos[i]["id"];
             let new_title = videos[i]["title"];
             let new_time = videos[i]["time_delay"];
@@ -313,7 +313,7 @@ function loadUserVideos(response) {
             let new_name = `loaded_videos[${i}]`;
 
             let new_video = new Video(new_title, new_time, new_color, new_background, new_frames, new_id, new_name);
-
+console.log(new_frames);
             new_video.addLabels();
             new_video.makeLoadedVideo();
             loaded_videos.push(new_video);
@@ -388,8 +388,7 @@ class Video {
         for (let i = 0; i < this.frames_count; i++) {
             
             var new_frame = document.createElement("textarea");
-            new_frame.setAttribute("class", "loaded-video-frames");
-            new_frame.classList.add("class", `video-frame-${this.id}`);
+            new_frame.classList.add("loaded-video-frames", `video-frame-${this.id}`);
             new_frame.setAttribute("id", `loaded-frame-video-${this.id}-${i}`);
             new_frame.setAttribute("rows", TEXT_ROWS);
             new_frame.setAttribute("readonly", "");
