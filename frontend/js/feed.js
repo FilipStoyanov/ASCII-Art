@@ -16,7 +16,7 @@ function openTab(event, sectionName) {
     event.currentTarget.className += " active";
     setupPages();
     sessionStorage.setItem('current_section', sectionName);
-  
+
     if (sectionName == 'feed-img-section') {
         getAllFriendsPictures();
         return;
@@ -27,8 +27,9 @@ function openTab(event, sectionName) {
 
 function sendRequest(url, options, successCallback, errorCallback) {
     var request = new XMLHttpRequest();
-   
+
     request.onload = function () {
+        console.log(request.responseText);
         var response = JSON.parse(request.responseText);
         if (request.status === 200 && response['success']) {
             successCallback(response);
@@ -257,13 +258,13 @@ function setupPages() {
 }
 
 function flush() {
-    for (let i= 0; i < 2; i++) {
+    for (let i = 0; i < 2; i++) {
         var wrapper = document.getElementsByClassName("wrapper")[i];
         while (wrapper.firstChild) {
             wrapper.removeChild(wrapper.lastChild);
         }
     }
-    loaded_videos=[];
+    loaded_videos = [];
 }
 
 
@@ -295,7 +296,7 @@ function getAllFriendsVideos() {
 
 function loadUserVideos(response) {
     let videos = response["data"];
-console.log('videos '+videos.length);
+    console.log('videos ' + videos.length);
     if (videos.length < 10) {
         updateButtonsMode('nextPage', true);
     }
@@ -303,18 +304,20 @@ console.log('videos '+videos.length);
     deleteLoadedVideos();
 
     if (videos) {
-        for (let i = 0; i < 1; i++) {
-            let new_id = videos[i]["id"];
-            let new_title = videos[i]["title"];
-            let new_time = videos[i]["time_delay"];
-            let new_color = videos[i]["color"];
-            let new_background = videos[i]["background"];
-            let new_frames = videos[i]["frames"];
+        for (let i = 0; i < videos.length; i++) {
+            let new_id = videos[i]['data']["id"];
+            let new_title = videos[i]['data']["title"];
+            let new_time = videos[i]['data']["time_delay"];
+            let new_color = videos[i]['data']["color"];
+            let new_background = videos[i]['data']["background"];
+            let new_frames = videos[i]['data']["frames"];
+            let owner_id = videos[i]['owner']['id'];
+            let owner_name = videos[i]['owner']['username'];
             let new_name = `loaded_videos[${i}]`;
 
             let new_video = new Video(new_title, new_time, new_color, new_background, new_frames, new_id, new_name);
-console.log(new_frames);
-            new_video.addLabels();
+
+            new_video.addLabels(owner_id,owner_name);
             new_video.makeLoadedVideo();
             loaded_videos.push(new_video);
             loaded_videos[i].play();
@@ -371,13 +374,15 @@ class Video {
         this.name = name;
     }
 
-    addLabels() {
+    addLabels(owner_id,owner_name) {
         let label = document.createElement("label");
         let title = document.createTextNode(this.title);
+        let owner = createLink(owner_id, owner_name);
 
         label.setAttribute("class", "loaded-video-title");
 
         label.appendChild(title);
+        label.appendChild(owner);
 
         let display_section = document.getElementById("videos-wrapper");
 
@@ -386,7 +391,7 @@ class Video {
 
     makeLoadedVideo() {
         for (let i = 0; i < this.frames_count; i++) {
-            
+
             var new_frame = document.createElement("textarea");
             new_frame.classList.add("loaded-video-frames", `video-frame-${this.id}`);
             new_frame.setAttribute("id", `loaded-frame-video-${this.id}-${i}`);
@@ -401,7 +406,7 @@ class Video {
             new_frame.style.background = this.background;
 
             let section = document.getElementById("videos-wrapper");
-        
+
             section.appendChild(new_frame);
         }
 

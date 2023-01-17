@@ -441,21 +441,21 @@ class DataBaseConnection
             $page = null;
         }
 
-        $query = 'SELECT v.id,v.title, v.time_delay, v.color, v.background, v.frames,v.updated_at FROM videos v WHERE v.owner_id in (select f.user from follower f where follower = ' . $input['user'] . ') order by v.updated_at desc ';
+        $query = 'SELECT v.id,v.title, v.time_delay, v.color, v.background, v.frames,v.updated_at, v.owner_id FROM videos v WHERE v.owner_id in (select f.user from follower f where follower = ' . $input['user'] . ') order by v.updated_at desc ';
         if ($page != null) {
             $query = $query . ' limit ' . $start . ', ' . $limit . '';
         }
         $stmt = $this->connection->prepare($query);
         $stmt->execute([]);
         $videos = $stmt->fetchAll();
-
+        $videos = $this->setUserToVideo($videos);
         return $videos;
     }
 
     function setUserToVideo($videos)
     {
         for ($i = 0; $i < count($videos); $i++) {
-            $videos[$i] = ['data' => $videos[$i]['data'], 'owner' => $this->getUserById(['user' => (int) $videos[$i]['data']['owner_id']])];
+            $videos[$i] = ['data' => $videos[$i], 'owner' => $this->getUserById(['user' => (int) $videos[$i]['owner_id']])];
         }
         return $videos;
     }
