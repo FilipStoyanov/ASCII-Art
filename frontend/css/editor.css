@@ -20,7 +20,7 @@
 
 .editor {
     display: flex;
-    position: absolute;
+    position: relative;
     top: 0px;
     bottom: 0px;
     left: 0px;
