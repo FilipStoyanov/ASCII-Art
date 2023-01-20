@@ -6,10 +6,10 @@ var errorMsgForUsername = document.getElementsByClassName("error-username")[0];
 var errorMsgForPassword = document.getElementsByClassName("error-password")[0];
 var errorMsgForLogin = document.getElementsByClassName("error-credentials")[0];
 
-//make a request to the {$url} 
+//make a request to the {$url}
 //{$options} what type of request 'POST' 'GET'
 //successCallback when the response is ok
-//errorCallback not ok   
+//errorCallback not ok
 function sendRequest(url, options, successCallback, errorCallback) {
   var request = new XMLHttpRequest();
 
@@ -19,13 +19,13 @@ function sendRequest(url, options, successCallback, errorCallback) {
     if (request.status === 200) {
       successCallback(response);
     } else {
-      console.log('Not authorized')
+      console.log("Not authorized");
       errorCallback(response);
     }
-  }
+  };
 
   request.open(options.method, url, true);
-  request.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+  request.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
   request.send(options.data);
 }
 
@@ -67,7 +67,12 @@ function signInForm() {
     data[key] = value;
   });
 
-  sendRequest('../../server/page_controllers/signin.php', { method: 'POST', data: `data=${JSON.stringify(data)}` }, loadSignIn, handleErrorSignIn);
+  sendRequest(
+    "../../server/page_controllers/signin.php",
+    { method: "POST", data: `data=${JSON.stringify(data)}` },
+    loadSignIn,
+    handleErrorSignIn
+  );
 }
 
 function submitSignInForm() {
@@ -117,7 +122,7 @@ function submitSignInForm() {
   }
 }
 
-//when the response is ok (code 200) 
+//when the response is ok (code 200)
 function loadLogIn(response) {
   if (response["success"]) {
     errorMsgForLogin.style.display = "none";
@@ -155,20 +160,21 @@ function logInForm() {
     data[key] = value;
   });
   console.log(`data=${JSON.stringify(data)}`);
-  sendRequest('../../server/page_controllers/login.php', { method: 'POST', data: `data=${JSON.stringify(data)}` }, loadLogIn, handleErrorLogIn);
+  sendRequest(
+    "../../server/page_controllers/login.php",
+    { method: "POST", data: `data=${JSON.stringify(data)}` },
+    loadLogIn,
+    handleErrorLogIn
+  );
 }
 
-
-//doesnt quite work it still prevents sending the request 
+//doesnt quite work it still prevents sending the request
 //says when the passowrd is less than 6 characters
 //but does not do that for the username
 //tried making it like the signin but i guess there are some differences in the html
 function submitLogInForm() {
   if (loginForm) {
-
-
     loginForm.addEventListener("submit", function (event) {
-
       let usernameField = document.getElementById("login-username");
       let passwordField = document.getElementById("login-password");
       let validUsernameAndPassword = true;
@@ -200,10 +206,62 @@ function submitLogInForm() {
   }
 }
 
+function toggleMenu() {
+  const hamburgerMenu = document.getElementsByClassName("header-button")[0];
+  const navigation = document.getElementsByClassName("navigation-mobile")[0];
+  const header = document.getElementsByClassName("header")[0];
+  const bodyElement = document.getElementsByTagName("body")[0];
+  const mobileMenu = document.querySelector(".navigation-mobile");
+  const greetingText = document.querySelector(".greeting-mobile");
+  const navLinks = mobileMenu.children;
+  for (let i = 0; i < navLinks.length; ++i) {
+    navLinks[i].addEventListener("click", function () {
+      greetingText.classList.toggle("show");
+      hamburgerMenu.classList.toggle("open");
+      bodyElement.classList.toggle("overflow-hidden");
+      navigation.classList.toggle("show");
+      header.classList.toggle("show");
+      window.location.reload();
+    });
+    if (navLinks[i].classList.contains("logout")) {
+      sessionStorage.clear();
+      window.location.assign("login.html");
+    }
+  }
+}
+
+function clickOnHamburgerMenu() {
+  const hamburgerMenu = document.getElementsByClassName("header-button")[0];
+  const navigation = document.getElementsByClassName("navigation-mobile")[0];
+  const header = document.getElementsByClassName("header")[0];
+  const bodyElement = document.getElementsByTagName("body")[0];
+  const greetingText = document.querySelector(".greeting-mobile");
+  if(hamburgerMenu) {
+    hamburgerMenu.addEventListener("click", function () {
+      greetingText.classList.toggle("show");
+      hamburgerMenu.classList.toggle("open");
+      bodyElement.classList.toggle("overflow-hidden");
+      navigation.classList.toggle("show");
+      header.classList.toggle("show");
+    });
+  }
+}
+
+function logout() {
+  const logoutBtn = document.getElementsByClassName("logout")[0];
+  if(logoutBtn) {
+    logoutBtn.addEventListener("click", function (event) {
+      event.preventDefault();
+      sessionStorage.clear();
+      window.location.assign("login.html");
+    });
+  }
+}
+
 // call functions after DOM is loaded
 document.addEventListener("DOMContentLoaded", function (event) {
   submitSignInForm();
   submitLogInForm();
+  clickOnHamburgerMenu();
+  logout();
 });
-
-
