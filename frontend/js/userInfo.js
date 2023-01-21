@@ -1,7 +1,7 @@
 const dir = '../../';
 const baseUrl = dir + 'server/page_controllers/';
 const userInfoUrl = baseUrl + 'users/userInfo.php';
-const allPicturesUrl = baseUrl + 'ascii-editor/getAllPictures.php';
+const allPicturesUrl = baseUrl + 'ascii-editor/getUserPictures.php';
 const videoEditorUrl = baseUrl + 'ascii-video-editor/';
 
 window.addEventListener("load", (event) => {
@@ -307,7 +307,7 @@ function flushVideos(){
 }
 
 function getUserInfoVideos() {
-    sendRequest(videoEditorUrl+`get-videos.php?owner_id=${sessionStorage.getItem('owner')}&&page=${sessionStorage.getItem('page')}`, { method: 'GET', data: "" }, loadUserVideos, handleErrorAscii);
+    sendRequest(videoEditorUrl+`get-user-videos.php?owner_id=${sessionStorage.getItem('owner')}&&page=${sessionStorage.getItem('page')}`, { method: 'GET', data: "" }, loadUserVideos, handleErrorAscii);
 }
 
 function loadUserVideos(response) {

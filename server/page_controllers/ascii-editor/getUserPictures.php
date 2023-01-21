@@ -1,5 +1,5 @@
 <?php
     include_once("./asciiEditor.php");
     $asciiEditor = new AsciiEditor();
-    $asciiEditor->getAll();
+    echo $asciiEditor->getUserPictures();
 ?>
