@@ -605,24 +605,6 @@ function stopVideo() {
 
 }
 
-document.addEventListener("DOMContentLoaded", function (event) {
-    // submitOptionsForm();
-    addNewFrame();
-    removeFrame();
-    makeVideo();
-    setColors();
-    setBackgroundColor();
-    // stopVideo();
-    addAsciiCharacters();
-    toggleAsciiCharacters();
-    chooseCharacter();
-    changeAsciiName();
-    saveVideo();
-    modalFunctionality();
-    loadVideos();
-    getAllAsciiPictures(USER_ID); // get all ascii pictures
-
-});
 
 function getAllAsciiPictures(ownerId) {
     document.getElementById("load-pictures").addEventListener("click", function (event) {
@@ -709,3 +691,92 @@ function copyToClipboard() {
         });
     }
 }
+
+// function scrollLeftRight() {
+// console.log("ssys");
+
+// document.body.addEventListener("mousemove", function (e) {
+//     var clientY = e.clientX;
+//     console.log(clientY);
+
+//     var boxHeight = document.body.offsetWidth;
+//     var contentHeight = document.body.scrollWidth;
+//     var mousePositionProportion = clientY / boxHeight;
+//     // var scrollTop = mousePositionProportion * (contentHeight - boxHeight);
+//     console.log(mousePositionProportion);
+//     //// Top
+//     if (mousePositionProportion < 0.25) {
+//         document.body.scrollLeft -= 50;
+
+//     }
+//     // scrollTop -= 50;
+//     //// Bottom
+//     else if (mousePositionProportion > 0.75) {
+//         console.log("yo");
+//         // scrollTop += 50;
+//         document.body.scrollLeft += 50;
+//     }
+
+// });
+// }
+var scroll_timeout;
+function scrollLeftRight() {
+    var left = document.getElementById("left");
+    var right = document.getElementById("right");
+    let body = document.body;
+
+    left.addEventListener("mousedown", function (e) {
+        scroll_timeout = setInterval(function () {
+            body.scrollLeft -= 10;
+        })
+    });
+
+    left.addEventListener("mouseup", function (e) {
+        // document.body.scrollLeft -= 20;
+        if (body.scrollLeft == 0) {
+            left.style.display = "none";
+        }
+
+        if (body.scrollLeft != body.scrollWidth - body.clientWidth) {
+            right.style.display = "block";
+        }
+        clearInterval(scroll_timeout);
+    });
+
+    right.addEventListener("mousedown", function (e) {
+        scroll_timeout = setInterval(function () {
+            body.scrollLeft += 10;
+        })
+    });
+
+    right.addEventListener("mouseup", function (e) {
+        if (document.body.scrollLeft != 0) {
+            left.style.display = "block"
+        }
+        let int_scrollLeft = parseInt(body.scrollLeft, 10);
+        if (int_scrollLeft + 1 >= body.scrollWidth - body.clientWidth) {
+            right.style.display = "none";
+        }
+        clearInterval(scroll_timeout);
+    });
+}
+
+document.addEventListener("DOMContentLoaded", function (event) {
+    // submitOptionsForm();
+    addNewFrame();
+    removeFrame();
+    makeVideo();
+    setColors();
+    setBackgroundColor();
+    // stopVideo();
+    addAsciiCharacters();
+    toggleAsciiCharacters();
+    chooseCharacter();
+    changeAsciiName();
+    saveVideo();
+    modalFunctionality();
+    loadVideos();
+    getAllAsciiPictures(USER_ID); // get all ascii pictures
+    scrollLeftRight();
+
+});
