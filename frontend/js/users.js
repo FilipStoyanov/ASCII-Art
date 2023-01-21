@@ -1,4 +1,5 @@
-const dir = 'http://localhost:80/project-web-2022/ASCII-Art/';
+// const dir = 'http://localhost:80/project-web-2022/ASCII-Art/';
+const dir = '../../';
 const baseUrl = dir + 'server/page_controllers/users/';
 const baseFollowUrl = dir + 'server/page_controllers/follow/';
 sessionStorage.setItem('user', 2);

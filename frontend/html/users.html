@@ -6,9 +6,54 @@
   <title>ASCII ART</title>
   <link href="../css/fellow.css" rel="stylesheet" />
   <script src="../js/users.js"></script>
+  <link href="../css/main.css" rel="stylesheet" />
+  <script src="../js/main.js"></script>
 </head>
 
 <body>
+  <header class="header">
+    <nav class="navigation col-md-10">
+        <ul class="navigation-group">
+            <li class="navigation-item">
+                <a class="header-item" href="editor.html">Ascii Editor</a>
+            </li>
+            <li class="navigation-item">
+                <a class="header-item" href="video_editor.html">Video Editor</a>
+            </li>
+            <li class="navigation-item">
+                <a class="header-item" href="feed.html">Feed</a>
+            </li>
+            <li class="navigation-item">
+                <a class="header-item" href="followers.html">Followers</a>
+            </li>
+            <li class="navigation-item">
+                <a class="header-item" href="feed.html">Profile</a>
+            </li>
+            <li class="navigation-item">
+                <a class="header-item" href="aboutus.html">About us</a>
+            </li>
+        </ul>
+        <ul class="settings">
+            <li>
+                <span class="greeting">Hello, Name</span>
+            </li>
+            <li>
+                <a class="header-item logout">Logout</a>
+            </li>
+        </ul>
+    </nav>
+    <button class="header-button"></button>
+    <span class="greeting-mobile">Hello, Name</span>
+    <nav class="navigation-mobile">
+        <a class="header-item" href="editor.html" onclick="toggleMenu()">Ascii Editor</a>
+        <a class="header-item" href="video_editor.html" onclick="toggleMenu()">Video Editor</a>
+        <a class="header-item" href="feed.html" onclick="toggleMenu()">Feed</a>
+        <a class="header-item" href="aboutus.html" onclick="toggleMenu()">Followers</a>
+        <a class="header-item" href="aboutus.html" onclick="toggleMenu()">Profile</a>
+        <a class="header-item" href="aboutus.html" onclick="toggleMenu()">About us</a>
+        <a class="header-item logout" onclick="toggleMenu()">Logout</a>
+    </nav>
+</header>
   <p id="error-msg" class="error-msg error-dup-username"></p>
   <label class="user-id" for="user-id">User Id</label>
   <input class="login-data login-input" name="id" id="user-id" placeholder="User Id" />
