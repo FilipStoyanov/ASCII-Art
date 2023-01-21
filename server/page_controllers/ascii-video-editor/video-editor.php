@@ -131,7 +131,7 @@ class AsciiVideoEditor
         }
     }
 
-    public function get_videos()
+    public function get_user_videos()
     {
         if ($_SERVER['REQUEST_METHOD'] == 'GET') {
             $url = $_SERVER['REQUEST_URI'];
@@ -169,7 +169,7 @@ class AsciiVideoEditor
             }
 
 
-            $query = $this->connection->getAsciiVideos(["owner_id" => $owner_id, "page" => $page, "limit" => $limit]);
+            $query = $this->connection->getUserVideos(["owner_id" => $owner_id, "page" => $page, "limit" => $limit]);
 
             if ($query["success"]) {
                 for ($i = 0; $i < count($query["data"]); $i++) {
@@ -308,6 +308,47 @@ class AsciiVideoEditor
         }
     }
 
+    public function get_videos()
+    {
+        if ($_SERVER['REQUEST_METHOD'] == 'GET') {
+            $url = $_SERVER['REQUEST_URI'];
+            $components = parse_url($url);
+            parse_str($components['query'], $pathParameters);
+
+            if (!array_key_exists('owner_id', $pathParameters) || $pathParameters['owner_id'] == null) {
+                echo json_encode(["success" => false, "error" => "Invalid user id or ascii name "]);
+            }
+
+            $owner_id = $pathParameters['owner_id'];
+
+            if (!is_int($owner_id)) {
+                $owner_id = (int) $owner_id;
+            }
+
+            if ($owner_id <= 0) {
+                echo json_encode(["success" => false, "error" => "Invalid user id."]);
+            }
+
+
+            $query = $this->connection->getAsciiVideos(["owner_id" => $owner_id]);
+
+            if ($query["success"]) {
+                for ($i = 0; $i < count($query["data"]); $i++) {
+                    $unserialised_frames = unserialize($query["data"][$i]["frames"]);
+                    $query["data"][$i]["frames"] = $unserialised_frames;
+                }
+
+                echo json_encode(["success" => true, "data" => $query['data']]);
+            } else {
+                echo json_encode([
+                    "success" => false,
+                    "errors" => $query["error"],
+                    "code" => $query["code"],
+                    "message" => "Could not load the videos."
+                ]);
+            }
+        }
+    }
 
     public function delete_video()
     {
