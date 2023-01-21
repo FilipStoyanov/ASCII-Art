@@ -96,6 +96,7 @@ table {
     overflow: hidden;
     border: 1px solid #ccc;
     background-color: #f1f1f1;
+    margin-top:60px
   }
   
   /* Style the buttons inside the tab */
@@ -271,4 +272,11 @@ table {
 .liked:hover .fa,
 .liked:hover span {
   color: #fefefe;
+}
+
+
+@media screen and (max-width: 1200px) {
+  .tab {
+    margin-top:50px
+  }
 }

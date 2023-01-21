@@ -1,12 +1,19 @@
+const dir = '../../';
+const baseUrl = dir + 'server/page_controllers/';
+const userInfoUrl = baseUrl + 'users/userInfo.php';
+const allPicturesUrl = baseUrl + 'ascii-editor/getAllPictures.php';
+const videoEditorUrl = baseUrl + 'ascii-video-editor/';
+
 window.addEventListener("load", (event) => {
-    sessionStorage.setItem('user', 2);//TODO delete
-    const queryString = window.location.search;
-    const urlParams = new URLSearchParams(queryString);
-    const userId = urlParams.get('user');
-    sessionStorage.setItem('owner', userId);
+    setupPages();
+    getUserInfo();
 });
 function openTab(event, sectionName) {
-
+    if (sessionStorage.getItem('user')===null && sessionStorage.getItem('owner')===null) {
+        errorMsg.style.display = "block";
+        errorMsg.innerHTML = 'User is not chosen or there is an error with the permissions.';
+        return;
+      }
     var errorMsg = document.getElementById("error-msg");
     errorMsg.style.display = "";
 
@@ -21,21 +28,19 @@ function openTab(event, sectionName) {
     }
     document.getElementById(sectionName).style.display = "block";
     event.currentTarget.className += " active";
-    setupPages();
+
     sessionStorage.setItem('current_section', sectionName);
+
     if (sectionName == 'user-info-img-section') {
-        getUserInfoImages();
+        getAllAsciiPictures();
         return;
     }
     getUserInfoVideos();
 }
 
-const baseUrl = 'http://localhost:80/project-web-2022/ASCII-Art/server/page_controllers/';
-const userInfoUrl = baseUrl + 'users/userInfo.php';
-const allPicturesUrl = baseUrl + 'ascii-editor/getAllPictures.php';
-function getUserInfoImages() {
-    var url = userInfoUrl + '?user=' + sessionStorage.getItem('owner');
 
+function getUserInfo() {
+    var url = userInfoUrl + '?user=' + sessionStorage.getItem('owner');
     sendRequest(url, { method: 'GET', data: '' }, handleUserInfo, handleErrorUserInfo);
 }
 
@@ -44,7 +49,6 @@ function getUserInfoImages() {
 function handleUserInfo(response) {
     var userNameEl = document.getElementById('username');
     userNameEl.innerHTML = response['user']['username'];
-    getAllAsciiPictures();
 }
 
 function handleErrorUserInfo(response) {
@@ -56,15 +60,12 @@ function handleErrorUserInfo(response) {
 var wrapper = document.getElementsByClassName("wrapper")[0];
 function sendRequest(url, options, successCallback, errorCallback) {
     var request = new XMLHttpRequest();
-    console.log(url);
+
     request.onload = function () {
-        console.log(url);
-        console.log(request.responseText);
         var response = JSON.parse(request.responseText);
         if (request.status === 200 && response['success']) {
             successCallback(response);
         } else {
-            console.log("Not authorized");
             errorCallback(response);
         }
     };
@@ -74,30 +75,10 @@ function sendRequest(url, options, successCallback, errorCallback) {
 }
 
 
-// get one ascii picture by owner_id and name
-function getAsciiText(ownerId, name) {
-    sendRequest(
-        `http://localhost:80/project-web-2022/ASCII-Art/server/page_controllers/ascii-editor/getAsciiPicture.php?user=${ownerId}&name=${name}`,
-        { method: "GET", data: '' },
-        displayAsciiPictures,
-        handleError,
-    );
-}
-
 // get all ascii pictures by owner_id
 function getAllAsciiPictures() {
     sendRequest(
         allPicturesUrl + `?owner=${sessionStorage.getItem('owner')}&&user=${sessionStorage.getItem('user')}&&page=${sessionStorage.getItem('page')}`,
-        { method: "GET", data: '' },
-        displayAsciiPictures,
-        handleError,
-    );
-}
-
-// get all friends' ascii pictures
-function getAllFriendsPictures(ownerId, page, pageSize) {
-    sendRequest(
-        `../../server/page_controllers/ascii-editor/getAllFriendsPictures.php?user=${ownerId}&page=${page}&pageSize=${pageSize}`,
         { method: "GET", data: '' },
         displayAsciiPictures,
         handleError,
@@ -171,12 +152,6 @@ const ASCII_NAME = "1";
 const PAGINATION_PAGE = 0;
 const PAGINATION_PAGESIZE = 10;
 
-document.addEventListener("DOMContentLoaded", function (event) {
-    // getAsciiText(USER_ID,ASCII_NAME); // get one ascii picture
-    // getAllAsciiPictures(sessionStorage.getItem('user')); // get all ascii pictures
-    // getAllFriendsPictures(USER_ID, PAGINATION_PAGE, PAGINATION_PAGESIZE); // get all friends ascii pictures with pagination
-});
-
 
 
 // Like button
@@ -244,7 +219,6 @@ function makeButtonNotLiked(button) {
 }
 
 function changeButtonView(button, pictureId) {
-    console.log(button.getElementsByClassName('liked')[0]);
     let isLiked = button.getElementsByClassName('liked')[0].innerHTML;
 
     if (isLiked == 'true') {
@@ -258,7 +232,6 @@ function changeButtonView(button, pictureId) {
 
 function refreshCounter(button) {
     let likesCount = parseInt(button.getElementsByClassName('counter')[0].innerHTML);
-    console.log(likesCount);
     let isLiked = button.getElementsByClassName('liked')[0].innerHTML;
     if (isLiked == 'true') {
         likesCount -= 1;
@@ -304,9 +277,14 @@ function updateButtonsMode(buttonClass, newMode) {
 }
 
 function setupPages() {
+    sessionStorage.setItem('user', 2);//TODO delete
     updateButtonsMode('prevPage', true);
     updateButtonsMode('nextPage', false);
     sessionStorage.setItem('page', 1);
+    const queryString = window.location.search;
+    const urlParams = new URLSearchParams(queryString);
+    const userId = urlParams.get('user');
+    sessionStorage.setItem('owner', userId);
 }
 
 function flush() {
@@ -329,8 +307,7 @@ function flushVideos(){
 }
 
 function getUserInfoVideos() {
-    console.log(sessionStorage.getItem('owner'));
-    sendRequest(`../../server/page_controllers/ascii-video-editor/get-videos.php?owner_id=${sessionStorage.getItem('owner')}&&page=${sessionStorage.getItem('page')}`, { method: 'GET', data: "" }, loadUserVideos, handleErrorAscii);
+    sendRequest(videoEditorUrl+`get-videos.php?owner_id=${sessionStorage.getItem('owner')}&&page=${sessionStorage.getItem('page')}`, { method: 'GET', data: "" }, loadUserVideos, handleErrorAscii);
 }
 
 function loadUserVideos(response) {
@@ -459,9 +436,7 @@ class Video {
         get_next.style.display = "block";
 
         clearTimeout(this.timer);
-        // console.log(this.timer);
         this.timer = setTimeout(this.name + '.play()', this.time);
-
     }
 
 }

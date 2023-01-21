@@ -1,8 +1,18 @@
-function openTab(event, sectionName) {
+const dir = '../../';
+const baseUrl = dir + 'server/page_controllers/';
+const feedUrl = baseUrl + 'feed/';
+const videoEditorUrl = baseUrl + 'ascii-video-editor/';
+const editorUrl = baseUrl + 'ascii-editor/';
 
+function openTab(event, sectionName) {
+    setupPages(sectionName);
     var errorMsg = document.getElementById("error-msg");
     errorMsg.style.display = "";
-
+    if (sessionStorage.getItem('user') === null) {
+        errorMsg.style.display = "block";
+        errorMsg.innerHTML = 'User is not chosen.';
+        return;
+    }
     var i, tabcontent, tablinks;
     tabcontent = document.getElementsByClassName("tabcontent");
     for (i = 0; i < tabcontent.length; i++) {
@@ -14,14 +24,12 @@ function openTab(event, sectionName) {
     }
     document.getElementById(sectionName).style.display = "block";
     event.currentTarget.className += " active";
-    setupPages();
-    sessionStorage.setItem('current_section', sectionName);
 
     if (sectionName == 'feed-img-section') {
         getAllFriendsPictures();
         return;
     }
-    getAllFriendsVideos();//TODO
+    getAllFriendsVideos();
 }
 
 
@@ -29,12 +37,10 @@ function sendRequest(url, options, successCallback, errorCallback) {
     var request = new XMLHttpRequest();
 
     request.onload = function () {
-        console.log(request.responseText);
         var response = JSON.parse(request.responseText);
         if (request.status === 200 && response['success']) {
             successCallback(response);
         } else {
-            console.log("Not authorized");
             errorCallback(response);
         }
     };
@@ -46,9 +52,8 @@ function sendRequest(url, options, successCallback, errorCallback) {
 
 // get all friends' ascii pictures
 function getAllFriendsPictures() {
-    console.log(sessionStorage.getItem('page'));
     sendRequest(
-        `../../server/page_controllers/ascii-editor/getAllFriendsPictures.php?user=${sessionStorage.getItem('user')}&&page=${sessionStorage.getItem('page')}`,
+        editorUrl + `/getAllFriendsPictures.php?user=${sessionStorage.getItem('user')}&&page=${sessionStorage.getItem('page')}`,
         { method: "GET", data: '' },
         displayAsciiPictures,
         handleError,
@@ -114,7 +119,6 @@ function createAscciWrapperEl(asciiPicture) {
 
 function handleError(response) {
     var modalContent = document.getElementsByClassName("modal-body")[0]
-    console.log(response);
     if (response["error"]) {
         showModalForSeconds();
         modalContent.innerHTML = "An error has occurred. Try again."
@@ -157,7 +161,7 @@ function addLikeButton(el, pictureId, isLiked, likesCount) {
 
 function addLike(pictureId) {
     var data = { 'user': sessionStorage.getItem('user'), 'picture': pictureId };
-    sendRequest(`http://localhost:80/project-web-2022/ASCII-Art/server/page_controllers/feed/likes.php`,
+    sendRequest(feedUrl + `likes.php`,
         { method: "POST", data: JSON.stringify(data) },
         () => { },
         handleError,
@@ -166,7 +170,7 @@ function addLike(pictureId) {
 
 function deleteLike(pictureId) {
     var data = { 'user': sessionStorage.getItem('user'), 'picture': pictureId };
-    sendRequest(`http://localhost:80/project-web-2022/ASCII-Art/server/page_controllers/feed/likes.php`,
+    sendRequest(feedUrl + `likes.php`,
         { method: "DELETE", data: JSON.stringify(data) },
         () => { },
         handleError,
@@ -188,7 +192,6 @@ function makeButtonNotLiked(button) {
 }
 
 function changeButtonView(button, pictureId) {
-    console.log(button.getElementsByClassName('liked')[0]);
     let isLiked = button.getElementsByClassName('liked')[0].innerHTML;
 
     if (isLiked == 'true') {
@@ -202,7 +205,6 @@ function changeButtonView(button, pictureId) {
 
 function refreshCounter(button) {
     let likesCount = parseInt(button.getElementsByClassName('counter')[0].innerHTML);
-    console.log(likesCount);
     let isLiked = button.getElementsByClassName('liked')[0].innerHTML;
     if (isLiked == 'true') {
         likesCount -= 1;
@@ -250,11 +252,12 @@ function updateButtonsMode(buttonClass, newMode) {
     Array.from(btns).forEach(btn => { btn.disabled = newMode; });
 }
 
-function setupPages() {
+function setupPages(sectionName) {
     sessionStorage.setItem('user', 3);// TO DO delete
     updateButtonsMode('prevPage', true);
     updateButtonsMode('nextPage', false);
     sessionStorage.setItem('page', 1);
+    sessionStorage.setItem('current_section', sectionName);
 }
 
 function flush() {
@@ -291,12 +294,11 @@ function showModalForSeconds(reload = false) {
 }
 
 function getAllFriendsVideos() {
-    sendRequest(`../../server/page_controllers/ascii-video-editor/get-videos-feed.php?user=${sessionStorage.getItem('user')}&&page=${sessionStorage.getItem('page')}`, { method: 'GET', data: "" }, loadUserVideos, handleErrorAscii);
+    sendRequest(videoEditorUrl + `get-videos-feed.php?user=${sessionStorage.getItem('user')}&&page=${sessionStorage.getItem('page')}`, { method: 'GET', data: "" }, loadUserVideos, handleErrorAscii);
 }
 
 function loadUserVideos(response) {
     let videos = response["data"];
-    console.log('videos ' + videos.length);
     if (videos.length < 10) {
         updateButtonsMode('nextPage', true);
     }
@@ -317,7 +319,7 @@ function loadUserVideos(response) {
 
             let new_video = new Video(new_title, new_time, new_color, new_background, new_frames, new_id, new_name);
 
-            new_video.addLabels(owner_id,owner_name);
+            new_video.addLabels(owner_id, owner_name);
             new_video.makeLoadedVideo();
             loaded_videos.push(new_video);
             loaded_videos[i].play();
@@ -374,7 +376,7 @@ class Video {
         this.name = name;
     }
 
-    addLabels(owner_id,owner_name) {
+    addLabels(owner_id, owner_name) {
         let label = document.createElement("label");
         let title = document.createTextNode(this.title);
         let owner = createLink(owner_id, owner_name);
@@ -425,7 +427,6 @@ class Video {
         get_next.style.display = "block";
 
         clearTimeout(this.timer);
-        // console.log(this.timer);
         this.timer = setTimeout(this.name + '.play()', this.time);
 
     }

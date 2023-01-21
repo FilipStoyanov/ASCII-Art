@@ -1,14 +1,13 @@
-const dir = 'http://localhost:80/project-web-2022/ASCII-Art/';
+const dir = '../../';
 const baseUrl = dir + 'server/page_controllers/follow/';
-// sessionStorage.setItem('userId',2);
+sessionStorage.setItem('userId', 2);
 
 function openTab(event, sectionName) {
-  updateButtonsMode('prevPage',true);
-  updateButtonsMode('nextPage',false);
+  setupPages(sectionName);
   var errorMsg = document.getElementById("error-msg");
   errorMsg.style.display = "";
-  var id = document.getElementById("user-id");
-  if (id.value == '') {
+  var userId = sessionStorage.getItem('user');
+  if (userId === null) {
     errorMsg.style.display = "block";
     errorMsg.innerHTML = 'User is not chosen.';
     return;
@@ -24,8 +23,15 @@ function openTab(event, sectionName) {
   }
   document.getElementById(sectionName).style.display = "block";
   event.currentTarget.className += " active";
-  sessionStorage.setItem('page', 1);
   listFellows(sectionName == 'followers-section');
+}
+
+function setupPages(sectionName) {
+  sessionStorage.setItem('user', 3);// TO DO delete
+  updateButtonsMode('prevPage', true);
+  updateButtonsMode('nextPage', false);
+  sessionStorage.setItem('page', 1);
+  sessionStorage.setItem('section', sectionName);
 }
 
 function handleListFellows(response, type, userId) {
@@ -38,7 +44,7 @@ function handleListFellows(response, type, userId) {
   var followers = response[type];
   console.log(followers);
   if (followers.length < 20) {
-    updateButtonsMode('nextPage',true);
+    updateButtonsMode('nextPage', true);
   }
 
   if (followers.length == 0) {
@@ -82,7 +88,7 @@ function handleErrorFollowers(response) {
 }
 
 function listFellows(searchFollowers) {
-  var id = document.getElementById("user-id");
+  var userId = sessionStorage.getItem('user');
   var url;
   var type = '';
   if (searchFollowers) {
@@ -92,10 +98,8 @@ function listFellows(searchFollowers) {
     url = baseUrl + 'listFollowings.php';
     type = 'followings';
   }
-  console.log('page' + sessionStorage.getItem("page"));
-  url += '?user=' + id.value + '&&page=' + sessionStorage.getItem("page");
-  console.log(url);
-  sendRequest(url, { method: 'GET', data: '' }, (response) => (handleListFellows(response, type, id.value)), handleErrorFollowers);
+  url += '?user=' + userId + '&&page=' + sessionStorage.getItem("page");
+  sendRequest(url, { method: 'GET', data: '' }, (response) => (handleListFellows(response, type, userId)), handleErrorFollowers);
 }
 
 
@@ -103,13 +107,11 @@ function sendRequest(url, options, successCallback, errorCallback) {
   var request = new XMLHttpRequest();
 
   request.onload = function () {
-    console.log('raw body: ' + request.responseText);
     var response = JSON.parse(request.responseText);
-    console.log(response);
+
     if (request.status === 200 && response['success']) {
       successCallback(response);
     } else {
-      console.log('Not authorized')
       errorCallback(response);
     }
   }
@@ -168,22 +170,21 @@ function createLink(userId) {
 function page(addition, refreshFollowers) {
   var currentPage = parseInt(sessionStorage.getItem('page'));
   currentPage += parseInt(addition);
-  console.log(currentPage);
   if (addition == -1) {
-    updateButtonsMode('nextPage',false);
+    updateButtonsMode('nextPage', false);
   }
   if (currentPage <= 1) {
-    updateButtonsMode('prevPage',true);
+    updateButtonsMode('prevPage', true);
   }
   if (currentPage < 1) { return; }
   if (currentPage > 1) {
-    updateButtonsMode('prevPage',false);
+    updateButtonsMode('prevPage', false);
   }
   sessionStorage.setItem('page', currentPage);
   listFellows(refreshFollowers);
 }
 
-function updateButtonsMode(buttonClass,newMode){
+function updateButtonsMode(buttonClass, newMode) {
   var btns = document.getElementsByClassName(buttonClass);
   Array.from(btns).forEach(btn => { btn.disabled = newMode; });
 }
