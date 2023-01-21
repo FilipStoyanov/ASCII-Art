@@ -321,8 +321,20 @@ class DataBaseConnection
         return $pictures;
     }
 
-    //$input -> ["user" => value, "owner" => value]
+    //$input -> ["user" => value]
     public function getAllAsciiPictures($input)
+    {
+        try {
+            $this->selectAllPictures->execute($input);
+            $asciiPicture = $this->selectAllPictures->fetchAll();
+            return ["success" => true, "data" => $asciiPicture];
+        } catch (PDOException $e) {
+            return ["success" => false, "error" => "Connection failed: " . $e->getMessage(), "code" => $e->errorInfo[1]];
+        }
+    }
+
+    //$input -> ["user" => value, "owner" => value]
+    public function getUserPictures($input)
     {
 
         $page = $input['page'];
@@ -423,7 +435,7 @@ class DataBaseConnection
     }
 
     //$input -> ["owner_id" => value, "page"=>value, "limit"=>value]
-    public function getAsciiVideos($input)
+    public function getUserVideos($input)
     {
         $page = $input['page'];
         $limit = $input['limit'];
@@ -448,6 +460,17 @@ class DataBaseConnection
         }
     }
 
+    public function getAsciiVideos($input)
+    {
+        try {
+            $this->selectVideos->execute($input);
+            $videos = $this->selectVideos->fetchAll();
+
+            return ["success" => true, "data" => $videos];
+        } catch (Exception $e) {
+            return ["success" => false, "error" => "Connection failed: " . $e->getMessage(), "code" => $e->getCode()];
+        }
+    }
 
     public function getFriendsVideos($input)
     {

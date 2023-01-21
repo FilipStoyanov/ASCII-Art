@@ -153,6 +153,41 @@ class AsciiEditor
             if (
                 !array_key_exists('user', $pathParameters) || $pathParameters['user'] == null
             ) {
+                echo json_encode(["success" => false, "error" => "Invalid user id"]);
+                return;
+            }
+            $user = $pathParameters['user'];
+            if (!is_int($user)) {
+                $user = (int) $user;
+            }
+            if ($user <= 0) {
+                echo json_encode(["success" => false, "error" => "Invalid user id."]);
+                return;
+            }
+            try {
+                $picture = $this->connection->getAllAsciiPictures(["owner_id"  => $user]);
+                if ($picture["success"]) {
+                    echo json_encode(["success" => true, $picture['data']]);
+                    return;
+                }
+            } catch (Exception $e) {
+                $response['success'] = false;
+                $response['error_message'] = $e->getMessage();
+                echo json_encode($response);
+                return;
+            }
+        }
+    }
+
+    public function getUserPictures()
+    {
+        if ($_SERVER['REQUEST_METHOD'] == 'GET') {
+            $url = $_SERVER['REQUEST_URI'];
+            $components = parse_url($url);
+            parse_str($components['query'], $pathParameters);
+            if (
+                !array_key_exists('user', $pathParameters) || $pathParameters['user'] == null
+            ) {
                 return json_encode(["success" => false, "error" => "User is not chosen."]);
             }
             if (
@@ -183,7 +218,7 @@ class AsciiEditor
                 return json_encode(["success" => false, "error" => "Invalid user id."]);
             }
             try {
-                $picture = $this->connection->getAllAsciiPictures(["owner" => $owner, "user" => $user, 'page' => $page, 'limit' => $limit]);
+                $picture = $this->connection->getUserPictures(["owner" => $owner, "user" => $user, 'page' => $page, 'limit' => $limit]);
                 return json_encode(["success" => true, 'pictures' => $picture]); 
             } catch (Exception $e) {
                 $response['success'] = false;

@@ -95,6 +95,7 @@ function sendRequest(url, options, successCallback, errorCallback) {
 
 
     request.onload = function () {
+        console.log(request.responseText);
         var response = JSON.parse(request.responseText);
 
         if (request.status === 200) {
