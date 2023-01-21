@@ -17,13 +17,13 @@ class Fellow
             $data = (array) json_decode(file_get_contents('php://input'), JSON_UNESCAPED_UNICODE);
             if (!array_key_exists('follower', $data) || $data['follower'] == null) {
                 $this->response['success'] = false;
-                $this->response['error_message'] = 'Follower is not chosen.';
+                $this->response['error'] = 'Follower is not chosen.';
                 return json_encode($this->response);
             }
      
             if (!array_key_exists('user', $data) || $data['user'] == null) {
                 $this->response['success'] = false;
-                $this->response['error_message'] = 'User is not chosen.';
+                $this->response['error'] = 'User is not chosen.';
                 return json_encode($this->response);
             }
 
@@ -37,7 +37,7 @@ class Fellow
             }
             if ($user <= 0 || $follower <= 0) {
                 $this->response['success'] = false;
-                $this->response['error_message'] = 'Invalid ids.';
+                $this->response['error'] = 'Invalid ids.';
                 return json_encode($this->response);
             }
             try {
@@ -46,12 +46,12 @@ class Fellow
                 return json_encode($this->response);
             } catch (Exception $e) {
                 $this->response['success'] = false;
-                $this->response['error_message'] = $e->getMessage();
+                $this->response['error'] = $e->getMessage();
                 return json_encode($this->response);
             }
         }
         $this->response['success'] = false;
-        $this->response['error_message'] = 'WRONG HTTP Request method.';
+        $this->response['error'] = 'WRONG HTTP Request method.';
         return json_encode($this->response);
     }
 
@@ -61,7 +61,7 @@ class Fellow
 
             if (!array_key_exists('user', $pathParameters) || $pathParameters['user'] == null) {
                 $this->response['success'] = false;
-                $this->response['error_message'] = 'User is not chosen.';
+                $this->response['error'] = 'User is not chosen.';
                 return json_encode($this->response);
             }
 
@@ -79,7 +79,7 @@ class Fellow
 
             if ($page <= 0) {
                 $this->response['success'] = false;
-                $this->response['error_message'] = 'Invalid page.';
+                $this->response['error'] = 'Invalid page.';
                 return json_encode($this->response);
             }
             
@@ -89,7 +89,7 @@ class Fellow
             }
             if ($user <= 0) {
                 $this->response['success'] = false;
-                $this->response['error_message'] = 'Invalid user id.';
+                $this->response['error'] = 'Invalid user id.';
                 return json_encode($this->response);
             }
             
@@ -97,7 +97,7 @@ class Fellow
                 $fellows = $search($user, $page, $limit);
             } catch (Exception $e) {
                 $this->response['success'] = false;
-                $this->response['error_message'] = $e->getMessage();
+                $this->response['error'] = $e->getMessage();
                 return json_encode($this->response);
             }
             
@@ -112,7 +112,7 @@ class Fellow
             return json_encode($this->response);
         }
         $this->response['success'] = false;
-        $this->response['error_message'] = 'WRONG HTTP Request method.';
+        $this->response['error'] = 'WRONG HTTP Request method.';
         return json_encode($this->response);
     }
 

@@ -27,12 +27,12 @@ class Likes
             $data = (array) json_decode(file_get_contents('php://input'), JSON_UNESCAPED_UNICODE);
             if (!array_key_exists('picture', $data) || $data['picture'] == null) {
                 $this->response['success'] = false;
-                $this->response['error_message'] = 'Picture is not chosen.';
+                $this->response['error'] = 'Picture is not chosen.';
                 return json_encode($this->response);
             }
             if (!array_key_exists('user', $data) || $data['user'] == null) {
                 $this->response['success'] = false;
-                $this->response['error_message'] = 'User is not chosen.';
+                $this->response['error'] = 'User is not chosen.';
                 return json_encode($this->response);
             }
 
@@ -46,7 +46,7 @@ class Likes
             }
             if ($user <= 0 || $picture <= 0) {
                 $this->response['success'] = false;
-                $this->response['error_message'] = 'Invalid ids.';
+                $this->response['error'] = 'Invalid ids.';
                 return json_encode($this->response);
             }
             try {
@@ -55,12 +55,12 @@ class Likes
                 return json_encode($this->response);
             } catch (Exception $e) {
                 $this->response['success'] = false;
-                $this->response['error_message'] = $e->getMessage();
+                $this->response['error'] = $e->getMessage();
                 return json_encode($this->response);
             }
         }
         $this->response['success'] = false;
-        $this->response['error_message'] = 'WRONG HTTP Request method.';
+        $this->response['error'] = 'WRONG HTTP Request method.';
         return json_encode($this->response);
     }
 
@@ -80,7 +80,7 @@ class Likes
         parse_str($components['query'], $pathParameters);
         if (!array_key_exists('picture', $pathParameters) || $pathParameters['picture'] == null) {
             $this->response['success'] = false;
-            $this->response['error_message'] = 'Picture is not chosen.';
+            $this->response['error'] = 'Picture is not chosen.';
             return json_encode($this->response);
         }
         $picture = $pathParameters['picture'];
@@ -95,7 +95,7 @@ class Likes
             return json_encode($this->response);
         } catch (Exception $e) {
             $this->response['success'] = false;
-            $this->response['error_message'] = $e->getMessage();
+            $this->response['error'] = $e->getMessage();
             return json_encode($this->response);
         }
     }
@@ -112,7 +112,7 @@ class Likes
             return $this->getLikesCount();
         }
         $this->response['success'] = false;
-        $this->response['error_message'] = 'WRONG HTTP Request method.';
+        $this->response['error'] = 'WRONG HTTP Request method.';
         return json_encode($this->response);
     }
 }

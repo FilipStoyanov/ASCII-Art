@@ -21,7 +21,7 @@ class UserInfo
 
             if (!array_key_exists('user', $pathParameters) || $pathParameters['user'] == null) {
                 $this->response['status'] = 'fail';
-                $this->response['error_message'] = 'User is not chosen.';
+                $this->response['error'] = 'User is not chosen.';
                 return json_encode($this->response);
             }
 
@@ -31,20 +31,20 @@ class UserInfo
             }
             if ($user <= 0) {
                 $this->response['success'] = false;
-                $this->response['error_message'] = 'Invalid user id.';
+                $this->response['error'] = 'Invalid user id.';
                 return json_encode($this->response);
             }
             try {
                 $user = $this->connection->getUserById(['user'=>$user]);
             } catch (Exception $e) {
                 $response['success'] = false;
-                $response['error_message'] = $e->getMessage();
+                $response['error'] = $e->getMessage();
                 return json_encode($response);
             }
 
             if(!$user){
                 $response['success'] = false;
-                $response['error_message'] = 'User with id '.$user.' was not found.';
+                $response['error'] = 'User with id '.$user.' was not found.';
                 return json_encode($response);
             }
 
@@ -53,7 +53,7 @@ class UserInfo
             return json_encode($response);
         }
         $this->response['status'] = 'fail';
-        $this->response['error_message'] = 'WRONG HTTP Request method.';
+        $this->response['error'] = 'WRONG HTTP Request method.';
         return json_encode($this->response);
     }
 

@@ -137,9 +137,25 @@ class AsciiVideoEditor
             $url = $_SERVER['REQUEST_URI'];
             $components = parse_url($url);
             parse_str($components['query'], $pathParameters);
+    
+            if (!array_key_exists('page', $pathParameters) || $pathParameters['page'] == null) {
+                $page = null;
+                $limit = null;
+            } else {
+                $page = $pathParameters['page'];
+                $limit = 10;
+            }
+
+            if (!is_int($page)) {
+                $page = (int) $page;
+            }
+
+            if ($page <= 0) {
+                return json_encode(["success" => false, "error" => "Invalid page."]);
+            }
 
             if (!array_key_exists('owner_id', $pathParameters) || $pathParameters['owner_id'] == null) {
-                echo json_encode(["success" => false, "error" => "Invalid user id or ascii name "]);
+                return json_encode(["success" => false, "error" => "Invalid user id or ascii name "]);
             }
 
             $owner_id = $pathParameters['owner_id'];
@@ -149,11 +165,11 @@ class AsciiVideoEditor
             }
 
             if ($owner_id <= 0) {
-                echo json_encode(["success" => false, "error" => "Invalid user id."]);
+                return json_encode(["success" => false, "error" => "Invalid user id."]);
             }
 
 
-            $query = $this->connection->getAsciiVideos(["owner_id" => $owner_id]);
+            $query = $this->connection->getAsciiVideos(["owner_id" => $owner_id, "page" => $page, "limit" => $limit]);
 
             if ($query["success"]) {
                 for ($i = 0; $i < count($query["data"]); $i++) {
@@ -161,15 +177,15 @@ class AsciiVideoEditor
                     $query["data"][$i]["frames"] = $unserialised_frames;
                 }
 
-                echo json_encode(["success" => true, "data" => $query['data']]);
-            } else {
-                echo json_encode([
-                    "success" => false,
-                    "errors" => $query["error"],
-                    "code" => $query["code"],
-                    "message" => "Could not load the videos."
-                ]);
+                return json_encode(["success" => true, "data" => $query['data']]);
             }
+            return json_encode([
+                "success" => false,
+                "errors" => $query["error"],
+                "code" => $query["code"],
+                "message" => "Could not load the videos."
+            ]);
+
 
             // $response['success'] = false;
             // $response['error_message'] = $e->getMessage();
@@ -179,6 +195,65 @@ class AsciiVideoEditor
         }
     }
 
+    public function get_videos_feed()
+    {
+        if ($_SERVER['REQUEST_METHOD'] == 'GET') {
+            $url = $_SERVER['REQUEST_URI'];
+            $components = parse_url($url);
+            parse_str($components['query'], $pathParameters);
+
+            if (!array_key_exists('user', $pathParameters) || $pathParameters['user'] == null) {
+                $this->response['success'] = false;
+                $this->response['error'] = 'User is not chosen.';
+                return json_encode($this->response);
+            }
+
+            if (!array_key_exists('page', $pathParameters) || $pathParameters['page'] == null) {
+                $page = null;
+                $limit = null;
+            } else {
+                $page = $pathParameters['page'];
+                $limit = 10;
+            }
+
+            if (!is_int($page)) {
+                $page = (int) $page;
+            }
+
+            if ($page <= 0) {
+                $this->response['success'] = false;
+                $this->response['error'] = 'Invalid page.';
+                return json_encode($this->response);
+            }
+
+            $user = $pathParameters['user'];
+            if (!is_int($user)) {
+                $user = (int) $user;
+            }
+            if ($user <= 0) {
+                $this->response['success'] = false;
+                $this->response['error'] = 'Invalid user id.';
+                return json_encode($this->response);
+            }
+
+            try {
+                $videos = $this->connection->getFriendsVideos(['user' => $user, 'page' => $page, 'limit' => $limit]);
+                for ($i = 0; $i < count( $videos); $i++) {
+                    $unserialised_frames = unserialize( $videos[$i]['data']["frames"]);
+                    $videos[$i]['data']["frames"] = $unserialised_frames;
+                }
+
+                return json_encode(["success" => true, 'data' => $videos]);
+            } catch (Exception $e) {
+                $this->response['success'] = false;
+                $this->response['error'] = $e->getMessage();
+                return json_encode($this->response);
+            }
+        }
+        $this->response['success'] = false;
+        $this->response['error'] = 'WRONG HTTP Request method.';
+        return json_encode($this->response);
+    }
 
     public function get_video()
     {
@@ -273,6 +348,7 @@ class AsciiVideoEditor
 
     }
 }
+
 
 // public function getAsciiPicturesForUser()
 // {

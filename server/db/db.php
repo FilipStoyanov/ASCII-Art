@@ -61,6 +61,7 @@ class DataBaseConnection
             :frames)';
         $this->insertVideo = $this->connection->prepare($sql);
 
+
         $sql = 'SELECT id,title, time_delay, color, background, frames FROM videos WHERE owner_id = :owner_id';
         $this->selectVideos = $this->connection->prepare($sql);
 
@@ -421,17 +422,60 @@ class DataBaseConnection
         }
     }
 
-    //$input -> ["owner_id" => value]
+    //$input -> ["owner_id" => value, "page"=>value, "limit"=>value]
     public function getAsciiVideos($input)
     {
+        $page = $input['page'];
+        $limit = $input['limit'];
+        if ($page != null && $page >= 1) {
+            $start = (($page - 1) * $limit);
+        } else {
+            $page = null;
+        }
+
+        $query = 'SELECT id,title, time_delay, color, background, frames FROM videos WHERE owner_id = ' . $input['owner_id'];
+        if ($page != null) {
+            $query = $query . ' limit ' . $start . ', ' . $limit . '';
+        }
         try {
-            $this->selectVideos->execute($input);
-            $videos = $this->selectVideos->fetchAll();
+            $stmt = $this->connection->prepare($query);
+            $stmt->execute([]);
+            $videos = $stmt->fetchAll();
 
             return ["success" => true, "data" => $videos];
         } catch (Exception $e) {
             return ["success" => false, "error" => "Connection failed: " . $e->getMessage(), "code" => $e->getCode()];
         }
+    }
+
+
+    public function getFriendsVideos($input)
+    {
+        $page = $input['page'];
+        $limit = $input['limit'];
+        if ($page != null && $page >= 1) {
+            $start = (($page - 1) * $limit);
+        } else {
+            $page = null;
+        }
+
+        $query = 'SELECT v.id,v.title, v.time_delay, v.color, v.background, v.frames,v.updated_at, v.owner_id FROM videos v WHERE v.owner_id in (select f.user from follower f where follower = ' . $input['user'] . ') order by v.updated_at desc ';
+        if ($page != null) {
+            $query = $query . ' limit ' . $start . ', ' . $limit . '';
+        }
+        $stmt = $this->connection->prepare($query);
+        $stmt->execute([]);
+        $videos = $stmt->fetchAll();
+        $videos = $this->setUserToVideo($videos);
+        return $videos;
+    }
+
+    function setUserToVideo($videos)
+    {
+        for ($i = 0; $i < count($videos); $i++) {
+            $videos[$i] = ['data' => $videos[$i], 'owner' => $this->getUserById(['user' => (int) $videos[$i]['owner_id']])];
+        }
+        return $videos;
     }
 
     //$input -> ["owner_id" => value,"id" => video]

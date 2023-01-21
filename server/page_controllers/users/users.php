@@ -21,7 +21,7 @@ class Users
 
             if (!array_key_exists('user', $pathParameters) || $pathParameters['user'] == null) {
                 $this->response['status'] = 'fail';
-                $this->response['error_message'] = 'User is not chosen.';
+                $this->response['error'] = 'User is not chosen.';
                 return json_encode($this->response);
             }
 
@@ -39,7 +39,7 @@ class Users
 
             if ($page <= 0) {
                 $this->response['success'] = false;
-                $this->response['error_message'] = 'Invalid page.';
+                $this->response['error'] = 'Invalid page.';
                 return json_encode($this->response);
             }
 
@@ -52,13 +52,13 @@ class Users
                 $users = $this->connection->getAllFilteredUsers($userId,$page,$limit);
             } catch (Exception $e) {
                 $response['success'] = false;
-                $response['error_message'] = $e->getMessage();
+                $response['error'] = $e->getMessage();
                 return json_encode($response);
             }
 
             if (!$users) {
                 $response['success'] = false;
-                $response['error_message'] = 'User with id ' . $userId . ' was not found.';
+                $response['error'] = 'User with id ' . $userId . ' was not found.';
                 return json_encode($response);
             }
 
@@ -74,7 +74,7 @@ class Users
             return json_encode($response);
         }
         $this->response['success'] = false;
-        $this->response['error_message'] = 'WRONG HTTP Request method.';
+        $this->response['error'] = 'WRONG HTTP Request method.';
         return json_encode($this->response);
     }
 
