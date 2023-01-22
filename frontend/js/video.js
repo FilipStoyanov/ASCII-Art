@@ -3,22 +3,22 @@ var new_frame_button = document.getElementById('new-frame');
 var remove_frame_button = document.getElementById('remove-frame');
 var make_video = document.getElementById('make-video');
 var stop_video;
-var number_of_frames = 0;
 var times = document.getElementsByClassName("times");
 var buttonToggleTime = document.getElementsByClassName("time-btn")[0];
 const TEXT_ROWS = 41;
 const TEXT_COLLS = 10;
 var loaded_videos = [];
+var number_of_frames = 0;   //MAYBE ADD THIS TO SESSION STORAGE?!!?
 
 var modal = document.getElementById("modal");
-// modal.style.display = "none";
 var modalContent = document.getElementsByClassName("modal-body")[0]
 var modalCloseBtn = document.getElementsByClassName("close")[0];
 
+
+//modal things needs to be fixed
 function modalFunctionality() {
 
     modalCloseBtn.onclick = function () {
-        console.log("AA");
         modal.style.display = "none";
         document.getElementsByClassName("sections")[0].classList.remove("show-modal");
         // window.location.reload();
@@ -69,26 +69,7 @@ class Options {
     }
 }
 
-var Options_vid = new Options("null", 2000, "#ffffff", "#000000");
-
-// function submitOptionsForm() {
-
-//     if (options_form) {
-//         options_form.addEventListener("submit", function (event) {
-//             let formTitle = document.getElementById("video-title").value;
-//             let formTime = document.getElementById("time").value;
-//             let formTransition = document.getElementById("transition").value;
-//             let formColor = document.getElementById("color").value;
-//             let formBackground = document.getElementById("background").value;
-
-//             Options_vid = new Options(formTitle, formTime, formTransition, formColor, formBackground);
-//             Options_vid.update_frames();
-
-//             console.log(Options_vid);
-//             event.preventDefault();
-//         });
-//     }
-// }
+var Options_vid = new Options("null", 2000, "#000000", "#ffffff");
 
 function sendRequest(url, options, successCallback, errorCallback) {
     var request = new XMLHttpRequest();
@@ -152,7 +133,9 @@ class Video {
         let label = document.createElement("label");
         let title = document.createTextNode(this.title);
 
-        label.setAttribute("class", "loaded-video-title");
+        label.setAttribute("class", "frame-label");
+        label.classList.add("loaded-video-title");
+
 
         label.appendChild(title);
 
@@ -162,16 +145,14 @@ class Video {
     }
 
     makeLoadedVideo() {
-        for (let i = 0; i < this.frames_count; i++) {
             var new_frame = document.createElement("textarea");
             new_frame.setAttribute("class", "loaded-video-frames");
-            new_frame.classList.add("class", `video-frame-${this.id}`);
-            new_frame.setAttribute("id", `loaded-frame-video-${this.id}-${i}`);
+            new_frame.setAttribute("id", `loaded-frame-video-${this.id}`);
             new_frame.setAttribute("rows", TEXT_ROWS);
             new_frame.setAttribute("readonly", "");
 
 
-            let text_value = this.frames[i];
+            let text_value = this.frames[0];
             new_frame.appendChild(document.createTextNode(text_value));
 
             new_frame.style.color = this.color;
@@ -180,24 +161,18 @@ class Video {
             let section = document.getElementsByClassName("sections")[3];
 
             section.appendChild(new_frame);
-        }
 
     }
 
 
     play() {
-        let get_last = document.getElementById(`loaded-frame-video-${this.id}-${this.current}`);
-        get_last.style.display = "none";
-
         if (this.current++ == this.frames.length - 1) {
             this.current = 0;
         }
-
-        let get_next = document.getElementById(`loaded-frame-video-${this.id}-${this.current}`);
-        get_next.style.display = "block";
+        let video_element = document.getElementById(`loaded-frame-video-${this.id}`);
+        video_element.innerHTML = this.frames[this.current];
 
         clearTimeout(this.timer);
-        // console.log(this.timer);
         this.timer = setTimeout(this.name + '.play()', this.time);
 
     }
@@ -222,9 +197,9 @@ class Video {
         var title = this.title;
         var owner_id = this.owner_id;
         delete_video.addEventListener("click", function () {
-            console.log(title);
 
             var data = {};
+            //TO DO GET ONWER ID FROM THE SESSION
             data["owner_id"] = 1;
             data["title"] = title;
 
@@ -257,9 +232,9 @@ class Video {
         var title = this.title;
         var id = this.id;
         edit_video.addEventListener("click", function () {
-            console.log(title);
 
             var data = {};
+            //TO DO GET THE ONWER ID FROM THE SESSION
             data["owner_id"] = 1;
             data["title"] = title;
 
@@ -284,13 +259,8 @@ function deletedSuccessfully(response) {
         document.getElementById("load-videos").click();
     } else {
         if (response["errors"]) {
-            // if (response["code"] == 23000) {
-            //     showModalForSeconds();
-            //     modalContent.innerHTML = "Вие имате запазена видео с това име. Моля, изберете друго име и опитайте отново."
-            // } else {
             showModalForSeconds();
-            modalContent.innerHTML = "Възникна грешка! Моля опитайте отново."
-            // }
+            modalContent.innerHTML = "Възникна грешка! Моля опитайте отново.";
         } else {
             document.getElementsByClassName("editor")[0].classList.remove("show-modal");
         }
@@ -324,9 +294,7 @@ function deleteLoadedVideos() {
 }
 
 function loadUserVideos(response) {
-    // console.log(response);
     deleteLoadedVideos();
-    console.log("I loaded");
     if (response["data"]) {
         for (let i = 0; i < response["data"].length; i++) {
             let new_id = response["data"][i]["id"];
@@ -345,15 +313,17 @@ function loadUserVideos(response) {
             new_video.addEditButton();
             loaded_videos.push(new_video);
             loaded_videos[i].play();
-            console.log(`added video ${i} ${new_title}`);
         }
-
+    } else {
+        showModalForSeconds();
+        modalContent.innerHTML = "Възникна грешка! Моля опитайте отново."
     }
 }
 
 
 
 function handleErrorAscii(response) {
+    console.log(response);
     if (response["errors"]) {
         showModalForSeconds();
         modalContent.innerHTML = "Възникна грешка! Моля опитайте отново."
@@ -362,8 +332,9 @@ function handleErrorAscii(response) {
     }
 }
 
+//save the currently displayed video
 function saveVideo() {
-
+    //TO DO THIS NEEDS THE OWNER ID GET IT OR SEND IT SOMEHOW
     document.getElementsByClassName("ascii-form")[0].addEventListener("submit", function (event) {
         if (Options_vid.frames.length >= 2) {
             sendRequest('../../server/page_controllers/ascii-video-editor/save-video.php', { method: 'POST', data: `data=${JSON.stringify(Options_vid)}` }, addedSuccessfully, handleErrorAscii);
@@ -376,6 +347,8 @@ function loadVideos() {
 
     document.getElementById("load-videos").addEventListener("click", function (event) {
         var data = {};
+
+        //TO DO GET THE OWNER ID FROM THE SESSION
         data["owner_id"] = 1;
 
         sendRequest(`../../server/page_controllers/ascii-video-editor/get-videos.php?owner_id=${data["owner_id"]}`, { method: 'GET', data: "" }, loadUserVideos, handleErrorAscii);
@@ -383,6 +356,8 @@ function loadVideos() {
     });
 }
 
+
+//change the name of the ascii video
 function changeAsciiName() {
     document
         .getElementById("ascii-name")
@@ -391,17 +366,8 @@ function changeAsciiName() {
         });
 }
 
-function autoPasteText(textarea) {
-    textarea.addEventListener('click', async () => {
-        try {
-            let text = await navigator.clipboard.readText();
-            textarea.value = text;
-        } catch (error) {
-            console.log("The clipboard was empty");
-        }
-    })
-}
 
+//adds a new frame
 function addNewFrame() {
 
     new_frame_button.addEventListener("click", function () {
@@ -432,6 +398,7 @@ function addNewFrame() {
     })
 }
 
+//removes the last frame
 function removeFrame() {
     remove_frame_button.addEventListener("click", function () {
         if (number_of_frames >= 1) {
@@ -445,6 +412,7 @@ function removeFrame() {
     })
 }
 
+//makes the 'video'
 function makeVideo() {
     make_video.addEventListener("click", function () {
         if (number_of_frames >= 1) {
@@ -465,27 +433,27 @@ function makeVideo() {
                 Options_vid.frames.pop();
             }
 
+
+            var new_frame = document.createElement("textarea");
+            new_frame.setAttribute("class", "video-frame");
+            new_frame.setAttribute("id", `frame-video`);
+            new_frame.setAttribute("class", "video-frames");
+            new_frame.setAttribute("rows", TEXT_ROWS);
+            new_frame.setAttribute("readonly", "");
+            new_frame.style.color = Options_vid.color;
+            new_frame.style.background = Options_vid.background;
+
+
             for (let i = 0; i < number_of_frames; i++) {
-
-                var new_frame = document.createElement("textarea");
-                new_frame.setAttribute("class", "video-frame");
-                new_frame.setAttribute("id", `frame-video-${i + 1}`);
-                new_frame.setAttribute("class", "video-frames");
-                new_frame.setAttribute("rows", TEXT_ROWS);
-                new_frame.setAttribute("readonly", "");
-
                 let text_value = document.getElementById(`frame${i + 1}`).value;
-                new_frame.appendChild(document.createTextNode(text_value));
-
                 Options_vid.frames.push(text_value);
 
-                new_frame.style.color = Options_vid.color;
-                new_frame.style.background = Options_vid.background;
-
-                let video = document.getElementById("video");
-
-                video.insertBefore(new_frame, make_video);
             }
+            new_frame.appendChild(document.createTextNode(Options_vid.frames[0]));
+
+            let video = document.getElementById("video");
+
+            video.insertBefore(new_frame, make_video);
             showSlides();
 
             if (!stop_video) {
@@ -495,23 +463,19 @@ function makeVideo() {
     });
 }
 
+//TO DO PUT THESE IN THE SESSION STORAGE
 let slideIndex = 0;
 var video_id;
 
 function showSlides() {
-    let i;
-    let slides = document.getElementsByClassName("video-frames");
-
-    for (i = 0; i < slides.length; i++) {
-        slides[i].style.display = "none";
-    }
+    let displayed_frame = document.getElementById("frame-video");
 
     slideIndex++;
 
-    if (slideIndex > slides.length) {
+    if (slideIndex > Options_vid.frames.length) {
         slideIndex = 1
     }
-    slides[slideIndex - 1].style.display = "block";
+    displayed_frame.innerHTML = Options_vid.frames[slideIndex - 1];
 
     if (Options_vid) {
         video_id = setTimeout(showSlides, Options_vid.time);
@@ -521,6 +485,7 @@ function showSlides() {
 
 }
 
+//change the color of the symbols of the frames
 function setColors() {
     document.getElementById("color").addEventListener("change", function (e) {
         frames = document.getElementsByClassName("frame");
@@ -532,6 +497,7 @@ function setColors() {
     })
 }
 
+//change the background of the frames
 function setBackgroundColor() {
     document.getElementById("background").addEventListener("change", function (e) {
         frames = document.getElementsByClassName("frame");
@@ -561,6 +527,7 @@ function toggleAsciiCharacters() {
     });
 }
 
+//choose the speed of the video
 function chooseCharacter() {
     for (let i = 0; i < times.length; ++i) {
         times[i].addEventListener("click", function () {
@@ -571,12 +538,14 @@ function chooseCharacter() {
     }
 }
 
+//change the current video's name
 function changeAsciiName() {
     document.getElementById("ascii-name").addEventListener('change', function (event) {
         Options_vid.title = event.target.value;
     });
 }
 
+//create the button for stopping the video
 function stopButton() {
     let stop_button = document.createElement("button");
     let context = document.createTextNode("Stop");
@@ -596,18 +565,20 @@ function stopButton() {
     stopVideo();
 }
 
+//stop the displayed video
 function stopVideo() {
-
     stop_video.addEventListener("click", function () {
         if (video_id) {
             clearTimeout(video_id);
         }
     })
-
 }
 
 
-function getAllAsciiPictures(ownerId) {
+//send a request for the pictures
+function getAllAsciiPictures() {
+    //TO DO get the user id from session
+    let ownerId = 1;
     document.getElementById("load-pictures").addEventListener("click", function (event) {
         sendRequest(
             `../../server/page_controllers/ascii-editor/getAllPictures.php?user=${ownerId}`,
@@ -618,6 +589,8 @@ function getAllAsciiPictures(ownerId) {
     });
 }
 
+
+//remove previously loaded pictures
 function removeLoadedPictures() {
     let loaded_pictures = document.getElementsByClassName("ascii-picture");
 
@@ -631,6 +604,7 @@ function removeLoadedPictures() {
     }
 }
 
+//what to do after the response
 function displayAsciiPictures(response) {
 
     removeLoadedPictures();
@@ -642,86 +616,64 @@ function displayAsciiPictures(response) {
             showAsciiPicture(picture_section, asciiPicture);
         }
         copyToClipboard();
-    } else {
-        // show error message
+    } else if (!response["success"]) {
+        showModalForSeconds(true);
+        document.getElementsByClassName("modal-header")[0].style.backgroundColor = "#4BB543";
+        document.getElementsByClassName("modal-body")[0].style.backgroundColor = "#4BB543";
+        modalContent.innerHTML = "Възникна грешка, моля опитайте отново!";
     }
 }
 
 
-// element => html element; asciiText => value attribute from PICTURES sql table
+//loard the users pictures
 function showAsciiPicture(element, asciiPicture) {
     if (element && asciiPicture) {
-        // console.log(asciiPicture);
         let responseAsciiValue = asciiPicture.value;
-        // console.log(responseAsciiValue);
-        // console.log(value_text_node);
         let asciiColor = asciiPicture.color;
         let asciiText = responseAsciiValue.substring(1, responseAsciiValue.length - 1).replace(/\\n/g, '\n');
-        // asciiText = asciiText.replace('<br/>', '');
-        // console.log(asciiText);
-        // asciiText = asciiText.replace('\n', '<br/>');
-        // console.log("????");
-        // console.log(asciiText);
         let value_text_node = document.createTextNode(asciiText);
-        // let asciiWrapperElement = document.createElement('div');
-        // asciiWrapperElement.className = "ascii-wrapper";
         let asciiTextElement = document.createElement("pre");
+
         asciiTextElement.setAttribute("class", "ascii-picture");
-        // asciiTextElement.className = "ascii-picture";
         asciiTextElement.style.color = asciiColor;
         asciiTextElement.appendChild(value_text_node);
-        // asciiTextElement.innerHTML = responseAsciiValue;
-        // asciiWrapperElement.appendChild(asciiTextElement);
+
         element.appendChild(asciiTextElement);
     }
 }
 
-const USER_ID = "1";
 const ASCII_NAME = "1";
 const PAGINATION_PAGE = 0;
 const PAGINATION_PAGESIZE = 10;
 
+//copy picture to clipboard
 function copyToClipboard() {
     let pictures = document.getElementsByClassName("ascii-picture");
 
     for (let i = 0; i < pictures.length; i++) {
         pictures[i].addEventListener('click', function (event) {
             let copied_text = pictures[i].innerHTML;
-            console.log(pictures[i].innerHTML);
             navigator.clipboard.writeText(copied_text);
         });
     }
 }
 
-// function scrollLeftRight() {
-// console.log("ssys");
+//paste the text
+function autoPasteText(textarea) {
+    textarea.addEventListener('click', async () => {
+        try {
+            let text = await navigator.clipboard.readText();
+            textarea.value = text;
+            navigator.clipboard.writeText("");
+        } catch (error) {
+            console.log("The clipboard was empty");
+        }
+    })
+}
 
-// document.body.addEventListener("mousemove", function (e) {
-//     var clientY = e.clientX;
-//     console.log(clientY);
-
-//     var boxHeight = document.body.offsetWidth;
-//     var contentHeight = document.body.scrollWidth;
-//     var mousePositionProportion = clientY / boxHeight;
-//     // var scrollTop = mousePositionProportion * (contentHeight - boxHeight);
-//     console.log(mousePositionProportion);
-//     //// Top
-//     if (mousePositionProportion < 0.25) {
-//         document.body.scrollLeft -= 50;
-
-//     }
-//     // scrollTop -= 50;
-//     //// Bottom
-//     else if (mousePositionProportion > 0.75) {
-//         console.log("yo");
-//         // scrollTop += 50;
-//         document.body.scrollLeft += 50;
-//     }
-
-// });
-// }
-var scroll_timeout;
+//Left and Right navigaion
 function scrollLeftRight() {
+    var scroll_timeout;
     var left = document.getElementById("left");
     var right = document.getElementById("right");
     let body = document.body;
@@ -733,7 +685,6 @@ function scrollLeftRight() {
     });
 
     left.addEventListener("mouseup", function (e) {
-        // document.body.scrollLeft -= 20;
         if (body.scrollLeft == 0) {
             left.style.display = "none";
         }
@@ -763,13 +714,11 @@ function scrollLeftRight() {
 }
 
 document.addEventListener("DOMContentLoaded", function (event) {
-    // submitOptionsForm();
     addNewFrame();
     removeFrame();
     makeVideo();
     setColors();
     setBackgroundColor();
-    // stopVideo();
     addAsciiCharacters();
     toggleAsciiCharacters();
     chooseCharacter();
@@ -777,7 +726,7 @@ document.addEventListener("DOMContentLoaded", function (event) {
     saveVideo();
     modalFunctionality();
     loadVideos();
-    getAllAsciiPictures(USER_ID); // get all ascii pictures
+    getAllAsciiPictures(); // get all ascii pictures
     scrollLeftRight();
 
 });
