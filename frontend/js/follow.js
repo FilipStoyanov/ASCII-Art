@@ -105,7 +105,7 @@ function listFellows(searchFollowers) {
 
 function sendRequest(url, options, successCallback, errorCallback) {
   var request = new XMLHttpRequest();
-
+  
   request.onload = function () {
     var response = JSON.parse(request.responseText);
 

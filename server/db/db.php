@@ -237,7 +237,7 @@ class DataBaseConnection
             $this->selectUser->execute(["username" => $input["username"], "password" => $hash]);
             $user = $this->selectUser->fetch();
             if ($user) {
-                return ["success" => true];
+                return ["success" => true,"user"=>$user["id"]];
             }
 
             return ["success" => false, "error" => "Invalid username or password", "code" => 403];

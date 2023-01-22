@@ -126,6 +126,7 @@ function submitSignInForm() {
 function loadLogIn(response) {
   if (response["success"]) {
     errorMsgForLogin.style.display = "none";
+    setCookie('token', response["token"], 1);
     window.location.assign("home.html");
   } else {
     if (response["errors"]) {
@@ -135,6 +136,16 @@ function loadLogIn(response) {
       errorMsgForLogin.style.display = "none";
     }
   }
+}
+
+function setCookie(name, value, days) {
+  var expires = "";
+  if (days) {
+    var date = new Date();
+    date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+    expires = "; expires=" + date.toUTCString();
+  }
+  document.cookie = name + "=" + (value || "") + expires + "; path=/";
 }
 
 //what to do when the response isn't successful
@@ -236,7 +247,7 @@ function clickOnHamburgerMenu() {
   const header = document.getElementsByClassName("header")[0];
   const bodyElement = document.getElementsByTagName("body")[0];
   const greetingText = document.querySelector(".greeting-mobile");
-  if(hamburgerMenu) {
+  if (hamburgerMenu) {
     hamburgerMenu.addEventListener("click", function () {
       greetingText.classList.toggle("show");
       hamburgerMenu.classList.toggle("open");
@@ -249,7 +260,7 @@ function clickOnHamburgerMenu() {
 
 function logout() {
   const logoutBtn = document.getElementsByClassName("logout")[0];
-  if(logoutBtn) {
+  if (logoutBtn) {
     logoutBtn.addEventListener("click", function (event) {
       event.preventDefault();
       sessionStorage.clear();

@@ -32,11 +32,23 @@ function openTab(event, sectionName) {
     getAllFriendsVideos();
 }
 
+function getCookie(name) {
+    var nameEQ = name + "=";
+    var ca = document.cookie.split(';');
+    for (var i = 0; i < ca.length; i++) {
+        var c = ca[i];
+        while (c.charAt(0) == ' ') c = c.substring(1, c.length);
+        if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length, c.length);
+    }
+    return null;
+}
 
-function sendRequest(url, options, successCallback, errorCallback) {
+function sendRequestWithHeaders(url, options, successCallback, errorCallback) {
+ console.log('++++');
     var request = new XMLHttpRequest();
-
+    let token = getCookie("token");
     request.onload = function () {
+        console.log(request.responseText);
         var response = JSON.parse(request.responseText);
         if (request.status === 200 && response['success']) {
             successCallback(response);
@@ -46,14 +58,19 @@ function sendRequest(url, options, successCallback, errorCallback) {
     };
     request.open(options.method, url, true);
     request.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+    request.setRequestHeader("Accept", "application/json");
+    if (token) {
+        request.setRequestHeader("Authorization", "Bearer " + token);
+    }
     request.send(options.data);
 }
 
 
 // get all friends' ascii pictures
 function getAllFriendsPictures() {
-    sendRequest(
-        editorUrl + `/getAllFriendsPictures.php?user=${sessionStorage.getItem('user')}&&page=${sessionStorage.getItem('page')}`,
+    sendRequestWithHeaders(
+        // editorUrl + `/getAllFriendsPictures.php?user=${sessionStorage.getItem('user')}&&page=${sessionStorage.getItem('page')}`,
+        editorUrl + `/getAllFriendsPictures.php?page=${sessionStorage.getItem('page')}`,
         { method: "GET", data: '' },
         displayAsciiPictures,
         handleError,

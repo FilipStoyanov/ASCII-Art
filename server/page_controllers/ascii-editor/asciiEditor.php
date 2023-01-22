@@ -1,15 +1,18 @@
 <?php
 include_once("../../db/db.php");
+include_once("../jwt.php");
 class AsciiEditor
 {
 
     private $connection;
     private $errors;
+    private $jwt;
 
     public function __construct()
     {
         $this->connection = new DatabaseConnection();
         $this->errors = array();
+        $this->jwt = new JWT();
     }
 
     public function validateAsciiText($value, $name)
@@ -165,7 +168,7 @@ class AsciiEditor
                 return;
             }
             try {
-                $picture = $this->connection->getAllAsciiPictures(["owner_id"  => $user]);
+                $picture = $this->connection->getAllAsciiPictures(["owner_id" => $user]);
                 if ($picture["success"]) {
                     echo json_encode(["success" => true, $picture['data']]);
                     return;
@@ -219,7 +222,7 @@ class AsciiEditor
             }
             try {
                 $picture = $this->connection->getUserPictures(["owner" => $owner, "user" => $user, 'page' => $page, 'limit' => $limit]);
-                return json_encode(["success" => true, 'pictures' => $picture]); 
+                return json_encode(["success" => true, 'pictures' => $picture]);
             } catch (Exception $e) {
                 $response['success'] = false;
                 $response['error_message'] = $e->getMessage();
@@ -234,12 +237,18 @@ class AsciiEditor
             $url = $_SERVER['REQUEST_URI'];
             $components = parse_url($url);
             parse_str($components['query'], $pathParameters);
-            if (
-                !array_key_exists('user', $pathParameters) || $pathParameters['user'] == null
-            ) {
+            $authHeader = $_SERVER['Authorization'] ?? null;
+            if ($authHeader == null) {
+                return json_encode(["success" => false, "error" => "No token"]);
+            }
+            $verifiedToken = $this->jwt->verify($authHeader);
+            if ($verifiedToken == null) {
+                return json_encode(["success" => false, "error" => "Invalid token"]);
+            }
+            if (!array_key_exists('user', $verifiedToken) || $verifiedToken['user'] == null) {
                 return json_encode(["success" => false, "error" => "Invalid user id"]);
             }
-            $user = $pathParameters['user'];
+            $user = $verifiedToken['user'];
             if (!array_key_exists('page', $pathParameters) || $pathParameters['page'] == null) {
                 $page = null;
                 $limit = null;
