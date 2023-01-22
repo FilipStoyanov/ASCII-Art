@@ -237,7 +237,8 @@ class AsciiEditor
             $url = $_SERVER['REQUEST_URI'];
             $components = parse_url($url);
             parse_str($components['query'], $pathParameters);
-            $authHeader = $_SERVER['Authorization'] ?? null;
+
+            $authHeader = $_SERVER['HTTP_AUTHORIZATION'] ?? null;
             if ($authHeader == null) {
                 return json_encode(["success" => false, "error" => "No token"]);
             }

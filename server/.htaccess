@@ -1,0 +1,3 @@
+# Enable the mod_headers module
+RewriteEngine On
+Header set Access-Control-Allow-Headers "Authorization,Content-Type"

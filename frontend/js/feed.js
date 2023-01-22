@@ -44,9 +44,28 @@ function getCookie(name) {
 }
 
 function sendRequestWithHeaders(url, options, successCallback, errorCallback) {
- console.log('++++');
-    var request = new XMLHttpRequest();
+    console.log('++++');
     let token = getCookie("token");
+    // fetch(url, {
+    //     method: options.method,
+    //     headers: {
+    //         'Content-Type': 'application/x-www-form-urlencoded',
+    //         'auth': token
+    //     },
+    //     body: options.data
+    // })
+    //     .then(response => response.json())
+    //     .then(data => {console.log(data);
+    //         if (request.status === 200 && response['success']) {
+    //             successCallback(response);
+    //         } else {
+    //             errorCallback(response);
+    //         }
+    //     })
+    //     .catch(error => errorCallback(error));
+    var request = new XMLHttpRequest();
+
+
     request.onload = function () {
         console.log(request.responseText);
         var response = JSON.parse(request.responseText);
@@ -56,12 +75,17 @@ function sendRequestWithHeaders(url, options, successCallback, errorCallback) {
             errorCallback(response);
         }
     };
+
     request.open(options.method, url, true);
+    // let token = getCookie("token");
+    console.log('____________' + token);
     request.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
     request.setRequestHeader("Accept", "application/json");
     if (token) {
-        request.setRequestHeader("Authorization", "Bearer " + token);
+        console.log('____________' + token);
+        request.setRequestHeader("Authorization", "Bearer YOUR_TOKEN_HERE");
     }
+    // console.log(request.hea)
     request.send(options.data);
 }
 
@@ -140,7 +164,7 @@ function handleError(response) {
         showModalForSeconds();
         modalContent.innerHTML = "An error has occurred. Try again."
     } else {
-        document.getElementsByClassName("editor")[0].classList.remove("show-modal");
+        // document.getElementsByClassName("editor")[0].classList.remove("show-modal");
     }
 }
 
