@@ -416,24 +416,6 @@ function stopVideo() {
 
 }
 
-document.addEventListener("DOMContentLoaded", function (event) {
-    // submitOptionsForm();
-    addNewFrame();
-    removeFrame();
-    makeVideo();
-    setColors();
-    setBackgroundColor();
-    // stopVideo();
-    addAsciiCharacters();
-    toggleAsciiCharacters();
-    chooseCharacter();
-    changeAsciiName();
-    saveVideo();
-    modalFunctionality();
-    getAllAsciiPictures(USER_ID); // get all ascii pictures
-    scrollLeftRight();
-
-});
 
 function getAllAsciiPictures(ownerId) {
     document.getElementById("load-pictures").addEventListener("click", function (event) {
@@ -448,11 +430,11 @@ function getAllAsciiPictures(ownerId) {
 
 function removeLoadedPictures() {
     let loaded_pictures = document.getElementsByClassName("ascii-picture");
-
+    
     if (loaded_pictures) {
         let length = loaded_pictures.length;
         let section = document.getElementsByClassName("sections")[4];
-
+        
         for (let i = 0; i < length; i++) {
             section.removeChild(loaded_pictures[0]);
         }
@@ -462,7 +444,7 @@ function removeLoadedPictures() {
 function displayAsciiPictures(response) {
 
     removeLoadedPictures();
-
+    
     if (response["success"] && response[0]) {
         for (let currentAscii of response[0]) {
             let asciiPicture = currentAscii;
@@ -511,7 +493,7 @@ const PAGINATION_PAGESIZE = 10;
 
 function copyToClipboard() {
     let pictures = document.getElementsByClassName("ascii-picture");
-
+    
     for (let i = 0; i < pictures.length; i++) {
         pictures[i].addEventListener('click', function (event) {
             let copied_text = pictures[i].innerHTML;
@@ -527,18 +509,18 @@ function scrollLeftRight() {
     var right = document.getElementById("right");
     let body = document.body;
 
+    
     left.addEventListener("mousedown", function (e) {
         scroll_timeout = setInterval(function () {
             body.scrollLeft -= 10;
         })
     });
-
+    
     left.addEventListener("mouseup", function (e) {
-        // document.body.scrollLeft -= 20;
         if (body.scrollLeft == 0) {
             left.style.display = "none";
         }
-
+        
         if (body.scrollLeft != body.scrollWidth - body.clientWidth) {
             right.style.display = "block";
         }
@@ -561,4 +543,24 @@ function scrollLeftRight() {
         }
         clearInterval(scroll_timeout);
     });
+    console.log(document.body.scrollLeft);
 }
+
+document.addEventListener("DOMContentLoaded", function (event) {
+    // submitOptionsForm();
+    addNewFrame();
+    removeFrame();
+    makeVideo();
+    setColors();
+    setBackgroundColor();
+    // stopVideo();
+    addAsciiCharacters();
+    toggleAsciiCharacters();
+    chooseCharacter();
+    changeAsciiName();
+    saveVideo();
+    modalFunctionality();
+    getAllAsciiPictures(USER_ID); // get all ascii pictures
+    scrollLeftRight();
+
+});

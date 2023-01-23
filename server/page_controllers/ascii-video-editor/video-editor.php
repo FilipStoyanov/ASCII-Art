@@ -49,6 +49,7 @@ class AsciiVideoEditor
             $this->validateAsciiText($title);
 
             if ($this->errors['success']) {
+                //TO DO GET THE OWNER ID ->> MAYBE ADD IT FROM THE REQUEST DATA??
                 $owner_id = 1;
                 $serialized_frames = serialize($frames);
 
