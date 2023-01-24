@@ -43,6 +43,10 @@ class DataBaseConnection
         }
     }
 
+    public function getLastInsertedId() {
+        return $this->connection->lastInsertId();
+    }
+
     //prepare the sql statements => execute them later
     private function prepareSQLStatements()
     {
@@ -237,7 +241,7 @@ class DataBaseConnection
             $this->selectUser->execute(["username" => $input["username"], "password" => $hash]);
             $user = $this->selectUser->fetch();
             if ($user) {
-                return ["success" => true,"user"=>$user["id"]];
+                return ["success" => true,"user"=>$user["id"], "user_role" => $user["roles"]];
             }
 
             return ["success" => false, "error" => "Invalid username or password", "code" => 403];

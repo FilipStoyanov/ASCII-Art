@@ -1,18 +1,17 @@
 <?php
 include_once("../../db/db.php");
-include_once("../jwt.php");
+include_once("../../jwt/jwt.php");
+include_once("../../utils/utils.php");
 class AsciiEditor
 {
 
     private $connection;
     private $errors;
-    private $jwt;
 
     public function __construct()
     {
         $this->connection = new DatabaseConnection();
         $this->errors = array();
-        $this->jwt = new JWT();
     }
 
     public function validateAsciiText($value, $name)
@@ -27,17 +26,33 @@ class AsciiEditor
     public function add()
     {
         if ($_POST) {
+            $authHeader = $_SERVER['HTTP_AUTHORIZATION'] ?? null;
+            if ($authHeader == null) {
+                header('HTTP/1.0 401 Unauthorized');
+                return json_encode(["success" => false, "error" => "No token"]);
+            }
+            $verifiedToken = JWT::verify($authHeader);
+            if ($verifiedToken == null) {
+                header('HTTP/1.0 401 Unauthorized');
+                return json_encode(["success" => false, "error" => "Expired token"]);
+            }
             $data = json_decode($_POST['data'], true);
             $value = $data['value'];
             $name = $data['name'];
             $color = $data['color'];
             $owner_id = $data['owner_id'];
+
+            $jwtUser = JWT::fetchUserFromJWT($authHeader);
+            if ($jwtUser['id'] != $owner_id && $jwtUser['role'] != 'ADMIN') {
+                header('HTTP/1.0 403 Forbidden');
+                return json_encode(["success" => false, "error" => "You are not authorized to access this page"]);
+            }
             //TODO: validate $color variable
             $this->validateAsciiText($value, $name);
             if ($this->errors['success']) {
                 $query = $this->connection->insertNewAsciiText(["value" => json_encode($value), "name" => $name, "color" => $color, "owner_id" => $owner_id]);
                 if ($query["success"]) {
-                    echo json_encode(["success" => true, "data" => $data, "message" => "Successfully added ascii text"]);
+                    echo json_encode(["success" => true, "data" => $data, "message" => "Successfully added ascii text", "token" => $verifiedToken]);
                 } else {
                     if ($query["code"] == 1062) {
                         echo json_encode(["success" => false, "errors" => $query["error"], "code" => $query["code"], "message" => "Ascii picture with this name already exists."]);
@@ -55,6 +70,16 @@ class AsciiEditor
     {
         if ($_SERVER['REQUEST_METHOD'] == 'GET') {
             $url = $_SERVER['REQUEST_URI'];
+            $authHeader = $_SERVER['HTTP_AUTHORIZATION'] ?? null;
+            if ($authHeader == null) {
+                header('HTTP/1.0 401 Unauthorized');
+                return json_encode(["success" => false, "error" => "No token"]);
+            }
+            $verifiedToken = JWT::verify($authHeader);
+            if ($verifiedToken == null) {
+                header('HTTP/1.0 401 Unauthorized');
+                return json_encode(["success" => false, "error" => "Expired token"]);
+            }
             $components = parse_url($url);
             parse_str($components['query'], $pathParameters);
             if (!array_key_exists('user', $pathParameters) || $pathParameters['user'] == null) {
@@ -69,9 +94,14 @@ class AsciiEditor
                 echo json_encode(["success" => false, "error" => "Invalid user id."]);
                 return;
             }
+            $jwtUser = JWT::fetchUserFromJWT($authHeader);
+            if ($jwtUser['id'] != $user && $jwtUser['role'] != 'ADMIN') {
+                header('HTTP/1.0 403 Forbidden');
+                return json_encode(["success" => false, "error" => "You are not authorized to access this page"]);
+            }
             try {
                 $query = $this->connection->getAsciiPictures(['owner' => $user]);
-                echo json_encode(["success" => true, $query['data']]);
+                echo json_encode(["success" => true, $query['data'], "token" => $verifiedToken]);
             } catch (Exception $e) {
                 echo json_encode(["success" => false, "errors" => $query["error"], "code" => $query["code"], "message" => "Error with fetching ascii pictures"]);
             }
@@ -82,6 +112,16 @@ class AsciiEditor
     {
         if ($_SERVER['REQUEST_METHOD'] == 'GET') {
             $url = $_SERVER['REQUEST_URI'];
+            $authHeader = $_SERVER['HTTP_AUTHORIZATION'] ?? null;
+            if ($authHeader == null) {
+                header('HTTP/1.0 401 Unauthorized');
+                return json_encode(["success" => false, "error" => "No token"]);
+            }
+            $verifiedToken = JWT::verify($authHeader);
+            if ($verifiedToken == null) {
+                header('HTTP/1.0 401 Unauthorized');
+                return json_encode(["success" => false, "error" => "Expired token"]);
+            }
             $components = parse_url($url);
             parse_str($components['query'], $pathParameters);
             if (
@@ -100,10 +140,15 @@ class AsciiEditor
                 echo json_encode(["success" => false, "error" => "Invalid user id."]);
                 return;
             }
+            $jwtUser = JWT::fetchUserFromJWT($authHeader);
+            if ($jwtUser['id'] != $user && $jwtUser['role'] != 'ADMIN') {
+                header('HTTP/1.0 403 Forbidden');
+                return json_encode(["success" => false, "error" => "You are not authorized to access this page"]);
+            }
             try {
                 $picture = $this->connection->getAsciiPictureByName(["owner_id" => $user, "name" => $asciiName]);
                 if ($picture["success"]) {
-                    echo json_encode(["success" => true, $picture['data']]);
+                    echo json_encode(["success" => true, $picture['data'], "token" => $verifiedToken]);
                 }
             } catch (Exception $e) {
                 $response['success'] = false;
@@ -117,15 +162,30 @@ class AsciiEditor
     public function updateAsciiPicture()
     {
         if ($_SERVER['REQUEST_METHOD'] == "PUT") {
+            $authHeader = $_SERVER['HTTP_AUTHORIZATION'] ?? null;
+            if ($authHeader == null) {
+                header('HTTP/1.0 401 Unauthorized');
+                return json_encode(["success" => false, "error" => "No token"]);
+            }
+            $verifiedToken = JWT::verify($authHeader);
+            if ($verifiedToken == null) {
+                header('HTTP/1.0 401 Unauthorized');
+                return json_encode(["success" => false, "error" => "Expired token"]);
+            }
             $data = (array) json_decode(file_get_contents('php://input'), true);
             $owner = $data['owner_id'];
             $color = $data['color'];
             $value = $data["value"];
             $asciiName = $data['name'];
             $previousName = $data['previous_name'];
+            $user = JWT::fetchUserFromJWT($authHeader);
+            if ($user['id'] != $owner && $user['role'] != 'ADMIN') {
+                header('HTTP/1.0 403 Forbidden');
+                return json_encode(["success" => false, "error" => "You are not authorized to access this page"]);
+            }
             $query = $this->connection->updateAsciiPicture(["value" => $value, "color" => $color, "name" => $asciiName, "owner_id" => $owner, "previous_name" => $previousName]);
             if ($query["success"]) {
-                echo json_encode(["success" => true]);
+                echo json_encode(["success" => true, "token" => $verifiedToken]);
             } else {
                 echo json_encode(["success" => false, "errors" => $query["error"], "code" => $query["code"], "message" => "Error with deleting ascii picture with name: $previousName"]);
             }
@@ -135,12 +195,27 @@ class AsciiEditor
     public function deleteAsciiPicture()
     {
         if ($_SERVER['REQUEST_METHOD'] == "DELETE") {
+            $authHeader = $_SERVER['HTTP_AUTHORIZATION'] ?? null;
+            if ($authHeader == null) {
+                header('HTTP/1.0 401 Unauthorized');
+                return json_encode(["success" => false, "error" => "No token"]);
+            }
+            $verifiedToken = JWT::verify($authHeader);
+            if ($verifiedToken == null) {
+                header('HTTP/1.0 401 Unauthorized');
+                return json_encode(["success" => false, "error" => "Expired token"]);
+            }
             $data = (array) json_decode(file_get_contents('php://input'), true);
             $owner = $data['owner_id'];
             $asciiName = $data['name'];
+            $user = JWT::fetchUserFromJWT($authHeader);
+            if ($user['id'] != $owner && $user['role'] != 'ADMIN') {
+                header('HTTP/1.0 403 Forbidden');
+                return json_encode(["success" => false, "error" => "You are not authorized to access this page"]);
+            }
             $query = $this->connection->deleteAsciiPicture(["owner_id" => $owner, "name" => $asciiName]);
             if ($query["success"]) {
-                echo json_encode(["success" => true]);
+                echo json_encode(["success" => true, "token" => $verifiedToken]);
             } else {
                 echo json_encode(["success" => false, "errors" => $query["error"], "code" => $query["code"], "message" => "Error with deleting ascii picture with name: $asciiName"]);
             }
@@ -242,8 +317,9 @@ class AsciiEditor
             if ($authHeader == null) {
                 return json_encode(["success" => false, "error" => "No token"]);
             }
-            $verifiedToken = $this->jwt->verify($authHeader);
+            $verifiedToken = JWT::verify($authHeader);
             if ($verifiedToken == null) {
+                header('HTTP/1.0 401 Unauthorized');
                 return json_encode(["success" => false, "error" => "Invalid token"]);
             }
             if (!array_key_exists('user', $verifiedToken) || $verifiedToken['user'] == null) {

@@ -1,5 +1,6 @@
 <?php
 include_once("../db/db.php");
+include_once("../jwt/jwt.php");
 class Login
 {
 
@@ -24,37 +25,6 @@ class Login
         }
     }
 
-    private function generateToken($user){
-        $secretKey = 'secret';
-        
-        $userId = 1;
-        
-        $expiration = time() + (60 * 60);
-
-        $payload = array(
-            'id' => $userId,
-            'exp' => $expiration
-        );
-        
-        // Encode the payload as a JSON object
-        $payloadJson = json_encode($payload);
-        
-        // Base64 encode the JSON object
-        $base64UrlPayload = base64_encode($payloadJson);
-        
-        // Create the signature
-        $signature = hash_hmac('sha256', $base64UrlPayload, $secretKey, true);
-        
-        // Base64 encode the signature
-        $base64UrlSignature = base64_encode($signature);
-        
-        // Create the JWT
-        $jwt = "$base64UrlPayload.$base64UrlSignature";
-        
-        // Print the generated JWT
-        return $jwt;
-    }
-
     public function validateLogin()
     {
         if ($_POST) {
@@ -66,12 +36,12 @@ class Login
             if ($this->errors['success']) {
                 session_start();
                 $hash = sha1($password);
-                $_SESSION['user'] = $username;
-
                 $query = $this->connection->getUserByUsernameAndPassword(["username" => $username, "password" => $hash]);
+                $_SESSION['user'] = $query['user'];
+                $userRole = $query['user_role'];
 
                 if ($query["success"]) {
-                    echo json_encode(["success" => true, "message" => "Logged in", "token"=> $this->generateToken($query['user'])]);
+                    echo json_encode(["success" => true, "message" => "Logged in", "token"=> JWT::generateToken($_SESSION['user'], $userRole)]);
                 } else {
                     echo json_encode(["success" => false, "errors" => $query["error"], "code" => $query["code"], "message" => "Wrong username or password"]);
                 }
