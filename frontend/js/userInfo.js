@@ -41,7 +41,7 @@ function openTab(event, sectionName) {
 
 function getUserInfo() {
     var url = userInfoUrl + '?user=' + sessionStorage.getItem('owner');
-    sendRequest(url, { method: 'GET', data: '' }, handleUserInfo, handleErrorUserInfo);
+    sendRequestWithHeaders(url, { method: 'GET', data: '' }, handleUserInfo, handleErrorUserInfo);
 }
 
 
@@ -58,26 +58,26 @@ function handleErrorUserInfo(response) {
 
 
 var wrapper = document.getElementsByClassName("wrapper")[0];
-function sendRequest(url, options, successCallback, errorCallback) {
-    var request = new XMLHttpRequest();
+// function sendRequest(url, options, successCallback, errorCallback) {
+//     var request = new XMLHttpRequest();
 
-    request.onload = function () {
-        var response = JSON.parse(request.responseText);
-        if (request.status === 200 && response['success']) {
-            successCallback(response);
-        } else {
-            errorCallback(response);
-        }
-    };
-    request.open(options.method, url, true);
-    request.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-    request.send(options.data);
-}
+//     request.onload = function () {
+//         var response = JSON.parse(request.responseText);
+//         if (request.status === 200 && response['success']) {
+//             successCallback(response);
+//         } else {
+//             errorCallback(response);
+//         }
+//     };
+//     request.open(options.method, url, true);
+//     request.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+//     request.send(options.data);
+// }
 
 
 // get all ascii pictures by owner_id
 function getAllAsciiPictures() {
-    sendRequest(
+    sendRequestWithHeaders(
         allPicturesUrl + `?owner=${sessionStorage.getItem('owner')}&&user=${sessionStorage.getItem('user')}&&page=${sessionStorage.getItem('page')}`,
         { method: "GET", data: '' },
         displayAsciiPictures,
@@ -188,7 +188,7 @@ function addLikeButton(el, pictureId, isLiked, likesCount) {
 
 function addLike(pictureId) {
     var data = { 'user': sessionStorage.getItem('user'), 'picture': pictureId };
-    sendRequest(`http://localhost:80/project-web-2022/ASCII-Art/server/page_controllers/feed/likes.php`,
+    sendRequestWithHeaders(`http://localhost:80/project-web-2022/ASCII-Art/server/page_controllers/feed/likes.php`,
         { method: "POST", data: JSON.stringify(data) },
         () => { },
         handleError,
@@ -197,7 +197,7 @@ function addLike(pictureId) {
 
 function deleteLike(pictureId) {
     var data = { 'user': sessionStorage.getItem('user'), 'picture': pictureId };
-    sendRequest(`http://localhost:80/project-web-2022/ASCII-Art/server/page_controllers/feed/likes.php`,
+    sendRequestWithHeaders(`http://localhost:80/project-web-2022/ASCII-Art/server/page_controllers/feed/likes.php`,
         { method: "DELETE", data: JSON.stringify(data) },
         () => { },
         handleError,
@@ -307,7 +307,7 @@ function flushVideos(){
 }
 
 function getUserInfoVideos() {
-    sendRequest(videoEditorUrl+`get-user-videos.php?owner_id=${sessionStorage.getItem('owner')}&&page=${sessionStorage.getItem('page')}`, { method: 'GET', data: "" }, loadUserVideos, handleErrorAscii);
+    sendRequestWithHeaders(videoEditorUrl+`get-user-videos.php?owner_id=${sessionStorage.getItem('owner')}&&page=${sessionStorage.getItem('page')}`, { method: 'GET', data: "" }, loadUserVideos, handleErrorAscii);
 }
 
 function loadUserVideos(response) {

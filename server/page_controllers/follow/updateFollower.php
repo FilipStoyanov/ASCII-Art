@@ -1,6 +1,6 @@
 <?php
 include_once("../../db/db.php");
-// include_once("./db/db.php");
+include_once("../../jwt/jwt.php");
 include_once("fellow.php");
 class UpdateFollower
 {

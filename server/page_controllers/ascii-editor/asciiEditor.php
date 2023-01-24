@@ -259,14 +259,26 @@ class AsciiEditor
 
     public function getUserPictures()
     {
+        $authHeader = $_SERVER['HTTP_AUTHORIZATION'] ?? null;
+        if ($authHeader == null) {
+            header('HTTP/1.0 401 Unauthorized');
+            return json_encode(["success" => false, "error" => "No token"]);
+        }
+        $verifiedToken = JWT::verify($authHeader);
+        if ($verifiedToken == null) {
+            header('HTTP/1.0 401 Unauthorized');
+            return json_encode(["success" => false, "error" => "Expired token"]);
+        }
         if ($_SERVER['REQUEST_METHOD'] == 'GET') {
             $url = $_SERVER['REQUEST_URI'];
             $components = parse_url($url);
             parse_str($components['query'], $pathParameters);
-            if (
-                !array_key_exists('user', $pathParameters) || $pathParameters['user'] == null
-            ) {
-                return json_encode(["success" => false, "error" => "User is not chosen."]);
+            $jwtUser = JWT::fetchUserFromJWT($authHeader);
+            $user = $jwtUser['id'];
+            if ($user == null) {
+                $this->response['success'] = false;
+                $this->response['error'] = 'User is not chosen.';
+                return json_encode($this->response);
             }
             if (
                 !array_key_exists('owner', $pathParameters) || $pathParameters['owner'] == null
@@ -284,7 +296,6 @@ class AsciiEditor
             if (!is_int($page)) {
                 $page = (int) $page;
             }
-            $user = $pathParameters['user'];
             $owner = $pathParameters['owner'];
             if (!is_int($user)) {
                 $user = (int) $user;

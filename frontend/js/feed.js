@@ -44,25 +44,7 @@ function getCookie(name) {
 }
 
 function sendRequestWithHeaders(url, options, successCallback, errorCallback) {
-    console.log('++++');
     let token = getCookie("token");
-    // fetch(url, {
-    //     method: options.method,
-    //     headers: {
-    //         'Content-Type': 'application/x-www-form-urlencoded',
-    //         'auth': token
-    //     },
-    //     body: options.data
-    // })
-    //     .then(response => response.json())
-    //     .then(data => {console.log(data);
-    //         if (request.status === 200 && response['success']) {
-    //             successCallback(response);
-    //         } else {
-    //             errorCallback(response);
-    //         }
-    //     })
-    //     .catch(error => errorCallback(error));
     var request = new XMLHttpRequest();
 
 
@@ -70,6 +52,7 @@ function sendRequestWithHeaders(url, options, successCallback, errorCallback) {
         console.log(request.responseText);
         var response = JSON.parse(request.responseText);
         if (request.status === 200 && response['success']) {
+            setCookie('token', response["token"], 1);
             successCallback(response);
         } else {
             errorCallback(response);
@@ -77,18 +60,23 @@ function sendRequestWithHeaders(url, options, successCallback, errorCallback) {
     };
 
     request.open(options.method, url, true);
-    // let token = getCookie("token");
-    console.log('____________' + token);
     request.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
     request.setRequestHeader("Accept", "application/json");
     if (token) {
-        console.log('____________' + token);
-        request.setRequestHeader("Authorization", "Bearer YOUR_TOKEN_HERE");
+        request.setRequestHeader("Authorization", "Bearer "+token);
     }
-    // console.log(request.hea)
     request.send(options.data);
 }
 
+function setCookie(name, value, days) {
+    var expires = "";
+    if (days) {
+      var date = new Date();
+      date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+      expires = "; expires=" + date.toUTCString();
+    }
+    document.cookie = name + "=" + (value || "") + expires + "; path=/";
+  }
 
 // get all friends' ascii pictures
 function getAllFriendsPictures() {
@@ -202,7 +190,7 @@ function addLikeButton(el, pictureId, isLiked, likesCount) {
 
 function addLike(pictureId) {
     var data = { 'user': sessionStorage.getItem('user'), 'picture': pictureId };
-    sendRequest(feedUrl + `likes.php`,
+    sendRequestWithHeaders(feedUrl + `likes.php`,
         { method: "POST", data: JSON.stringify(data) },
         () => { },
         handleError,
@@ -211,7 +199,7 @@ function addLike(pictureId) {
 
 function deleteLike(pictureId) {
     var data = { 'user': sessionStorage.getItem('user'), 'picture': pictureId };
-    sendRequest(feedUrl + `likes.php`,
+    sendRequestWithHeaders(feedUrl + `likes.php`,
         { method: "DELETE", data: JSON.stringify(data) },
         () => { },
         handleError,
@@ -335,7 +323,7 @@ function showModalForSeconds(reload = false) {
 }
 
 function getAllFriendsVideos() {
-    sendRequest(videoEditorUrl + `get-videos-feed.php?user=${sessionStorage.getItem('user')}&&page=${sessionStorage.getItem('page')}`, { method: 'GET', data: "" }, loadUserVideos, handleErrorAscii);
+    sendRequestWithHeaders(videoEditorUrl + `get-videos-feed.php?user=${sessionStorage.getItem('user')}&&page=${sessionStorage.getItem('page')}`, { method: 'GET', data: "" }, loadUserVideos, handleErrorAscii);
 }
 
 function loadUserVideos(response) {

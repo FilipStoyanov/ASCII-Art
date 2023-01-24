@@ -1,6 +1,6 @@
 <?php
 include_once("../../db/db.php");
-// include_once("./db/db.php");
+include_once("../../jwt/jwt.php");
 class Fellow
 {
 
@@ -13,6 +13,16 @@ class Fellow
 
     public function updateFollower($request_type, $update)
     {
+        $authHeader = $_SERVER['HTTP_AUTHORIZATION'] ?? null;
+        if ($authHeader == null) {
+            header('HTTP/1.0 401 Unauthorized');
+            return json_encode(["success" => false, "error" => "No token"]);
+        }
+        $verifiedToken = JWT::verify($authHeader);
+        if ($verifiedToken == null) {
+            header('HTTP/1.0 401 Unauthorized');
+            return json_encode(["success" => false, "error" => "Expired token"]);
+        }
         if ($_SERVER['REQUEST_METHOD'] == $request_type) {
             $data = (array) json_decode(file_get_contents('php://input'), JSON_UNESCAPED_UNICODE);
             if (!array_key_exists('follower', $data) || $data['follower'] == null) {
@@ -20,14 +30,14 @@ class Fellow
                 $this->response['error'] = 'Follower is not chosen.';
                 return json_encode($this->response);
             }
-     
-            if (!array_key_exists('user', $data) || $data['user'] == null) {
+            $jwtUser = JWT::fetchUserFromJWT($authHeader);
+            $user = $jwtUser['id'];
+            if ($user == null) {
                 $this->response['success'] = false;
                 $this->response['error'] = 'User is not chosen.';
                 return json_encode($this->response);
             }
 
-            $user = $data['user'];
             $follower = $data['follower'];
             if (!is_int($user)) {
                 $user = (int) $user;
@@ -43,7 +53,7 @@ class Fellow
             try {
                 $update($user, $follower);
                 $this->response['success'] = true;
-                return json_encode($this->response);
+                return json_encode(['success'=>true,'token'=>JWT::generateToken($_SESSION['user'])]);
             } catch (Exception $e) {
                 $this->response['success'] = false;
                 $this->response['error'] = $e->getMessage();
@@ -55,11 +65,28 @@ class Fellow
         return json_encode($this->response);
     }
 
-    public function getFellows($search, $search_key,$pathParameters)
+    public function getFellows($search, $search_key, $pathParameters)
     {
+        $authHeader = $_SERVER['HTTP_AUTHORIZATION'] ?? null;
+        if ($authHeader == null) {
+            header('HTTP/1.0 401 Unauthorized');
+            return json_encode(["success" => false, "error" => "No token"]);
+        }
+        $verifiedToken = JWT::verify($authHeader);
+        if ($verifiedToken == null) {
+            header('HTTP/1.0 401 Unauthorized');
+            return json_encode(["success" => false, "error" => "Expired token"]);
+        }
         if ($_SERVER['REQUEST_METHOD'] == 'GET') {
-
-            if (!array_key_exists('user', $pathParameters) || $pathParameters['user'] == null) {
+            $data = (array) json_decode(file_get_contents('php://input'), JSON_UNESCAPED_UNICODE);
+            if (!array_key_exists('follower', $data) || $data['follower'] == null) {
+                $this->response['success'] = false;
+                $this->response['error'] = 'Follower is not chosen.';
+                return json_encode($this->response);
+            }
+            $jwtUser = JWT::fetchUserFromJWT($authHeader);
+            $user = $jwtUser['id'];
+            if ($user == null) {
                 $this->response['success'] = false;
                 $this->response['error'] = 'User is not chosen.';
                 return json_encode($this->response);
@@ -82,8 +109,7 @@ class Fellow
                 $this->response['error'] = 'Invalid page.';
                 return json_encode($this->response);
             }
-            
-            $user = $pathParameters['user'];
+
             if (!is_int($user)) {
                 $user = (int) $user;
             }
@@ -92,7 +118,7 @@ class Fellow
                 $this->response['error'] = 'Invalid user id.';
                 return json_encode($this->response);
             }
-            
+
             try {
                 $fellows = $search($user, $page, $limit);
             } catch (Exception $e) {
@@ -100,16 +126,15 @@ class Fellow
                 $this->response['error'] = $e->getMessage();
                 return json_encode($this->response);
             }
-            
+
             $fellows = array_values(array_filter($fellows, function ($v) {
                 return $v != null;
             }));
-            
+
             $fellows = array_map(function ($v) {
-                return $this->dropSensitiveInformation($v); },$fellows);
-            $this->response[$search_key] = $fellows;
-            $this->response['success'] = true;
-            return json_encode($this->response);
+                return $this->dropSensitiveInformation($v);
+            }, $fellows);
+            return json_encode([$search_key=>$fellows,'success'=>true,'token'=>JWT::generateToken($_SESSION['user'])]);
         }
         $this->response['success'] = false;
         $this->response['error'] = 'WRONG HTTP Request method.';

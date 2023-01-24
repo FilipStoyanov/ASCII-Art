@@ -103,21 +103,29 @@ function listFellows(searchFollowers) {
 }
 
 
-function sendRequest(url, options, successCallback, errorCallback) {
+function sendRequestWithHeaders(url, options, successCallback, errorCallback) {
+  let token = getCookie("token");
   var request = new XMLHttpRequest();
-  
+
+
   request.onload = function () {
-    var response = JSON.parse(request.responseText);
+      console.log(request.responseText);
+      var response = JSON.parse(request.responseText);
+      if (request.status === 200 && response['success']) {
+          setCookie('token', response["token"], 1);
+          successCallback(response);
+      } else {
+          errorCallback(response);
+      }
+  };
 
-    if (request.status === 200 && response['success']) {
-      successCallback(response);
-    } else {
-      errorCallback(response);
-    }
+  request.open(options.method, url, true);
+  console.log('____________' + token);
+  request.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+  request.setRequestHeader("Accept", "application/json");
+  if (token) {
+      request.setRequestHeader("Authorization", "Bearer "+token);
   }
-
-  request.open(options.method, url, false);
-  request.setRequestHeader('Content-Type', 'application/json');
   request.send(options.data);
 }
 
