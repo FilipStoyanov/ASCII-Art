@@ -307,7 +307,7 @@ class AsciiEditor
             }
             try {
                 $picture = $this->connection->getUserPictures(["owner" => $owner, "user" => $user, 'page' => $page, 'limit' => $limit]);
-                return json_encode(["success" => true, 'pictures' => $picture]);
+                return json_encode(["success" => true, 'pictures' => $picture,'token'=>$verifiedToken]);
             } catch (Exception $e) {
                 $response['success'] = false;
                 $response['error_message'] = $e->getMessage();
@@ -332,10 +332,12 @@ class AsciiEditor
                 header('HTTP/1.0 401 Unauthorized');
                 return json_encode(["success" => false, "error" => "Invalid token"]);
             }
-            if (!array_key_exists('user', $verifiedToken) || $verifiedToken['user'] == null) {
-                return json_encode(["success" => false, "error" => "Invalid user id"]);
+            $jwtUser = JWT::fetchUserFromJWT($authHeader);
+            $user = $jwtUser['id'];
+            if ($user == null) {
+                return json_encode(['success' => false, 'errors' => 'User is not chosen.']);
             }
-            $user = $verifiedToken['user'];
+
             if (!array_key_exists('page', $pathParameters) || $pathParameters['page'] == null) {
                 $page = null;
                 $limit = null;
@@ -355,7 +357,7 @@ class AsciiEditor
             }
             try {
                 $picture = $this->connection->getAllFriendsPictures(["user" => $user, 'page' => $page, 'limit' => $limit]);
-                return json_encode(["success" => true, 'pictures' => $picture]);
+                return json_encode(["success" => true, 'pictures' => $picture,'token'=>$verifiedToken]);
             } catch (Exception $e) {
                 $response['success'] = false;
                 $response['error'] = $e->getMessage();

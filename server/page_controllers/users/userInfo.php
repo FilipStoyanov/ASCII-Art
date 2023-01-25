@@ -62,7 +62,7 @@ class UserInfo
 
             $response['user'] = $this->dropSensitiveInformation($user);
             $response['success'] = true;
-            return json_encode($response);
+            return json_encode(['success'=>true,'users'=>$this->dropSensitiveInformation($user),'token'=>$verifiedToken]);
         }
         $this->response['status'] = 'fail';
         $this->response['error'] = 'WRONG HTTP Request method.';

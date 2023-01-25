@@ -52,8 +52,7 @@ class Fellow
             }
             try {
                 $update($user, $follower);
-                $this->response['success'] = true;
-                return json_encode(['success'=>true,'token'=>JWT::generateToken($_SESSION['user'])]);
+                return json_encode(['success'=>true,'token'=>$verifiedToken]);
             } catch (Exception $e) {
                 $this->response['success'] = false;
                 $this->response['error'] = $e->getMessage();
@@ -78,12 +77,6 @@ class Fellow
             return json_encode(["success" => false, "error" => "Expired token"]);
         }
         if ($_SERVER['REQUEST_METHOD'] == 'GET') {
-            $data = (array) json_decode(file_get_contents('php://input'), JSON_UNESCAPED_UNICODE);
-            if (!array_key_exists('follower', $data) || $data['follower'] == null) {
-                $this->response['success'] = false;
-                $this->response['error'] = 'Follower is not chosen.';
-                return json_encode($this->response);
-            }
             $jwtUser = JWT::fetchUserFromJWT($authHeader);
             $user = $jwtUser['id'];
             if ($user == null) {
@@ -134,7 +127,7 @@ class Fellow
             $fellows = array_map(function ($v) {
                 return $this->dropSensitiveInformation($v);
             }, $fellows);
-            return json_encode([$search_key=>$fellows,'success'=>true,'token'=>JWT::generateToken($_SESSION['user'])]);
+            return json_encode([$search_key=>$fellows,'success'=>true,'token'=>$verifiedToken]);
         }
         $this->response['success'] = false;
         $this->response['error'] = 'WRONG HTTP Request method.';

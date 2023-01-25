@@ -188,7 +188,7 @@ class AsciiVideoEditor
                     $query["data"][$i]["frames"] = $unserialised_frames;
                 }
 
-                return json_encode(['success'=>true,"data" => $query['data'],'token'=>JWT::generateToken($_SESSION['user'])]);
+                return json_encode(['success'=>true,"data" => $query['data'],'token'=>$verifiedToken]);
             }
             return json_encode([
                 "success" => false,
@@ -249,7 +249,6 @@ class AsciiVideoEditor
                 return json_encode($this->response);
             }
 
-            $user = $pathParameters['user'];
             if (!is_int($user)) {
                 $user = (int) $user;
             }
@@ -266,7 +265,7 @@ class AsciiVideoEditor
                     $videos[$i]['data']["frames"] = $unserialised_frames;
                 }
 
-                return json_encode(["success" => true, 'data' => $videos]);
+                return json_encode(["success" => true, 'data' => $videos,'token'=>$verifiedToken]);
             } catch (Exception $e) {
                 $this->response['success'] = false;
                 $this->response['error'] = $e->getMessage();

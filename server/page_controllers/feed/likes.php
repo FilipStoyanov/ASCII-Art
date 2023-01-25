@@ -61,7 +61,7 @@ class Likes
             }
             try {
                 $update($user, $picture);
-                return json_encode(['success'=>true,'token'=>JWT::generateToken($_SESSION['user'])]);
+                return json_encode(['success'=>true,'token'=>$verifiedToken]);
             } catch (Exception $e) {
                 $this->response['success'] = false;
                 $this->response['error'] = $e->getMessage();

@@ -81,9 +81,7 @@ class Users
             $users = array_map(function ($v) {
                 return $this->dropSensitiveInformation($v);
             }, $users);
-            $response['users'] = $users;
-            $response['success'] = true;
-            return json_encode($response);
+            return json_encode(['success'=>true,'users'=>$users,'token'=>$verifiedToken]);
         }
         $this->response['success'] = false;
         $this->response['error'] = 'WRONG HTTP Request method.';

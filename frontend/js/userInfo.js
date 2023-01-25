@@ -9,7 +9,7 @@ window.addEventListener("load", (event) => {
     getUserInfo();
 });
 function openTab(event, sectionName) {
-    if (sessionStorage.getItem('user')===null && sessionStorage.getItem('owner')===null) {
+    if (sessionStorage.getItem('owner')===null && getCookie('token')===null) {
         errorMsg.style.display = "block";
         errorMsg.innerHTML = 'User is not chosen or there is an error with the permissions.';
         return;
@@ -78,7 +78,7 @@ var wrapper = document.getElementsByClassName("wrapper")[0];
 // get all ascii pictures by owner_id
 function getAllAsciiPictures() {
     sendRequestWithHeaders(
-        allPicturesUrl + `?owner=${sessionStorage.getItem('owner')}&&user=${sessionStorage.getItem('user')}&&page=${sessionStorage.getItem('page')}`,
+        allPicturesUrl + `?owner=${sessionStorage.getItem('owner')}&&page=${sessionStorage.getItem('page')}`,
         { method: "GET", data: '' },
         displayAsciiPictures,
         handleError,
@@ -187,7 +187,7 @@ function addLikeButton(el, pictureId, isLiked, likesCount) {
 
 
 function addLike(pictureId) {
-    var data = { 'user': sessionStorage.getItem('user'), 'picture': pictureId };
+    var data = {  'picture': pictureId };
     sendRequestWithHeaders(`http://localhost:80/project-web-2022/ASCII-Art/server/page_controllers/feed/likes.php`,
         { method: "POST", data: JSON.stringify(data) },
         () => { },
@@ -196,7 +196,7 @@ function addLike(pictureId) {
 }
 
 function deleteLike(pictureId) {
-    var data = { 'user': sessionStorage.getItem('user'), 'picture': pictureId };
+    var data = {  'picture': pictureId };
     sendRequestWithHeaders(`http://localhost:80/project-web-2022/ASCII-Art/server/page_controllers/feed/likes.php`,
         { method: "DELETE", data: JSON.stringify(data) },
         () => { },
@@ -307,7 +307,7 @@ function flushVideos(){
 }
 
 function getUserInfoVideos() {
-    sendRequestWithHeaders(videoEditorUrl+`get-user-videos.php?owner_id=${sessionStorage.getItem('owner')}&&page=${sessionStorage.getItem('page')}`, { method: 'GET', data: "" }, loadUserVideos, handleErrorAscii);
+    sendRequestWithHeaders(videoEditorUrl+`get-user-videos.php?page=${sessionStorage.getItem('page')}`, { method: 'GET', data: "" }, loadUserVideos, handleErrorAscii);
 }
 
 function loadUserVideos(response) {

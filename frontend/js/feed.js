@@ -46,28 +46,28 @@ function getCookie(name) {
 function sendRequestWithHeaders(url, options, successCallback, errorCallback) {
     let token = getCookie("token");
     var request = new XMLHttpRequest();
-
-
+  
     request.onload = function () {
-        console.log(request.responseText);
-        var response = JSON.parse(request.responseText);
-        if (request.status === 200 && response['success']) {
-            setCookie('token', response["token"], 1);
-            successCallback(response);
-        } else {
-            errorCallback(response);
-        }
+      console.log(request.responseText);
+      var response = JSON.parse(request.responseText);
+      if (request.status === 200 && response['success']) {
+        setCookie('token', response["token"], 1);
+        successCallback(response);
+      } else {
+        setCookie('token', token, 1);
+        errorCallback(response);
+      }
     };
-
+  
     request.open(options.method, url, true);
     request.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
     request.setRequestHeader("Accept", "application/json");
     if (token) {
-        request.setRequestHeader("Authorization", "Bearer "+token);
+      request.setRequestHeader("Authorization", "Bearer " + token);
     }
     request.send(options.data);
-}
-
+  }
+  
 function setCookie(name, value, days) {
     var expires = "";
     if (days) {
@@ -323,7 +323,7 @@ function showModalForSeconds(reload = false) {
 }
 
 function getAllFriendsVideos() {
-    sendRequestWithHeaders(videoEditorUrl + `get-videos-feed.php?user=${sessionStorage.getItem('user')}&&page=${sessionStorage.getItem('page')}`, { method: 'GET', data: "" }, loadUserVideos, handleErrorAscii);
+    sendRequestWithHeaders(videoEditorUrl + `get-videos-feed.php?page=${sessionStorage.getItem('page')}`, { method: 'GET', data: "" }, loadUserVideos, handleErrorAscii);
 }
 
 function loadUserVideos(response) {

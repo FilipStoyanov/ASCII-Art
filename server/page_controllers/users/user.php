@@ -14,6 +14,16 @@ class User
 
     public function getUserByName()
     {
+        $authHeader = $_SERVER['HTTP_AUTHORIZATION'] ?? null;
+        if ($authHeader == null) {
+            header('HTTP/1.0 401 Unauthorized');
+            return json_encode(["success" => false, "error" => "No token"]);
+        }
+        $verifiedToken = JWT::verify($authHeader);
+        if ($verifiedToken == null) {
+            header('HTTP/1.0 401 Unauthorized');
+            return json_encode(["success" => false, "error" => "Expired token"]);
+        }
         if ($_SERVER['REQUEST_METHOD'] == 'GET') {
             $url = $_SERVER['REQUEST_URI'];
             $components = parse_url($url);
@@ -24,8 +34,10 @@ class User
                 $this->response['error'] = 'User is not chosen.';
                 return json_encode($this->response);
             }
-            if (!array_key_exists('owner', $pathParameters) || $pathParameters['owner'] == null) {
-                $this->response['status'] = 'fail';
+            $jwtUser = JWT::fetchUserFromJWT($authHeader);
+            $owner = $jwtUser['id'];
+            if ($owner == null) {
+                $this->response['success'] = false;
                 $this->response['error'] = 'Owner is not chosen.';
                 return json_encode($this->response);
             }
@@ -48,7 +60,6 @@ class User
                 return json_encode($this->response);
             }
 
-            $owner = $pathParameters['owner'];
             if (!is_int($owner)) {
                 $owner = (int) $owner;
             }
@@ -89,7 +100,7 @@ class User
             }, $users);
             $response['users'] = $users;
             $response['success'] = true;
-            return json_encode($response);
+            return json_encode(['success'=>true,'users'=>$users,'token'=>$verifiedToken]);
         }
         $this->response['status'] = 'fail';
         $this->response['error'] = 'WRONG HTTP Request method.';
