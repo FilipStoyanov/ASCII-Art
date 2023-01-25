@@ -46,8 +46,8 @@ create table if not exists videos(
     created_at datetime default current_timestamp,
     updated_at datetime default current_timestamp,
     constraint PK_VIDEO primary key (id),
-    constraint UQ_NAME unique(title, owner_id),
-    constraint FK_OWNER foreign key (owner_id) references user(id) on delete cascade
+    constraint UQ_VIDEO_NAME unique(title, owner_id),
+    constraint FK_VIDEO_OWNER foreign key (owner_id) references user(id) on delete cascade
 );
 
 
