@@ -1,5 +1,6 @@
 <?php
 include_once("../../db/db.php");
+include_once("../../jwt/jwt.php");
 class Users
 {
 
@@ -14,13 +15,25 @@ class Users
 
     public function getAllUsers()
     {
+        $authHeader = $_SERVER['HTTP_AUTHORIZATION'] ?? null;
+        if ($authHeader == null) {
+            header('HTTP/1.0 401 Unauthorized');
+            return json_encode(["success" => false, "error" => "No token"]);
+        }
+        $verifiedToken = JWT::verify($authHeader);
+        if ($verifiedToken == null) {
+            header('HTTP/1.0 401 Unauthorized');
+            return json_encode(["success" => false, "error" => "Expired token"]);
+        }
         if ($_SERVER['REQUEST_METHOD'] == 'GET') {
             $url = $_SERVER['REQUEST_URI'];
             $components = parse_url($url);
             parse_str($components['query'], $pathParameters);
 
-            if (!array_key_exists('user', $pathParameters) || $pathParameters['user'] == null) {
-                $this->response['status'] = 'fail';
+            $jwtUser = JWT::fetchUserFromJWT($authHeader);
+            $user = $jwtUser['id'];
+            if ($user == null) {
+                $this->response['success'] = false;
                 $this->response['error'] = 'User is not chosen.';
                 return json_encode($this->response);
             }
@@ -43,9 +56,8 @@ class Users
                 return json_encode($this->response);
             }
 
-            $userId = $pathParameters['user'];
-            if (!is_int($userId)) {
-                $userId = (int) $userId;
+            if (!is_int($user)) {
+                $userId = (int) $user;
             }
 
             try {
@@ -69,9 +81,7 @@ class Users
             $users = array_map(function ($v) {
                 return $this->dropSensitiveInformation($v);
             }, $users);
-            $response['users'] = $users;
-            $response['success'] = true;
-            return json_encode($response);
+            return json_encode(['success'=>true,'users'=>$users,'token'=>$verifiedToken,'user'=> $user]);
         }
         $this->response['success'] = false;
         $this->response['error'] = 'WRONG HTTP Request method.';

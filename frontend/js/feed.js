@@ -32,28 +32,57 @@ function openTab(event, sectionName) {
     getAllFriendsVideos();
 }
 
-
-function sendRequest(url, options, successCallback, errorCallback) {
-    var request = new XMLHttpRequest();
-
-    request.onload = function () {
-        var response = JSON.parse(request.responseText);
-        if (request.status === 200 && response['success']) {
-            successCallback(response);
-        } else {
-            errorCallback(response);
-        }
-    };
-    request.open(options.method, url, true);
-    request.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-    request.send(options.data);
+function getCookie(name) {
+    var nameEQ = name + "=";
+    var ca = document.cookie.split(';');
+    for (var i = 0; i < ca.length; i++) {
+        var c = ca[i];
+        while (c.charAt(0) == ' ') c = c.substring(1, c.length);
+        if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length, c.length);
+    }
+    return null;
 }
 
+function sendRequestWithHeaders(url, options, successCallback, errorCallback) {
+    let token = getCookie("token");
+    var request = new XMLHttpRequest();
+  
+    request.onload = function () {
+      console.log(request.responseText);
+      var response = JSON.parse(request.responseText);
+      if (request.status === 200 && response['success']) {
+        setCookie('token', response["token"], 1);
+        successCallback(response);
+      } else {
+        setCookie('token', token, 1);
+        errorCallback(response);
+      }
+    };
+  
+    request.open(options.method, url, true);
+    request.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+    request.setRequestHeader("Accept", "application/json");
+    if (token) {
+      request.setRequestHeader("Authorization", "Bearer " + token);
+    }
+    request.send(options.data);
+  }
+  
+function setCookie(name, value, days) {
+    var expires = "";
+    if (days) {
+      var date = new Date();
+      date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+      expires = "; expires=" + date.toUTCString();
+    }
+    document.cookie = name + "=" + (value || "") + expires + "; path=/";
+  }
 
 // get all friends' ascii pictures
 function getAllFriendsPictures() {
-    sendRequest(
-        editorUrl + `/getAllFriendsPictures.php?user=${sessionStorage.getItem('user')}&&page=${sessionStorage.getItem('page')}`,
+    sendRequestWithHeaders(
+        // editorUrl + `/getAllFriendsPictures.php?user=${sessionStorage.getItem('user')}&&page=${sessionStorage.getItem('page')}`,
+        editorUrl + `/getAllFriendsPictures.php?page=${sessionStorage.getItem('page')}`,
         { method: "GET", data: '' },
         displayAsciiPictures,
         handleError,
@@ -123,7 +152,7 @@ function handleError(response) {
         showModalForSeconds();
         modalContent.innerHTML = "An error has occurred. Try again."
     } else {
-        document.getElementsByClassName("editor")[0].classList.remove("show-modal");
+        // document.getElementsByClassName("editor")[0].classList.remove("show-modal");
     }
 }
 
@@ -161,7 +190,7 @@ function addLikeButton(el, pictureId, isLiked, likesCount) {
 
 function addLike(pictureId) {
     var data = { 'user': sessionStorage.getItem('user'), 'picture': pictureId };
-    sendRequest(feedUrl + `likes.php`,
+    sendRequestWithHeaders(feedUrl + `likes.php`,
         { method: "POST", data: JSON.stringify(data) },
         () => { },
         handleError,
@@ -170,7 +199,7 @@ function addLike(pictureId) {
 
 function deleteLike(pictureId) {
     var data = { 'user': sessionStorage.getItem('user'), 'picture': pictureId };
-    sendRequest(feedUrl + `likes.php`,
+    sendRequestWithHeaders(feedUrl + `likes.php`,
         { method: "DELETE", data: JSON.stringify(data) },
         () => { },
         handleError,
@@ -294,7 +323,7 @@ function showModalForSeconds(reload = false) {
 }
 
 function getAllFriendsVideos() {
-    sendRequest(videoEditorUrl + `get-videos-feed.php?user=${sessionStorage.getItem('user')}&&page=${sessionStorage.getItem('page')}`, { method: 'GET', data: "" }, loadUserVideos, handleErrorAscii);
+    sendRequestWithHeaders(videoEditorUrl + `get-videos-feed.php?page=${sessionStorage.getItem('page')}`, { method: 'GET', data: "" }, loadUserVideos, handleErrorAscii);
 }
 
 function loadUserVideos(response) {

@@ -6,8 +6,7 @@ function openTab(event, sectionName) {
   setupPages(sectionName);
   var errorMsg = document.getElementById("error-msg");
   errorMsg.style.display = "";
-  var id = document.getElementById("user-id");
-  if (sessionStorage.getItem('user') === null) {
+  if (getCookie('token') === null) {
     errorMsg.style.display = "block";
     errorMsg.innerHTML = 'User is not chosen.';
     return;
@@ -47,7 +46,8 @@ function clearFoundUsers() {
   return table;
 }
 
-function handleListUsers(response, type, userId, listAllUsers) {
+function handleListUsers(response, type, listAllUsers) {
+  let userId = response['user'];
   var tableName = type + '-tb';
   var table = document.getElementById(tableName);
   table.innerHTML = '';
@@ -129,39 +129,64 @@ function modalFunctionality() {
 }
 
 function listUsers() {
-  // var id = document.getElementById("user-id");
-  var url = baseUrl + 'users.php?user=' + sessionStorage.getItem('user') + '&&page=' + sessionStorage.getItem('page');
+  var url = baseUrl + 'users.php?' + '&&page=' + sessionStorage.getItem('page');
   var type = 'users';
-  sendRequest(url, { method: 'GET', data: '' }, (response) => handleListUsers(response, type, sessionStorage.getItem('user'), true), handleErrorUsers);
+  sendRequestWithHeaders(url, { method: 'GET', data: '' }, (response) => handleListUsers(response, type, true), handleErrorUsers);
 }
 
 
 function lookupUser() {
-  // var id = document.getElementById("user-id");
   var name = document.getElementById("user-name");
-  var url = baseUrl + 'user.php?user=' + name.value + '&&page=' + sessionStorage.getItem('page') + '&&owner=' + sessionStorage.getItem('user');
+  var url = baseUrl + 'user.php?user=' + name.value + '&&page=' + sessionStorage.getItem('page');
   var type = 'user-by-name';
-  sendRequest(url, { method: 'GET', data: '' }, (response) => handleListUsers(response, type, sessionStorage.getItem('user'), false), handleErrorUsers);
+  sendRequestWithHeaders(url, { method: 'GET', data: '' }, (response) => handleListUsers(response, type, false), handleErrorUsers);
 }
 
 
+function getCookie(name) {
+  var nameEQ = name + "=";
+  var ca = document.cookie.split(';');
+  for (var i = 0; i < ca.length; i++) {
+    var c = ca[i];
+    while (c.charAt(0) == ' ') c = c.substring(1, c.length);
+    if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length, c.length);
+  }
+  return null;
+}
 
-function sendRequest(url, options, successCallback, errorCallback) {
+function sendRequestWithHeaders(url, options, successCallback, errorCallback) {
+  let token = getCookie("token");
   var request = new XMLHttpRequest();
 
   request.onload = function () {
+    console.log(request.responseText);
     var response = JSON.parse(request.responseText);
-
     if (request.status === 200 && response['success']) {
+      setCookie('token', response["token"], 1);
       successCallback(response);
     } else {
+      setCookie('token', token, 1);
       errorCallback(response);
     }
-  }
+  };
 
-  request.open(options.method, url, false);
-  request.setRequestHeader('Content-Type', 'application/json');
+  request.open(options.method, url, true);
+  request.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+  request.setRequestHeader("Accept", "application/json");
+  if (token) {
+    request.setRequestHeader("Authorization", "Bearer " + token);
+  }
   request.send(options.data);
+}
+
+function setCookie(name, value, days) {
+  var expires = "";
+  if (days) {
+    var date = new Date();
+    date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+    expires = "; expires=" + date.toUTCString();
+  }
+  document.cookie = name + "=" + (value || "") + expires + "; path=/";
 }
 
 function addHeaders(table) {
@@ -178,8 +203,8 @@ function addHeaders(table) {
 function removeFollower(user, follower, listAllUsers) {
   console.log('Delete follower ' + follower + ' from user ' + user);
   var url = baseFollowUrl + 'updateFollower.php';
-  var data = { 'user': user, 'follower': follower };
-  sendRequest(url, { method: 'DELETE', data: JSON.stringify(data) }, (response) => handleUpdateFollower(listAllUsers, response, 'Successfully deleted follower.'), handleErrorUpdateFollower);
+  var data = { 'follower': follower };
+  sendRequestWithHeaders(url, { method: 'DELETE', data: JSON.stringify(data) }, (response) => handleUpdateFollower(listAllUsers, response, 'Successfully deleted follower.'), handleErrorUpdateFollower);
 }
 
 function handleUpdateFollower(listAllUsers, response, msg) {
@@ -245,8 +270,8 @@ function createAddButton(disable, userId, otherId, listAllUsers) {
 function addFollower(user, follower, listAllUsers) {
   console.log('Add follower ' + follower + ' to user ' + user);
   var url = baseFollowUrl + 'updateFollower.php';
-  var data = { 'user': user, 'follower': follower };
-  sendRequest(url, { method: 'POST', data: JSON.stringify(data) }, (response) => handleUpdateFollower(listAllUsers, response, 'Successfully added follower.'), handleErrorUpdateFollower);
+  var data = { 'follower': follower };
+  sendRequestWithHeaders(url, { method: 'POST', data: JSON.stringify(data) }, (response) => handleUpdateFollower(listAllUsers, response, 'Successfully added follower.'), handleErrorUpdateFollower);
 }
 
 

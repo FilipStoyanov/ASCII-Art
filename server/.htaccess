@@ -1,0 +1,3 @@
+# Enable the mod_headers module
+RewriteEngine On
+RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization},L]

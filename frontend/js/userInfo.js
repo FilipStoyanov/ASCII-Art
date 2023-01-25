@@ -9,11 +9,11 @@ window.addEventListener("load", (event) => {
     getUserInfo();
 });
 function openTab(event, sectionName) {
-    if (sessionStorage.getItem('user')===null && sessionStorage.getItem('owner')===null) {
+    if (sessionStorage.getItem('owner') === null && getCookie('token') === null) {
         errorMsg.style.display = "block";
         errorMsg.innerHTML = 'User is not chosen or there is an error with the permissions.';
         return;
-      }
+    }
     var errorMsg = document.getElementById("error-msg");
     errorMsg.style.display = "";
 
@@ -39,9 +39,56 @@ function openTab(event, sectionName) {
 }
 
 
+function getCookie(name) {
+    var nameEQ = name + "=";
+    var ca = document.cookie.split(';');
+    for (var i = 0; i < ca.length; i++) {
+        var c = ca[i];
+        while (c.charAt(0) == ' ') c = c.substring(1, c.length);
+        if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length, c.length);
+    }
+    return null;
+}
+
+function sendRequestWithHeaders(url, options, successCallback, errorCallback) {
+    let token = getCookie("token");
+    console.log(token);
+    var request = new XMLHttpRequest();
+
+    request.onload = function () {
+        console.log(request.responseText);
+        var response = JSON.parse(request.responseText);
+        if (request.status === 200 && response['success']) {
+            setCookie('token', response["token"], 1);
+            successCallback(response);
+        } else {
+            setCookie('token', token, 1);
+            errorCallback(response);
+        }
+    };
+
+    request.open(options.method, url, true);
+    request.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+    request.setRequestHeader("Accept", "application/json");
+    if (token) {
+        request.setRequestHeader("Authorization", "Bearer " + token);
+    }
+    request.send(options.data);
+}
+
+function setCookie(name, value, days) {
+    var expires = "";
+    if (days) {
+        var date = new Date();
+        date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+        expires = "; expires=" + date.toUTCString();
+    }
+    document.cookie = name + "=" + (value || "") + expires + "; path=/";
+}
+
 function getUserInfo() {
     var url = userInfoUrl + '?user=' + sessionStorage.getItem('owner');
-    sendRequest(url, { method: 'GET', data: '' }, handleUserInfo, handleErrorUserInfo);
+    sendRequestWithHeaders(url, { method: 'GET', data: '' }, handleUserInfo, handleErrorUserInfo);
 }
 
 
@@ -58,27 +105,27 @@ function handleErrorUserInfo(response) {
 
 
 var wrapper = document.getElementsByClassName("wrapper")[0];
-function sendRequest(url, options, successCallback, errorCallback) {
-    var request = new XMLHttpRequest();
+// function sendRequest(url, options, successCallback, errorCallback) {
+//     var request = new XMLHttpRequest();
 
-    request.onload = function () {
-        var response = JSON.parse(request.responseText);
-        if (request.status === 200 && response['success']) {
-            successCallback(response);
-        } else {
-            errorCallback(response);
-        }
-    };
-    request.open(options.method, url, true);
-    request.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-    request.send(options.data);
-}
+//     request.onload = function () {
+//         var response = JSON.parse(request.responseText);
+//         if (request.status === 200 && response['success']) {
+//             successCallback(response);
+//         } else {
+//             errorCallback(response);
+//         }
+//     };
+//     request.open(options.method, url, true);
+//     request.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+//     request.send(options.data);
+// }
 
 
 // get all ascii pictures by owner_id
 function getAllAsciiPictures() {
-    sendRequest(
-        allPicturesUrl + `?owner=${sessionStorage.getItem('owner')}&&user=${sessionStorage.getItem('user')}&&page=${sessionStorage.getItem('page')}`,
+    sendRequestWithHeaders(
+        allPicturesUrl + `?owner=${sessionStorage.getItem('owner')}&&page=${sessionStorage.getItem('page')}`,
         { method: "GET", data: '' },
         displayAsciiPictures,
         handleError,
@@ -187,8 +234,8 @@ function addLikeButton(el, pictureId, isLiked, likesCount) {
 
 
 function addLike(pictureId) {
-    var data = { 'user': sessionStorage.getItem('user'), 'picture': pictureId };
-    sendRequest(`http://localhost:80/project-web-2022/ASCII-Art/server/page_controllers/feed/likes.php`,
+    var data = { 'picture': pictureId };
+    sendRequestWithHeaders(`http://localhost:80/project-web-2022/ASCII-Art/server/page_controllers/feed/likes.php`,
         { method: "POST", data: JSON.stringify(data) },
         () => { },
         handleError,
@@ -196,8 +243,8 @@ function addLike(pictureId) {
 }
 
 function deleteLike(pictureId) {
-    var data = { 'user': sessionStorage.getItem('user'), 'picture': pictureId };
-    sendRequest(`http://localhost:80/project-web-2022/ASCII-Art/server/page_controllers/feed/likes.php`,
+    var data = { 'picture': pictureId };
+    sendRequestWithHeaders(`http://localhost:80/project-web-2022/ASCII-Art/server/page_controllers/feed/likes.php`,
         { method: "DELETE", data: JSON.stringify(data) },
         () => { },
         handleError,
@@ -296,18 +343,18 @@ function flush() {
     }
 }
 
-function flushVideos(){
+function flushVideos() {
     let videos = sessionStorage.getItem('videos');
     for (let index = 0; index < videos.length; index++) {
         clearTimeout(videos[index].timer);
         videos[index].current = 0;
     }
-    sessionStorage.setItem('videos',[]);
+    sessionStorage.setItem('videos', []);
     loaded_videos = [];
 }
 
 function getUserInfoVideos() {
-    sendRequest(videoEditorUrl+`get-user-videos.php?owner_id=${sessionStorage.getItem('owner')}&&page=${sessionStorage.getItem('page')}`, { method: 'GET', data: "" }, loadUserVideos, handleErrorAscii);
+    sendRequestWithHeaders(videoEditorUrl + `get-user-videos.php?owner_id=${sessionStorage.getItem('owner')}&&page=${sessionStorage.getItem('page')}`, { method: 'GET', data: "" }, loadUserVideos, handleErrorAscii);
 }
 
 function loadUserVideos(response) {
@@ -335,7 +382,7 @@ function loadUserVideos(response) {
             loaded_videos.push(new_video);
             loaded_videos[i].play();
         }
-        sessionStorage.setItem('videos',loaded_videos);
+        sessionStorage.setItem('videos', loaded_videos);
     }
 }
 

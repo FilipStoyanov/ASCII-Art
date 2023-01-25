@@ -99,26 +99,55 @@ function listFellows(searchFollowers) {
     type = 'followings';
   }
   url += '?user=' + userId + '&&page=' + sessionStorage.getItem("page");
-  sendRequest(url, { method: 'GET', data: '' }, (response) => (handleListFellows(response, type, userId)), handleErrorFollowers);
+  sendRequestWithHeaders(url, { method: 'GET', data: '' }, (response) => (handleListFellows(response, type, userId)), handleErrorFollowers);
 }
 
 
-function sendRequest(url, options, successCallback, errorCallback) {
+
+function getCookie(name) {
+  var nameEQ = name + "=";
+  var ca = document.cookie.split(';');
+  for (var i = 0; i < ca.length; i++) {
+      var c = ca[i];
+      while (c.charAt(0) == ' ') c = c.substring(1, c.length);
+      if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length, c.length);
+  }
+  return null;
+}
+
+function sendRequestWithHeaders(url, options, successCallback, errorCallback) {
+  let token = getCookie("token");
   var request = new XMLHttpRequest();
 
   request.onload = function () {
+    console.log(request.responseText);
     var response = JSON.parse(request.responseText);
-
     if (request.status === 200 && response['success']) {
+      setCookie('token', response["token"], 1);
       successCallback(response);
     } else {
+      setCookie('token', token, 1);
       errorCallback(response);
     }
-  }
+  };
 
-  request.open(options.method, url, false);
-  request.setRequestHeader('Content-Type', 'application/json');
+  request.open(options.method, url, true);
+  request.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+  request.setRequestHeader("Accept", "application/json");
+  if (token) {
+    request.setRequestHeader("Authorization", "Bearer " + token);
+  }
   request.send(options.data);
+}
+
+function setCookie(name, value, days) {
+  var expires = "";
+  if (days) {
+    var date = new Date();
+    date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+    expires = "; expires=" + date.toUTCString();
+  }
+  document.cookie = name + "=" + (value || "") + expires + "; path=/";
 }
 
 function addHeaders(table) {
@@ -136,7 +165,7 @@ function removeFollower(user, follower, changeFollowersTable) {
   console.log('Delete follower ' + follower + ' from user ' + user);
   var url = baseUrl + 'updateFollower.php';
   var data = { 'user': user, 'follower': follower };
-  sendRequest(url, { method: 'DELETE', data: JSON.stringify(data) }, (response) => handleRemoveFollower(response, changeFollowersTable), handleErrorRemoveFollower);
+  sendRequestWithHeaders(url, { method: 'DELETE', data: JSON.stringify(data) }, (response) => handleRemoveFollower(response, changeFollowersTable), handleErrorRemoveFollower);
 }
 
 function handleRemoveFollower(response, searchFollowers) {

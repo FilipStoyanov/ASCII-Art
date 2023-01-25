@@ -1,5 +1,6 @@
 <?php
 include_once("../db/db.php");
+include_once("../jwt/jwt.php");
 class SignIn
 {
 
@@ -36,11 +37,12 @@ class SignIn
             if ($this->errors['success']) {
                 session_start();
                 $hash = sha1($password);
-                $_SESSION['user'] = $username;
                 $query = $this->connection->insertNewUser(["username" => $username, "password" => $hash]);
+                $userId = $this->connection->getLastInsertedId();
+                $_SESSION['user'] = $userId;
 
                 if ($query["success"]) {
-                    echo json_encode(["success" => true, "message" => "User created"]);
+                    echo json_encode(["success" => true, "message" => "User created", "token"=> JWT::generateToken($_SESSION['user'])]);
                 } else {
                     echo json_encode(["success" => false, "errors" => $query["error"], "code" => $query["code"], "message" => "User already exists"]);
                 }

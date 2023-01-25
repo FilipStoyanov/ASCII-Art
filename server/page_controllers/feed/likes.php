@@ -1,6 +1,6 @@
 <?php
 include_once("../../db/db.php");
-
+include_once("../../jwt/jwt.php");
 class Likes
 {
 
@@ -23,6 +23,16 @@ class Likes
 
     public function updateLikes($request_type, $update)
     {
+        $authHeader = $_SERVER['HTTP_AUTHORIZATION'] ?? null;
+        if ($authHeader == null) {
+            header('HTTP/1.0 401 Unauthorized');
+            return json_encode(["success" => false, "error" => "No token"]);
+        }
+        $verifiedToken = JWT::verify($authHeader);
+        if ($verifiedToken == null) {
+            header('HTTP/1.0 401 Unauthorized');
+            return json_encode(["success" => false, "error" => "Expired token"]);
+        }
         if ($_SERVER['REQUEST_METHOD'] == $request_type) {
             $data = (array) json_decode(file_get_contents('php://input'), JSON_UNESCAPED_UNICODE);
             if (!array_key_exists('picture', $data) || $data['picture'] == null) {
@@ -30,13 +40,13 @@ class Likes
                 $this->response['error'] = 'Picture is not chosen.';
                 return json_encode($this->response);
             }
-            if (!array_key_exists('user', $data) || $data['user'] == null) {
+            $jwtUser = JWT::fetchUserFromJWT($authHeader);
+            $user = $jwtUser['id'];
+            if ($user == null) {
                 $this->response['success'] = false;
                 $this->response['error'] = 'User is not chosen.';
                 return json_encode($this->response);
             }
-
-            $user = $data['user'];
             $picture = $data['picture'];
             if (!is_int($user)) {
                 $user = (int) $user;
@@ -51,8 +61,7 @@ class Likes
             }
             try {
                 $update($user, $picture);
-                $this->response['success'] = true;
-                return json_encode($this->response);
+                return json_encode(['success'=>true,'token'=>$verifiedToken]);
             } catch (Exception $e) {
                 $this->response['success'] = false;
                 $this->response['error'] = $e->getMessage();

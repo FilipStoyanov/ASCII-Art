@@ -1,5 +1,6 @@
 <?php
 include_once("../db/db.php");
+include_once("../jwt/jwt.php");
 class Login
 {
 
@@ -35,12 +36,12 @@ class Login
             if ($this->errors['success']) {
                 session_start();
                 $hash = sha1($password);
-                $_SESSION['user'] = $username;
-
                 $query = $this->connection->getUserByUsernameAndPassword(["username" => $username, "password" => $hash]);
+                $_SESSION['user'] = $query['user'];
+                $userRole = $query['user_role'];
 
                 if ($query["success"]) {
-                    echo json_encode(["success" => true, "message" => "Logged in"]);
+                    echo json_encode(["success" => true, "message" => "Logged in", "token"=> JWT::generateToken($_SESSION['user'], $userRole)]);
                 } else {
                     echo json_encode(["success" => false, "errors" => $query["error"], "code" => $query["code"], "message" => "Wrong username or password"]);
                 }

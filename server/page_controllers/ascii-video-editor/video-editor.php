@@ -1,5 +1,6 @@
 <?php
 include_once("../../db/db.php");
+include_once("../../jwt/jwt.php");
 class AsciiVideoEditor
 {
 
@@ -134,11 +135,21 @@ class AsciiVideoEditor
 
     public function get_user_videos()
     {
+        $authHeader = $_SERVER['HTTP_AUTHORIZATION'] ?? null;
+        if ($authHeader == null) {
+            header('HTTP/1.0 401 Unauthorized');
+            return json_encode(["success" => false, "error" => "No token"]);
+        }
+        $verifiedToken = JWT::verify($authHeader);
+        if ($verifiedToken == null) {
+            header('HTTP/1.0 401 Unauthorized');
+            return json_encode(["success" => false, "error" => "Expired token"]);
+        }
         if ($_SERVER['REQUEST_METHOD'] == 'GET') {
             $url = $_SERVER['REQUEST_URI'];
             $components = parse_url($url);
             parse_str($components['query'], $pathParameters);
-    
+
             if (!array_key_exists('page', $pathParameters) || $pathParameters['page'] == null) {
                 $page = null;
                 $limit = null;
@@ -178,7 +189,7 @@ class AsciiVideoEditor
                     $query["data"][$i]["frames"] = $unserialised_frames;
                 }
 
-                return json_encode(["success" => true, "data" => $query['data']]);
+                return json_encode(['success'=>true,"data" => $query['data'],'token'=>$verifiedToken]);
             }
             return json_encode([
                 "success" => false,
@@ -198,12 +209,24 @@ class AsciiVideoEditor
 
     public function get_videos_feed()
     {
+        $authHeader = $_SERVER['HTTP_AUTHORIZATION'] ?? null;
+        if ($authHeader == null) {
+            header('HTTP/1.0 401 Unauthorized');
+            return json_encode(["success" => false, "error" => "No token"]);
+        }
+        $verifiedToken = JWT::verify($authHeader);
+        if ($verifiedToken == null) {
+            header('HTTP/1.0 401 Unauthorized');
+            return json_encode(["success" => false, "error" => "Expired token"]);
+        }
         if ($_SERVER['REQUEST_METHOD'] == 'GET') {
             $url = $_SERVER['REQUEST_URI'];
             $components = parse_url($url);
             parse_str($components['query'], $pathParameters);
 
-            if (!array_key_exists('user', $pathParameters) || $pathParameters['user'] == null) {
+            $jwtUser = JWT::fetchUserFromJWT($authHeader);
+            $user = $jwtUser['id'];
+            if ($user == null) {
                 $this->response['success'] = false;
                 $this->response['error'] = 'User is not chosen.';
                 return json_encode($this->response);
@@ -227,7 +250,6 @@ class AsciiVideoEditor
                 return json_encode($this->response);
             }
 
-            $user = $pathParameters['user'];
             if (!is_int($user)) {
                 $user = (int) $user;
             }
@@ -239,12 +261,12 @@ class AsciiVideoEditor
 
             try {
                 $videos = $this->connection->getFriendsVideos(['user' => $user, 'page' => $page, 'limit' => $limit]);
-                for ($i = 0; $i < count( $videos); $i++) {
-                    $unserialised_frames = unserialize( $videos[$i]['data']["frames"]);
+                for ($i = 0; $i < count($videos); $i++) {
+                    $unserialised_frames = unserialize($videos[$i]['data']["frames"]);
                     $videos[$i]['data']["frames"] = $unserialised_frames;
                 }
 
-                return json_encode(["success" => true, 'data' => $videos]);
+                return json_encode(["success" => true, 'data' => $videos,'token'=>$verifiedToken]);
             } catch (Exception $e) {
                 $this->response['success'] = false;
                 $this->response['error'] = $e->getMessage();
@@ -311,6 +333,16 @@ class AsciiVideoEditor
 
     public function get_videos()
     {
+        $authHeader = $_SERVER['HTTP_AUTHORIZATION'] ?? null;
+        if ($authHeader == null) {
+            header('HTTP/1.0 401 Unauthorized');
+            return json_encode(["success" => false, "error" => "No token"]);
+        }
+        $verifiedToken = JWT::verify($authHeader);
+        if ($verifiedToken == null) {
+            header('HTTP/1.0 403 Unauthorized');
+            return json_encode(["success" => false, "error" => "Expired token"]);
+        }
         if ($_SERVER['REQUEST_METHOD'] == 'GET') {
             $url = $_SERVER['REQUEST_URI'];
             $components = parse_url($url);
