@@ -46,7 +46,8 @@ function clearFoundUsers() {
   return table;
 }
 
-function handleListUsers(response, type, userId, listAllUsers) {
+function handleListUsers(response, type, listAllUsers) {
+  let userId = response['user'];
   var tableName = type + '-tb';
   var table = document.getElementById(tableName);
   table.innerHTML = '';
@@ -128,19 +129,17 @@ function modalFunctionality() {
 }
 
 function listUsers() {
-  // var id = document.getElementById("user-id");
   var url = baseUrl + 'users.php?' + '&&page=' + sessionStorage.getItem('page');
   var type = 'users';
-  sendRequestWithHeaders(url, { method: 'GET', data: '' }, (response) => handleListUsers(response, type, sessionStorage.getItem('user'), true), handleErrorUsers);
+  sendRequestWithHeaders(url, { method: 'GET', data: '' }, (response) => handleListUsers(response, type, true), handleErrorUsers);
 }
 
 
 function lookupUser() {
-  // var id = document.getElementById("user-id");
   var name = document.getElementById("user-name");
   var url = baseUrl + 'user.php?user=' + name.value + '&&page=' + sessionStorage.getItem('page');
   var type = 'user-by-name';
-  sendRequestWithHeaders(url, { method: 'GET', data: '' }, (response) => handleListUsers(response, type, sessionStorage.getItem('user'), false), handleErrorUsers);
+  sendRequestWithHeaders(url, { method: 'GET', data: '' }, (response) => handleListUsers(response, type, false), handleErrorUsers);
 }
 
 
@@ -204,7 +203,7 @@ function addHeaders(table) {
 function removeFollower(user, follower, listAllUsers) {
   console.log('Delete follower ' + follower + ' from user ' + user);
   var url = baseFollowUrl + 'updateFollower.php';
-  var data = { 'user': user, 'follower': follower };
+  var data = { 'follower': follower };
   sendRequestWithHeaders(url, { method: 'DELETE', data: JSON.stringify(data) }, (response) => handleUpdateFollower(listAllUsers, response, 'Successfully deleted follower.'), handleErrorUpdateFollower);
 }
 
@@ -271,7 +270,7 @@ function createAddButton(disable, userId, otherId, listAllUsers) {
 function addFollower(user, follower, listAllUsers) {
   console.log('Add follower ' + follower + ' to user ' + user);
   var url = baseFollowUrl + 'updateFollower.php';
-  var data = { 'user': user, 'follower': follower };
+  var data = { 'follower': follower };
   sendRequestWithHeaders(url, { method: 'POST', data: JSON.stringify(data) }, (response) => handleUpdateFollower(listAllUsers, response, 'Successfully added follower.'), handleErrorUpdateFollower);
 }
 

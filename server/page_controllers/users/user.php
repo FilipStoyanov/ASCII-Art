@@ -100,7 +100,7 @@ class User
             }, $users);
             $response['users'] = $users;
             $response['success'] = true;
-            return json_encode(['success'=>true,'users'=>$users,'token'=>$verifiedToken]);
+            return json_encode(['success'=>true,'users'=>$users,'token'=>$verifiedToken,'user'=> $owner]);
         }
         $this->response['status'] = 'fail';
         $this->response['error'] = 'WRONG HTTP Request method.';
