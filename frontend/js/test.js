@@ -1,3 +1,4 @@
+const BASE_URL = "../../server/page_controllers/ascii-editor/";
 var wrapper = document.getElementsByClassName("wrapper")[0];
 function sendRequest(url, options, successCallback, errorCallback) {
     var request = new XMLHttpRequest();
@@ -21,7 +22,7 @@ function sendRequest(url, options, successCallback, errorCallback) {
 // get one ascii picture by owner_id and name
 function getAsciiText (ownerId, name) {
     sendRequest(
-        `http://localhost:80/project-web-2022/ASCII-Art/server/page_controllers/ascii-editor/getAsciiPicture.php?user=${ownerId}&name=${name}`,
+        `${BASE_URL}getAsciiPicture.php?user=${ownerId}&name=${name}`,
         { method: "GET", data: '' },
         displayAsciiPictures,
         handleError,
@@ -31,7 +32,7 @@ function getAsciiText (ownerId, name) {
 // get all ascii pictures by owner_id
 function getAllAsciiPictures(ownerId) {
     sendRequest(
-        `http://localhost:80/project-web-2022/ASCII-Art/server/page_controllers/ascii-editor/getAllPictures.php?user=${ownerId}`,
+        `${BASE_URL}getAllPictures.php?user=${ownerId}`,
         { method: "GET", data: '' },
         displayAsciiPictures,
         handleError,
@@ -41,7 +42,7 @@ function getAllAsciiPictures(ownerId) {
 // get all friends' ascii pictures
 function getAllFriendsPictures(ownerId, page, pageSize) {
     sendRequest(
-        `../../server/page_controllers/ascii-editor/getAllFriendsPictures.php?user=${ownerId}&page=${page}&pageSize=${pageSize}`,
+        `${BASE_URL}getAllFriendsPictures.php?user=${ownerId}&page=${page}&pageSize=${pageSize}`,
         { method: "GET", data: '' },
         displayAsciiPictures,
         handleError,

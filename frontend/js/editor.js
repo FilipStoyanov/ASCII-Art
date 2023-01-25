@@ -1,3 +1,4 @@
+const BASE_URL = "../../server/page_controllers/ascii-editor/";
 var canvas = document.querySelector("#drawer");
 var context = canvas.getContext("2d");
 let CELL_SIZE = 20;
@@ -15,7 +16,7 @@ var drawField = document.getElementsByClassName("draw-field")[0];
 var toggleButtonForColors = document.getElementsByClassName("color-btn")[0];
 var selectFromAsciiNames = document.getElementsByClassName("menu-select")[0];
 var deleteBtn = document.getElementsByClassName("delete-ascii")[0];
-var pageUrl = new URL("http://localhost/project-web-2022/ASCII-Art/frontend/html/editor.html");
+var pageUrl = new URL("http://localhost/ASCII-Art/frontend/html/editor.html");
 
 var updateNameInput = document.getElementById("name-update");
 var selectedAsciiFile;
@@ -222,7 +223,7 @@ function removeAsciiPicture(name) {
     data["owner_id"] = 1;
     data["name"] = name;
     sendRequest(
-        "http://localhost/project-web-2022/ASCII-Art/server/page_controllers/ascii-editor/deleteAsciiPicture.php",
+        `${BASE_URL}deleteAsciiPicture.php`,
         { method: "DELETE", data: JSON.stringify(data) },
         deleteAsciiPicture,
         handleErrorAscii,
@@ -249,7 +250,7 @@ function getAsciiPicture(value) {
     data["owner_id"] = 1;
     data["name"] = value;
     sendRequest(
-        `http://localhost/project-web-2022/ASCII-Art/server/page_controllers/ascii-editor/getAsciiPicture.php?user=${data['owner_id']}&name=${data['name']}`,
+        `${BASE_URL}getAsciiPicture.php?user=${data['owner_id']}&name=${data['name']}`,
         { method: "GET", data: '' },
         loadAsciiPicture,
         handleErrorAscii,
@@ -311,7 +312,7 @@ function loadAllAsciiPictures() {
     // data["owner_id"] = 1;
     const userId = 1;
     sendRequest(
-        "http://localhost/project-web-2022/ASCII-Art/server/page_controllers/ascii-editor/getAsciiNames.php?user=" + userId,
+        `${BASE_URL}getAsciiNames.php?user=${userId}`,
         { method: "GET", data: '' },
         addOptionsToSelect,
         handleErrorAscii
@@ -647,7 +648,7 @@ function saveAsciiPicture() {
             data["color"] = chosenColor;
             event.preventDefault();
             sendRequest(
-                "http://localhost:80/project-web-2022/ASCII-Art/server/page_controllers/ascii-editor/addAsciiPicture.php",
+                `${BASE_URL}addAsciiPicture.php`,
                 { method: "POST", data: `data=${JSON.stringify(data)}` },
                 addedSuccessfully,
                 handleErrorAscii
@@ -684,7 +685,7 @@ function updateAsciiPicture() {
             data["previous_name"] = document.getElementsByClassName("menu-select")[0].value;
             event.preventDefault();
             sendRequest(
-                "http://localhost/project-web-2022/ASCII-Art/server/page_controllers/ascii-editor/updateAsciiPicture.php",
+                `${BASE_URL}updateAsciiPicture.php`,
                 { method: "PUT", data: JSON.stringify(data) },
                 updatedSuccessfully,
                 handleErrorAscii
