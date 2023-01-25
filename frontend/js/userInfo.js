@@ -52,6 +52,7 @@ function getCookie(name) {
 
 function sendRequestWithHeaders(url, options, successCallback, errorCallback) {
     let token = getCookie("token");
+    console.log(token);
     var request = new XMLHttpRequest();
 
     request.onload = function () {
@@ -353,7 +354,7 @@ function flushVideos() {
 }
 
 function getUserInfoVideos() {
-    sendRequestWithHeaders(videoEditorUrl + `get-user-videos.php?page=${sessionStorage.getItem('page')}`, { method: 'GET', data: "" }, loadUserVideos, handleErrorAscii);
+    sendRequestWithHeaders(videoEditorUrl + `get-user-videos.php?owner_id=${sessionStorage.getItem('owner')}&&page=${sessionStorage.getItem('page')}`, { method: 'GET', data: "" }, loadUserVideos, handleErrorAscii);
 }
 
 function loadUserVideos(response) {
