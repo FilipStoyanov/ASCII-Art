@@ -34,6 +34,10 @@ body {
     padding: 20px;
 }
 
+.error-msg, .error-username, .error-password {
+    color: var(--error);
+}
+
 .signin-label,
 .login-label {
     margin-bottom: 5px;

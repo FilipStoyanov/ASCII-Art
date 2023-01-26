@@ -42,7 +42,7 @@ class SignIn
                 $_SESSION['user'] = $userId;
 
                 if ($query["success"]) {
-                    echo json_encode(["success" => true, "message" => "User created", "token"=> JWT::generateToken($_SESSION['user'])]);
+                    echo json_encode(["success" => true, "message" => "User created", "token"=> JWT::generateToken($_SESSION['user']), "username" => $username]);
                 } else {
                     echo json_encode(["success" => false, "errors" => $query["error"], "code" => $query["code"], "message" => "User already exists"]);
                 }

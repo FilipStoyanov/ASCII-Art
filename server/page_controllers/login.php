@@ -22,6 +22,7 @@ class Login
             $this->errors['success'] = true;
         } else {
             $this->errors['success'] = false;
+            $this->errors['message'] = "Invalid username or password";
         }
     }
 
@@ -35,13 +36,15 @@ class Login
             $this->validateLoginForm($username, $password);
             if ($this->errors['success']) {
                 session_start();
-                $hash = sha1($password);
-                $query = $this->connection->getUserByUsernameAndPassword(["username" => $username, "password" => $hash]);
-                $_SESSION['user'] = $query['user'];
-                $userRole = $query['user_role'];
-
+                $query = $this->connection->getUserByUsernameAndPassword(["username" => $username, "password" => $password]);
+                if(array_key_exists('user', $query)) {
+                    $_SESSION['user'] = $query['user'];
+                }
+                if(array_key_exists('user_role', $query)) {
+                    $userRole = $query['user_role'];
+                }
                 if ($query["success"]) {
-                    echo json_encode(["success" => true, "message" => "Logged in", "token"=> JWT::generateToken($_SESSION['user'], $userRole)]);
+                    echo json_encode(["success" => true, "message" => "Logged in", "token"=> JWT::generateToken($_SESSION['user'], $userRole), "username" => $username]);
                 } else {
                     echo json_encode(["success" => false, "errors" => $query["error"], "code" => $query["code"], "message" => "Wrong username or password"]);
                 }
