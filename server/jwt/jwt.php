@@ -12,6 +12,9 @@ class JWT
         $secret = 'secret';
         // split the jwt
         $tokenParts = explode('.', $token);
+        if(count($tokenParts) <2){
+            return null;
+        }
         $header = base64_decode($tokenParts[0]);
         $payload = base64_decode($tokenParts[1]);
 
@@ -19,12 +22,11 @@ class JWT
         $decodedPayload = json_decode($payload, true);
         $refreshExpiration = null;
         $expiration = null;
-        if ($decodedPayload != null && array_key_exists('refresh_exp', $decodedPayload)) {
-            $refreshExpiration = $decodedPayload['refresh_exp'];
+        if($decodedPayload == null || !array_key_exists('refresh_exp', $decodedPayload) || !array_key_exists('exp', $decodedPayload)) {
+            return null;
         }
-        if ($decodedPayload != null && array_key_exists('exp', $decodedPayload)) {
-            $expiration = $decodedPayload['exp'];
-        }
+        $refreshExpiration = $decodedPayload['refresh_exp'];
+        $expiration = $decodedPayload['exp'];
 
         // build a signature based on the header and payload using the secret
         $headers = array('alg' => 'HS256', 'typ' => 'JWT');

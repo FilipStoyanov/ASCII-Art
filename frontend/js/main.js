@@ -14,17 +14,24 @@ function sendRequest(url, options, successCallback, errorCallback) {
   var request = new XMLHttpRequest();
 
   request.onload = function () {
-    var response = JSON.parse(request.responseText);
+    let response;
+    if (request.responseText) {
+      response = JSON.parse(request.responseText);
+    }
 
     if (request.status === 200) {
       successCallback(response);
-    } else {
+    } else if (request.status === 401) {
+      localStorage.clear();
+      removeCookie("token", "/");
+      window.location.assign("login.html");
       console.log("Not authorized");
       errorCallback(response);
     }
   };
 
   request.open(options.method, url, true);
+  request.setRequestHeader("Authorization", "Bearer " + options.token);
   request.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
   request.send(options.data);
 }
@@ -32,9 +39,10 @@ function sendRequest(url, options, successCallback, errorCallback) {
 //when the response is ok
 function loadSignIn(response) {
   if (response["success"]) {
-    window.location.assign("home.html");
+    setCookie("token", response["token"], 30);
+    window.location.assign("editor.html");
+    localStorage.setItem("username", response["username"]);
   } else {
-    console.log(response["errors"]);
     if (response["errors"]) {
       errorMsg.style.display = "block";
       errorMsg.innerHTML = "A user with this username already exists.";
@@ -126,10 +134,11 @@ function submitSignInForm() {
 function loadLogIn(response) {
   if (response["success"]) {
     errorMsgForLogin.style.display = "none";
-    setCookie('token', response["token"], 1);
-    window.location.assign("home.html");
+    setCookie("token", response["token"], 30);
+    localStorage.setItem("username", response["username"]);
+    window.location.assign("editor.html");
   } else {
-    if (response["errors"]) {
+    if (response["message"]) {
       errorMsgForLogin.style.display = "block";
       errorMsgForLogin.innerHTML = "Invalid username or password";
     } else {
@@ -138,19 +147,24 @@ function loadLogIn(response) {
   }
 }
 
-function setCookie(name, value, days) {
+function setCookie(name, value, minutes) {
   var expires = "";
-  if (days) {
+  if (minutes) {
     var date = new Date();
-    date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+    date.setTime(date.getTime() + minutes * 60 * 1000);
     expires = "; expires=" + date.toUTCString();
   }
   document.cookie = name + "=" + (value || "") + expires + "; path=/";
 }
 
+function removeCookie(name, path) {
+  document.cookie =
+    name + "=; expires=Thu, 01 Jan 1970 00:00:01 GMT;path=" + path;
+}
+
 //what to do when the response isn't successful
 function handleErrorLogIn(response) {
-  if (response["errors"]) {
+  if (!response["success"]) {
     errorMsgForLogin.style.display = "block";
     errorMsgForLogin.innerHTML = "A user with this username already exists.";
   } else {
@@ -170,7 +184,6 @@ function logInForm() {
   formData.forEach(function (value, key) {
     data[key] = value;
   });
-  console.log(`data=${JSON.stringify(data)}`);
   sendRequest(
     "../../server/page_controllers/login.php",
     { method: "POST", data: `data=${JSON.stringify(data)}` },
@@ -195,11 +208,7 @@ function submitLogInForm() {
         errorMsgForLogin.innerHTML =
           "Username must contain at least 3 characters";
         validUsernameAndPassword = false;
-      } else {
-        errorMsgForLogin.style.display = "none";
-      }
-
-      if (passwordField && passwordField.value.length < 6) {
+      } else if (passwordField && passwordField.value.length < 6) {
         errorMsgForLogin.style.display = "block";
         errorMsgForLogin.innerHTML =
           "Password must contain at least 6 characters. <br/>";
@@ -235,7 +244,8 @@ function toggleMenu() {
       window.location.reload();
     });
     if (navLinks[i].classList.contains("logout")) {
-      sessionStorage.clear();
+      localStorage.clear();
+      removeCookie("token", "/");
       window.location.assign("login.html");
     }
   }
@@ -263,14 +273,28 @@ function logout() {
   if (logoutBtn) {
     logoutBtn.addEventListener("click", function (event) {
       event.preventDefault();
-      sessionStorage.clear();
+      localStorage.clear();
+      removeCookie("token", "/");
       window.location.assign("login.html");
     });
   }
 }
 
+function setHeaderName() {
+  const username = localStorage.getItem("username");
+  const greeting = document.getElementsByClassName("greeting")[0];
+  const greetingMobile = document.getElementsByClassName("greeting-mobile")[0];
+  if (greeting) {
+    greeting.innerHTML = `Hello, ${username}`;
+  }
+  if (greetingMobile) {
+    greetingMobile.innerHTML = `Hello, ${username}`;
+  }
+}
+
 // call functions after DOM is loaded
 document.addEventListener("DOMContentLoaded", function (event) {
+  setHeaderName();
   submitSignInForm();
   submitLogInForm();
   clickOnHamburgerMenu();

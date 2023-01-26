@@ -234,13 +234,11 @@ class DataBaseConnection
     //$input -> ["username" => value, "passowrd" => value]
     public function getUserByUsernameAndPassword($input)
     {
-
         $hash = sha1($input["password"]);
-
         try {
             $this->selectUser->execute(["username" => $input["username"], "password" => $hash]);
             $user = $this->selectUser->fetch();
-            if ($user) {
+            if ($user != null) {
                 return ["success" => true,"user"=>$user["id"], "user_role" => $user["roles"]];
             }
 
@@ -281,20 +279,7 @@ class DataBaseConnection
     public function getAsciiPictures($input)
     {
         try {
-            // $this->selectAsciiPictures->execute($input);
-            // $asciiPictures = $this->selectAsciiPictures->fetchAll();
-
-            $page = $input['page'];
-            $limit = $input['limit'];
-            if ($page != null && $page >= 1) {
-                $start = (($page - 1) * $limit);
-            } else {
-                $page = null;
-            }
             $query = 'SELECT name from pictures where owner_id = :owner_id';
-            if ($page != null) {
-                $query = $query . ' limit ' . $start . ', ' . $limit . '';
-            }
             $stmt = $this->connection->prepare($query);
             $stmt->execute(["owner_id" => $input["owner"]]);
             $asciiPictures = $stmt->fetchAll();

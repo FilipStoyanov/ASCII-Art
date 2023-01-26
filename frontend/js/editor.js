@@ -2,16 +2,11 @@ const BASE_URL = "../../server/page_controllers/ascii-editor/";
 var canvas = document.querySelector("#drawer");
 var context = canvas.getContext("2d");
 let CELL_SIZE = 20;
-var toggleButtonForAsciiLetters =
-    document.getElementById("letter-btn");
+var toggleButtonForAsciiLetters = document.getElementById("letter-btn");
 var letters = document.getElementsByClassName("letter");
 let chosenSymbol = "x";
 let chosenColor = "#000000";
 let isFilling = false;
-let minCol = Infinity;
-let maxCol = -Infinity;
-let minRow = Infinity;
-let maxRow = -Infinity;
 var drawField = document.getElementsByClassName("draw-field")[0];
 var toggleButtonForColors = document.getElementsByClassName("color-btn")[0];
 var selectFromAsciiNames = document.getElementsByClassName("menu-select")[0];
@@ -27,40 +22,25 @@ var previousCanvasWidth;
 
 // MODAL
 var modal = document.getElementById("modal");
-var modalContent = document.getElementsByClassName("modal-body")[0]
+var modalContent = document.getElementsByClassName("modal-body")[0];
 var modalCloseBtn = document.getElementsByClassName("close")[0];
 
-function sendRequest(url, options, successCallback, errorCallback) {
-    var request = new XMLHttpRequest();
-    request.onload = function () {
-        var response = JSON.parse(request.responseText);
-        if (request.status === 200) {
-            successCallback(response);
-        } else {
-            console.log("Not authorized");
-            errorCallback(response);
-        }
-    };
-    request.open(options.method, url, true);
-    request.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-    request.send(options.data);
-}
-
 function modalFunctionality() {
+  modalCloseBtn.onclick = function () {
+    modal.style.display = "none";
+    document.getElementsByClassName("editor")[0].classList.remove("show-modal");
+    window.location.reload();
+  };
 
-    modalCloseBtn.onclick = function () {
-        modal.style.display = "none";
-        document.getElementsByClassName("editor")[0].classList.remove("show-modal");
-        window.location.reload();
+  window.onclick = function (event) {
+    if (event.target == modal) {
+      modal.style.display = "none";
+      document
+        .getElementsByClassName("editor")[0]
+        .classList.remove("show-modal");
+      window.location.reload();
     }
-
-    window.onclick = function (event) {
-        if (event.target == modal) {
-            modal.style.display = "none";
-            document.getElementsByClassName("editor")[0].classList.remove("show-modal");
-            window.location.reload();
-        }
-    }
+  };
 }
 
 // STORE MATRIX TEXT
@@ -69,692 +49,815 @@ let asciiText;
 
 // from ascii code 32 to 126
 function addAsciiCharacters() {
-    const START_ASCII_CODE = 32;
-    const FINISH_ASCII_CODE = 126;
-    let letters = document.getElementsByClassName("letters")[0];
-    for (let i = START_ASCII_CODE; i < FINISH_ASCII_CODE; ++i) {
-        let character = String.fromCharCode(i);
-        if (character != ' ') {
-            let letter = document.createElement("button");
-            letter.classList.add("letter");
-            letter.innerHTML = String.fromCharCode(i);
-            letters.appendChild(letter);
-        }
+  const START_ASCII_CODE = 32;
+  const FINISH_ASCII_CODE = 126;
+  let letters = document.getElementsByClassName("letters")[0];
+  for (let i = START_ASCII_CODE; i < FINISH_ASCII_CODE; ++i) {
+    let character = String.fromCharCode(i);
+    if (character != " ") {
+      let letter = document.createElement("button");
+      letter.classList.add("letter");
+      letter.innerHTML = String.fromCharCode(i);
+      letters.appendChild(letter);
     }
+  }
 }
 
 function toggleAsciiCharacters() {
-    toggleButtonForAsciiLetters.addEventListener("click", function () {
-        drawField.style.cursor = "crosshair";
-        isFilling = false;
-        document.getElementsByClassName("letters")[0].classList.toggle("open");
-        canvas.classList.remove("delete-symbol");
-    });
+  toggleButtonForAsciiLetters.addEventListener("click", function () {
+    drawField.style.cursor = "crosshair";
+    isFilling = false;
+    document.getElementsByClassName("letters")[0].classList.toggle("open");
+    canvas.classList.remove("delete-symbol");
+  });
 }
 
 function chooseCharacter() {
-    for (let i = 0; i < letters.length; ++i) {
-        letters[i].addEventListener("click", function () {
-            chosenSymbol = letters[i].textContent;
-            toggleButtonForAsciiLetters.innerHTML = `Character <span class="selected-ascii">${chosenSymbol}</span>`;
-            document.getElementsByClassName("letters")[0].classList.toggle("open");
-        });
-    }
+  for (let i = 0; i < letters.length; ++i) {
+    letters[i].addEventListener("click", function () {
+      chosenSymbol = letters[i].textContent;
+      toggleButtonForAsciiLetters.innerHTML = `Character <span class="selected-ascii">${chosenSymbol}</span>`;
+      document.getElementsByClassName("letters")[0].classList.toggle("open");
+    });
+  }
 }
 
 function closePopupMenus() {
-    document.addEventListener("click", function (event) {
-        if (event.target.classList.contains("character-btn") || event.target.classList.contains("selected-ascii")) {
-            if (document.getElementsByClassName("letters")[0].classList.contains("open")) {
-                document.getElementsByClassName("letters")[0].classList.add("open");
-            } else {
-                document.getElementsByClassName("letters")[0].classList.remove("open");
-            }
-            canvas.classList.remove("delete-symbol");
-        } else {
-            document.getElementsByClassName("letters")[0].classList.remove("open");
-        }
-    })
+  document.addEventListener("click", function (event) {
+    if (
+      event.target.classList.contains("character-btn") ||
+      event.target.classList.contains("selected-ascii")
+    ) {
+      if (
+        document.getElementsByClassName("letters")[0].classList.contains("open")
+      ) {
+        document.getElementsByClassName("letters")[0].classList.add("open");
+      } else {
+        document.getElementsByClassName("letters")[0].classList.remove("open");
+      }
+      canvas.classList.remove("delete-symbol");
+    } else {
+      document.getElementsByClassName("letters")[0].classList.remove("open");
+    }
+  });
 }
 
 function setColors() {
-    document.getElementById("color").addEventListener("change", function (e) {
-        context.clearRect(0, 0, canvas.width, canvas.height);
-        chosenColor = e.target.value;
-        redrawAsciiPicture();
-    });
+  document.getElementById("color").addEventListener("change", function (e) {
+    context.clearRect(0, 0, canvas.width, canvas.height);
+    chosenColor = e.target.value;
+    redrawAsciiPicture();
+  });
 }
 
 function clearSymbols() {
-    document
-        .getElementsByClassName("clear-symbols")[0]
-        .addEventListener("click", function () {
-            canvas.classList.add("delete-symbol");
-            drawField.style.cursor = "cell";
-            isFilling = false;
-        });
+  document
+    .getElementsByClassName("clear-symbols")[0]
+    .addEventListener("click", function () {
+      canvas.classList.add("delete-symbol");
+      drawField.style.cursor = "cell";
+      isFilling = false;
+    });
 }
 
 function clickButtonForFillingColor() {
-    if (toggleButtonForAsciiLetters) {
-        toggleButtonForAsciiLetters
-            .addEventListener("click", function () {
-                drawField.style.cursor = "crosshair";
-                isFilling = false;
-            });
-    }
-    toggleButtonForColors
-        .addEventListener("click", function () {
-            document.getElementById("color").click();
-            drawField.style.cursor = "crosshair";
-            isFilling = false;
-        });
-    document
-        .getElementsByClassName("fill-btn")[0]
-        .addEventListener("click", function () {
-            drawField.style.cursor = "default";
-            isFilling = true;
-        });
+  if (toggleButtonForAsciiLetters) {
+    toggleButtonForAsciiLetters.addEventListener("click", function () {
+      drawField.style.cursor = "crosshair";
+      isFilling = false;
+    });
+  }
+  toggleButtonForColors.addEventListener("click", function () {
+    document.getElementById("color").click();
+    drawField.style.cursor = "crosshair";
+    isFilling = false;
+  });
+  document
+    .getElementsByClassName("fill-btn")[0]
+    .addEventListener("click", function () {
+      drawField.style.cursor = "default";
+      isFilling = true;
+    });
 }
 
 function changeAsciiName() {
-    document
-        .getElementById("ascii-name")
-        .addEventListener("change", function (event) {
-            asciiName = event.target.value;
-        });
-    document
-        .getElementById("name-update")
-        .addEventListener("change", function (event) {
-            asciiName = event.target.value;
-        });
+  document
+    .getElementById("ascii-name")
+    .addEventListener("change", function (event) {
+      asciiName = event.target.value;
+    });
+  document
+    .getElementById("name-update")
+    .addEventListener("change", function (event) {
+      asciiName = event.target.value;
+    });
 }
 
 function addOptionsToSelect(response) {
-    if (response[0]) {
-        let rows = response[0];
-        for (let i = 0; i < rows.length; ++i) {
-            selectFromAsciiNames.options[selectFromAsciiNames.options.length] =
-                new Option(rows[i].name, rows[i].name);
-        }
-        const url = window.location.href;
-        const urlObj = new URL(url);
-        let search, searchParams;
-        if (urlObj && urlObj.search) {
-            search = urlObj.search.substring(1);
-            searchParams = JSON.parse('{"' + decodeURI(search).replace(/"/g, '\\"').replace(/&/g, '","').replace(/=/g, '":"') + '"}');
-            if (searchParams && searchParams['ascii-name']) {
-                const option = Array.from(selectFromAsciiNames.options).find(option => option.value === searchParams["ascii-name"]);
-                option.selected = true;
-            }
-        }
+  if (response[0]) {
+    let rows = response[0];
+    for (let i = 0; i < rows.length; ++i) {
+      selectFromAsciiNames.options[selectFromAsciiNames.options.length] =
+        new Option(rows[i].name, rows[i].name);
     }
-}
-
-function selectOptionFromFileNames() {
-    if (selectFromAsciiNames) {
-        selectFromAsciiNames.addEventListener("change", function (event) {
-            context.clearRect(0, 0, canvas.width, canvas.height);
-            selectedAsciiFile = event.target.value;
-            asciiSymbols = [];
-            if (selectedAsciiFile) {
-                updateSearchParams(event.target.value);
-                document.getElementsByClassName("editor-menu")[0].classList.add("update-ascii");
-                getAsciiPicture(selectedAsciiFile);
-                updateNameInput.value = selectedAsciiFile;
-                asciiName = selectedAsciiFile;
-            } else {
-                deleteSearchParams();
-                document.getElementsByClassName("editor-menu")[0].classList.remove("update-ascii");
-            }
-        })
-    }
-}
-
-function handleRemoveAsciiPicture() {
-    deleteBtn.addEventListener("click", function () {
-        removeAsciiPicture(selectFromAsciiNames.value);
-    })
-}
-
-function removeAsciiPicture(name) {
-    var data = {};
-    // TODO: get the id of the current user
-    data["owner_id"] = 1;
-    data["name"] = name;
-    sendRequest(
-        `${BASE_URL}deleteAsciiPicture.php`,
-        { method: "DELETE", data: JSON.stringify(data) },
-        deleteAsciiPicture,
-        handleErrorAscii,
-    );
-}
-
-function deleteAsciiPicture(response) {
-    showModalForSeconds(true);
-    if (response["success"]) {
-        deleteSearchParams();
-        document.getElementsByClassName("modal-header")[0].style.backgroundColor = "#4BB543";
-        document.getElementsByClassName("modal-footer")[0].style.backgroundColor = "#4BB543";
-        modalContent.innerHTML = "Your Ascii Picture was deleted successfully."
-    } else {
-        document.getElementsByClassName("modal-header")[0].style.backgroundColor = "#FF0000";
-        document.getElementsByClassName("modal-footer")[0].style.backgroundColor = "#FF0000";
-        modalContent.innerHTML = "An error has occurred while deleting the Ascii Picture. Try again."
-    }
-}
-
-function getAsciiPicture(value) {
-    var data = {};
-    // TODO: get the id of the current user
-    data["owner_id"] = 1;
-    data["name"] = value;
-    sendRequest(
-        `${BASE_URL}getAsciiPicture.php?user=${data['owner_id']}&name=${data['name']}`,
-        { method: "GET", data: '' },
-        loadAsciiPicture,
-        handleErrorAscii,
-    );
-}
-
-function redrawAsciiPicture(color = chosenColor) {
-    context.clearRect(0, 0, canvas.width, canvas.height);
-    context.fillStyle = color;
-    for (let i = 0; i < asciiSymbols.length; ++i) {
-        if (asciiSymbols[i] && asciiSymbols[i].symbol) {
-            context.fillText(asciiSymbols[i].symbol, asciiSymbols[i].x, asciiSymbols[i].y);
-        }
-    }
-}
-
-function loadAsciiPicture(response) {
-    document.getElementById("color").value = response[0][0].color;
-    chosenColor = response[0][0].color;
-    const START_X = 0;
-    const START_Y = CELL_SIZE;
-    let currentX, currentY;
-    let lines = response[0][0].value.substring(1, response[0][0].value.length - 1).split("\\n");
-    let color = response[0][0].color;
-    context.fillStyle = color;
-    currentY = START_Y;
-    let asciiCounter = 0;
-    for (let i = 0; i < lines.length; ++i) {
-        currentX = START_X;
-        for (let j = 0; j < lines[i].length; ++j) {
-            context.fillText(lines[i][j], currentX, currentY);
-            asciiSymbols[currentY / CELL_SIZE * numberOfColumns + currentX / CELL_SIZE] = {
-                x: currentX,
-                y: currentY,
-                symbol: lines[i][j],
-            };
-            if (currentY / CELL_SIZE < minRow) {
-                minRow = currentY / CELL_SIZE;
-            }
-            if (currentY / CELL_SIZE > maxRow) {
-                maxRow = currentY / CELL_SIZE;
-            }
-            if (currentX / CELL_SIZE < minCol) {
-                minCol = currentX / CELL_SIZE;
-            }
-            if (currentX / CELL_SIZE > maxCol) {
-                maxCol = currentX / CELL_SIZE;
-            }
-            currentX += CELL_SIZE;
-            ++asciiCounter;
-        }
-        currentY += CELL_SIZE;
-    }
-}
-
-function loadAllAsciiPictures() {
-    var data = {};
-    // TODO: get the id of the current user
-    // data["owner_id"] = 1;
-    const userId = 1;
-    sendRequest(
-        `${BASE_URL}getAsciiNames.php?user=${userId}`,
-        { method: "GET", data: '' },
-        addOptionsToSelect,
-        handleErrorAscii
-    );
-}
-
-function loadCurrentAsciiPicture() {
     const url = window.location.href;
     const urlObj = new URL(url);
     let search, searchParams;
     if (urlObj && urlObj.search) {
-        search = urlObj.search.substring(1);
-        searchParams = JSON.parse('{"' + decodeURI(search).replace(/"/g, '\\"').replace(/&/g, '","').replace(/=/g, '":"') + '"}');
+      search = urlObj.search.substring(1);
+      searchParams = JSON.parse(
+        '{"' +
+          decodeURI(search)
+            .replace(/"/g, '\\"')
+            .replace(/&/g, '","')
+            .replace(/=/g, '":"') +
+          '"}'
+      );
+      if (searchParams && searchParams["ascii-name"]) {
+        const option = Array.from(selectFromAsciiNames.options).find(
+          (option) => option.value === searchParams["ascii-name"]
+        );
+        option.selected = true;
+      }
     }
-    if (searchParams && searchParams['ascii-name']) {
-        getAsciiPicture(searchParams['ascii-name']);
-        document.getElementsByClassName("editor-menu")[0].classList.add("update-ascii");
-        updateNameInput.value = searchParams['ascii-name'];
+  }
+}
+
+function selectOptionFromFileNames() {
+  if (selectFromAsciiNames) {
+    selectFromAsciiNames.addEventListener("change", function (event) {
+      context.clearRect(0, 0, canvas.width, canvas.height);
+      selectedAsciiFile = event.target.value;
+      asciiSymbols = [];
+      if (selectedAsciiFile) {
+        updateSearchParams(event.target.value);
+        document
+          .getElementsByClassName("editor-menu")[0]
+          .classList.add("update-ascii");
+        getAsciiPicture(selectedAsciiFile);
+        updateNameInput.value = selectedAsciiFile;
         asciiName = selectedAsciiFile;
+      } else {
+        deleteSearchParams();
+        document
+          .getElementsByClassName("editor-menu")[0]
+          .classList.remove("update-ascii");
+      }
+    });
+  }
+}
+
+function handleRemoveAsciiPicture() {
+  deleteBtn.addEventListener("click", function () {
+    removeAsciiPicture(selectFromAsciiNames.value);
+  });
+}
+
+function removeAsciiPicture(name) {
+  const jwtToken = getCookie("token");
+  const userId = getUserIdFromJwtToken();
+  if (userId && jwtToken) {
+    const data = {};
+    data["owner_id"] = userId;
+    data["name"] = name;
+    sendRequest(
+      `${BASE_URL}deleteAsciiPicture.php`,
+      { method: "DELETE", data: JSON.stringify(data), token: jwtToken },
+      deleteAsciiPicture,
+      handleErrorAscii
+    );
+  }
+}
+
+function deleteAsciiPicture(response) {
+  showModalForSeconds(true);
+  if (response["success"]) {
+    deleteSearchParams();
+    document.getElementsByClassName("modal-header")[0].style.backgroundColor =
+      "#4BB543";
+    document.getElementsByClassName("modal-footer")[0].style.backgroundColor =
+      "#4BB543";
+    modalContent.innerHTML = "Your Ascii Picture was deleted successfully.";
+  } else {
+    document.getElementsByClassName("modal-header")[0].style.backgroundColor =
+      "#FF0000";
+    document.getElementsByClassName("modal-footer")[0].style.backgroundColor =
+      "#FF0000";
+    modalContent.innerHTML =
+      "An error has occurred while deleting the Ascii Picture. Try again.";
+  }
+}
+
+function getAsciiPicture(value) {
+  const jwtToken = getCookie("token");
+  const userId = getUserIdFromJwtToken();
+  if (userId && jwtToken) {
+    const data = {};
+    data["owner_id"] = userId;
+    data["name"] = value;
+    sendRequest(
+      `${BASE_URL}getAsciiPicture.php?user=${data["owner_id"]}&name=${data["name"]}`,
+      { method: "GET", data: "", token: jwtToken },
+      loadAsciiPicture,
+      handleErrorAscii
+    );
+  }
+}
+
+function redrawAsciiPicture(color = chosenColor) {
+  context.clearRect(0, 0, canvas.width, canvas.height);
+  context.fillStyle = color;
+  for (let i = 0; i < asciiSymbols.length; ++i) {
+    if (asciiSymbols[i] && asciiSymbols[i].symbol) {
+      context.fillText(
+        asciiSymbols[i].symbol,
+        asciiSymbols[i].x,
+        asciiSymbols[i].y
+      );
     }
+  }
+}
+
+function loadAsciiPicture(response) {
+  document.getElementById("color").value = response[0][0].color;
+  chosenColor = response[0][0].color;
+  const START_X = 0;
+  const START_Y = 0;
+  let currentX, currentY;
+  let lines = response[0][0].value
+    .substring(1, response[0][0].value.length - 1)
+    .split("\\n");
+  let color = response[0][0].color;
+  context.fillStyle = color;
+  currentY = START_Y;
+  let asciiCounter = 0;
+  for (let i = 0; i < lines.length; ++i) {
+    currentX = START_X;
+    for (let j = 0; j < lines[i].length; ++j) {
+      context.fillText(lines[i][j], currentX, currentY);
+      asciiSymbols[
+        (currentY / CELL_SIZE) * numberOfColumns + currentX / CELL_SIZE
+      ] = {
+        x: currentX,
+        y: currentY,
+        symbol: lines[i][j],
+      };
+      currentX += CELL_SIZE;
+      ++asciiCounter;
+    }
+    currentY += CELL_SIZE;
+  }
+}
+
+function getCookie(name) {
+  const value = "; " + document.cookie;
+  const parts = value.split("; " + name + "=");
+  if (parts.length === 2) return parts.pop().split(";").shift();
+}
+
+function setCookie(name, value, minutes) {
+  var expires = "";
+  if (minutes) {
+    var date = new Date();
+    date.setTime(date.getTime() + minutes * 60 * 1000);
+    expires = "; expires=" + date.toUTCString();
+  }
+  document.cookie = name + "=" + (value || "") + expires + "; path=/";
+}
+
+function removeCookie(name, path) {
+  document.cookie =
+    name + "=; expires=Thu, 01 Jan 1970 00:00:01 GMT;path=" + path;
+}
+
+function getUserIdFromJwtToken() {
+  const token = getCookie("token");
+  let payload, userId;
+  if (token) {
+    payload = JSON.parse(atob(token.split(".")[1]));
+    userId = payload.id;
+  }
+  return userId;
+}
+
+function loadAllAsciiPictures() {
+  const jwtToken = getCookie("token");
+  const userId = getUserIdFromJwtToken();
+  if (userId && jwtToken) {
+    sendRequest(
+      `${BASE_URL}getAsciiNames.php?user=${userId}`,
+      { method: "GET", data: "", token: jwtToken },
+      addOptionsToSelect,
+      handleErrorAscii
+    );
+  }
+}
+
+function loadCurrentAsciiPicture() {
+  const url = window.location.href;
+  const urlObj = new URL(url);
+  let search, searchParams;
+  if (urlObj && urlObj.search) {
+    search = urlObj.search.substring(1);
+    searchParams = JSON.parse(
+      '{"' +
+        decodeURI(search)
+          .replace(/"/g, '\\"')
+          .replace(/&/g, '","')
+          .replace(/=/g, '":"') +
+        '"}'
+    );
+  }
+  if (searchParams && searchParams["ascii-name"]) {
+    getAsciiPicture(searchParams["ascii-name"]);
+    document
+      .getElementsByClassName("editor-menu")[0]
+      .classList.add("update-ascii");
+    updateNameInput.value = searchParams["ascii-name"];
+    asciiName = selectedAsciiFile;
+  }
 }
 
 // call functions after DOM is loaded
 document.addEventListener("DOMContentLoaded", function (event) {
-    selectOptionFromFileNames();
-    loadAllAsciiPictures();
-    loadCurrentAsciiPicture();
-    changeAsciiName();
-    addAsciiCharacters();
-    toggleAsciiCharacters();
-    chooseCharacter();
-    setColors();
-    clickButtonForFillingColor();
-    saveAsciiPicture();
-    clearSymbols();
-    handleRemoveAsciiPicture();
-    closePopupMenus();
-    updateAsciiPicture();
-    modalFunctionality();
+  selectOptionFromFileNames();
+  loadAllAsciiPictures();
+  loadCurrentAsciiPicture();
+  changeAsciiName();
+  addAsciiCharacters();
+  toggleAsciiCharacters();
+  chooseCharacter();
+  setColors();
+  clickButtonForFillingColor();
+  saveAsciiPicture();
+  clearSymbols();
+  handleRemoveAsciiPicture();
+  closePopupMenus();
+  updateAsciiPicture();
+  modalFunctionality();
 });
 
 window.addEventListener("load", () => {
-    previousCanvasWidth = window.innerWidth;
-    resize();
-    initializeMatrix();
-    canvas.addEventListener("mousedown", startPainting);
-    canvas.addEventListener("mouseup", stopPainting);
-    canvas.addEventListener("mousemove", sketch);
-    window.addEventListener("resize", resize);
+  previousCanvasWidth = window.innerWidth;
+  resize();
+  initializeMatrix();
+  canvas.addEventListener("mousedown", startPainting);
+  canvas.addEventListener("mouseup", stopPainting);
+  canvas.addEventListener("mousemove", sketch);
+  window.addEventListener("resize", resize);
 });
 
 function initializeDimensions() {
-    if (window.innerWidth >= 1200) {
-        context.canvas.width = window.innerWidth * 0.75;
-        context.canvas.height = window.innerHeight;
-    } else {
-        context.canvas.width = window.innerWidth;
-        context.canvas.height = window.innerHeight;
-    }
-    if (context.canvas.width < 1160 && context.canvas.width >= 600) {
-        fontSize = Math.floor((context.canvas.width / 1160) * 20);
-        CELL_SIZE = Math.floor((context.canvas.width / 1160) * 20);
-    } else if (context.canvas.width >= 1160) {
-        CELL_SIZE = 20;
-        fontSize = 20;
-    }
-    numberOfColumns = Math.floor(context.canvas.width / CELL_SIZE);
-    numberOfRows = Math.floor(canvas.height / CELL_SIZE);
+  if (window.innerWidth >= 1200) {
+    context.canvas.width = window.innerWidth * 0.75;
+    context.canvas.height = window.innerHeight;
+  } else {
+    context.canvas.width = window.innerWidth;
+    context.canvas.height = window.innerHeight;
+  }
+  if (context.canvas.width < 1160 && context.canvas.width >= 600) {
+    fontSize = Math.floor((context.canvas.width / 1160) * 20);
+    CELL_SIZE = Math.floor((context.canvas.width / 1160) * 20);
+  } else if (context.canvas.width >= 1160) {
+    CELL_SIZE = 20;
+    fontSize = 20;
+  }
+  numberOfColumns = Math.floor(context.canvas.width / CELL_SIZE);
+  numberOfRows = Math.floor(canvas.height / CELL_SIZE);
 }
 
 function initializeMatrix() {
-    for (let i = 0; i < numberOfColumns * numberOfRows; ++i) {
-        asciiSymbols[i] = {
-            x: (i % numberOfColumns) * CELL_SIZE,
-            y: Math.floor(i / numberOfColumns) * CELL_SIZE,
-            symbol: " ",
-        };
-    }
-    context.clearRect(0, 0, canvas.width, canvas.height);
+  for (let i = 0; i < numberOfColumns * numberOfRows; ++i) {
+    asciiSymbols[i] = {
+      x: (i % numberOfColumns) * CELL_SIZE,
+      y: Math.floor(i / numberOfColumns) * CELL_SIZE,
+      symbol: " ",
+    };
+  }
+  context.clearRect(0, 0, canvas.width, canvas.height);
 }
 
 function updateOnResizeAsciiSymbolsArr() {
-    let newAsciiSymbolsArr = [];
-    for (let i = 0; i < asciiSymbols.length; ++i) {
-        if (asciiSymbols[i]) {
-            const { newX, newY } = transformCoordinates(
-                Math.floor(
-                    (context.canvas.width / previousCanvasWidth) * asciiSymbols[i].x
-                ),
-                asciiSymbols[i].y
-            );
-            newAsciiSymbolsArr[
-                Math.floor(
-                    (asciiSymbols[i].y / CELL_SIZE) * numberOfColumns +
-                    asciiSymbols[i].x / CELL_SIZE
-                )
-            ] = { x: newX, y: newY, symbol: asciiSymbols[i].symbol };
-        }
+  let newAsciiSymbolsArr = [];
+  for (let i = 0; i < asciiSymbols.length; ++i) {
+    if (asciiSymbols[i]) {
+      const { newX, newY } = transformCoordinates(
+        Math.floor(
+          (context.canvas.width / previousCanvasWidth) * asciiSymbols[i].x
+        ),
+        asciiSymbols[i].y
+      );
+      newAsciiSymbolsArr[
+        Math.floor(
+          (asciiSymbols[i].y / CELL_SIZE) * numberOfColumns +
+            asciiSymbols[i].x / CELL_SIZE
+        )
+      ] = { x: newX, y: newY, symbol: asciiSymbols[i].symbol };
     }
-    previousCanvasWidth = context.canvas.width;
-    asciiSymbols = [...newAsciiSymbolsArr];
+  }
+  previousCanvasWidth = context.canvas.width;
+  asciiSymbols = [...newAsciiSymbolsArr];
 }
 
 function resize() {
-    initializeDimensions();
-    if (context.canvas.width < 1160 && context.canvas.width >= 600) {
-        fontSize = Math.floor((context.canvas.width / 1160) * 20);
-        CELL_SIZE = Math.floor((context.canvas.width / 1160) * 20);
-    } else if (context.canvas.width >= 1160) {
-        CELL_SIZE = 20;
-        fontSize = 20;
+  initializeDimensions();
+  if (context.canvas.width < 1160 && context.canvas.width >= 600) {
+    fontSize = Math.floor((context.canvas.width / 1160) * 20);
+    CELL_SIZE = Math.floor((context.canvas.width / 1160) * 20);
+  } else if (context.canvas.width >= 1160) {
+    CELL_SIZE = 20;
+    fontSize = 20;
+  }
+  updateOnResizeAsciiSymbolsArr();
+  context.font = `${fontSize}px sans-serif`;
+  for (let i = 0; i < asciiSymbols.length; ++i) {
+    if (asciiSymbols[i]) {
+      context.fillStyle = chosenColor;
+      context.fillText(
+        asciiSymbols[i].symbol,
+        asciiSymbols[i].x,
+        asciiSymbols[i].y
+      );
     }
-    updateOnResizeAsciiSymbolsArr();
-    context.font = `${fontSize}px sans-serif`;
-    for (let i = 0; i < asciiSymbols.length; ++i) {
-        if (asciiSymbols[i]) {
-            context.fillStyle = chosenColor;
-            context.fillText(
-                asciiSymbols[i].symbol,
-                asciiSymbols[i].x,
-                asciiSymbols[i].y
-            );
-        }
-    }
+  }
 }
 
 let isStartedPainting = false;
 let arrayFromUsedPoints = [];
 
 function transformCoordinates(x, y) {
-    let xRemainder = x % CELL_SIZE;
-    let yRemainder = y % CELL_SIZE;
-    if (yRemainder <= CELL_SIZE / 2) {
-        newY = y - yRemainder;
-    } else {
-        newY = y + (CELL_SIZE - yRemainder);
-    }
-    if (xRemainder <= 10) {
-        newX = x - xRemainder;
-    } else {
-        newX = x + (CELL_SIZE - xRemainder);
-    }
-    return { newX, newY };
+  let xRemainder = x % CELL_SIZE;
+  let yRemainder = y % CELL_SIZE;
+  if (yRemainder <= CELL_SIZE / 2) {
+    newY = y - yRemainder;
+  } else {
+    newY = y + (CELL_SIZE - yRemainder);
+  }
+  if (xRemainder <= 10) {
+    newX = x - xRemainder;
+  } else {
+    newX = x + (CELL_SIZE - xRemainder);
+  }
+  return { newX, newY };
 }
 
 function startPainting(event) {
-    let { newX, newY } = transformCoordinates(event.offsetX, event.offsetY);
-    let prevSymbol = " ";
-    let visited = [];
-    if (isFilling) {
-        fillCanvasUtil(
-            asciiSymbols,
-            newX / CELL_SIZE,
-            newY / CELL_SIZE,
-            prevSymbol,
-            chosenSymbol,
-            visited,
-            0
-        );
-        return;
-    }
-    context.font = `${fontSize}px sans-serif`;
-    if (!canvas.classList.contains("delete-symbol")) {
-        context.fillStyle = chosenColor;
-        asciiSymbols[
-            Math.floor((newY / CELL_SIZE) * numberOfColumns + newX / CELL_SIZE)
-        ] = { x: newX, y: newY, symbol: chosenSymbol };
-        if (newY / CELL_SIZE < minRow) {
-            minRow = newY / CELL_SIZE;
-        }
-        if (newY / CELL_SIZE > maxRow) {
-            maxRow = newY / CELL_SIZE;
-        }
-        if (newX / CELL_SIZE < minCol) {
-            minCol = newX / CELL_SIZE;
-        }
-        if (newX / CELL_SIZE > maxCol) {
-            maxCol = newX / CELL_SIZE;
-        }
-        context.fillText(chosenSymbol, newX, newY);
-        arrayFromUsedPoints.push({ x: newX, y: newY });
-        asciiSymbols[
-            Math.floor(
-                (newY / CELL_SIZE) * numberOfColumns +
-                newX / CELL_SIZE
-            )
-        ] = { x: newX, y: newY, symbol: chosenSymbol };
-    } else {
-        asciiSymbols[
-            Math.floor((newY / CELL_SIZE) * numberOfColumns + newX / CELL_SIZE)
-        ] = {
-            x: newX, y: newY, symbol: " "
-        };
-        redrawAsciiPicture();
-    }
-    isStartedPainting = true;
+  let { newX, newY } = transformCoordinates(event.offsetX, event.offsetY);
+  let prevSymbol = " ";
+  let visited = [];
+  if (isFilling) {
+    fillCanvasUtil(
+      asciiSymbols,
+      newX / CELL_SIZE,
+      newY / CELL_SIZE,
+      prevSymbol,
+      chosenSymbol,
+      visited,
+      0
+    );
+    return;
+  }
+  context.font = `${fontSize}px sans-serif`;
+  if (!canvas.classList.contains("delete-symbol")) {
+    context.fillStyle = chosenColor;
+    asciiSymbols[
+      Math.floor((newY / CELL_SIZE) * numberOfColumns + newX / CELL_SIZE)
+    ] = { x: newX, y: newY, symbol: chosenSymbol };
+    context.fillText(chosenSymbol, newX, newY);
+    arrayFromUsedPoints.push({ x: newX, y: newY });
+    asciiSymbols[
+      Math.floor((newY / CELL_SIZE) * numberOfColumns + newX / CELL_SIZE)
+    ] = { x: newX, y: newY, symbol: chosenSymbol };
+  } else {
+    asciiSymbols[
+      Math.floor((newY / CELL_SIZE) * numberOfColumns + newX / CELL_SIZE)
+    ] = {
+      x: newX,
+      y: newY,
+      symbol: " ",
+    };
+    redrawAsciiPicture();
+  }
+  isStartedPainting = true;
 }
 
 function stopPainting() {
-    isStartedPainting = false;
+  isStartedPainting = false;
 }
 
 function hasPointAtCoordinates(point) {
-    for (let i = 0; i < arrayFromUsedPoints.length; ++i) {
-        if (
-            Math.abs(arrayFromUsedPoints[i].x - point.x) <= CELL_SIZE / 2 &&
-            Math.abs(arrayFromUsedPoints[i].y - point.y) <= CELL_SIZE / 2
-        ) {
-            return true;
-        }
+  for (let i = 0; i < arrayFromUsedPoints.length; ++i) {
+    if (
+      Math.abs(arrayFromUsedPoints[i].x - point.x) <= CELL_SIZE / 2 &&
+      Math.abs(arrayFromUsedPoints[i].y - point.y) <= CELL_SIZE / 2
+    ) {
+      return true;
     }
-    return false;
+  }
+  return false;
 }
 
 function sketch(event) {
-    if (!isStartedPainting) return;
-    if (isFilling) return;
-    context.beginPath();
+  if (!isStartedPainting) return;
+  if (isFilling) return;
+  context.beginPath();
 
-    currentPoint = { x: event.offsetX, y: event.offsetY };
-    skipThisPoint = hasPointAtCoordinates(currentPoint);
-    arrayFromUsedPoints.push(currentPoint);
+  currentPoint = { x: event.offsetX, y: event.offsetY };
+  skipThisPoint = hasPointAtCoordinates(currentPoint);
+  arrayFromUsedPoints.push(currentPoint);
 
-    let xRemainder = Math.floor(currentPoint.x) % CELL_SIZE;
-    let yRemainder = Math.floor(currentPoint.y) % CELL_SIZE;
-    if (xRemainder <= CELL_SIZE / 2) {
-        currentPoint.x -= xRemainder;
-    } else {
-        currentPoint.x += CELL_SIZE - xRemainder;
-    }
-    if (yRemainder <= CELL_SIZE / 2) {
-        currentPoint.y -= yRemainder;
-    } else {
-        currentPoint.y += CELL_SIZE - yRemainder;
-    }
-    if (context.canvas.width < 1160 && context.canvas.width >= 600) {
-        fontSize = Math.floor((context.canvas.width / 1160) * 20);
-        CELL_SIZE = Math.floor((context.canvas.width / 1160) * 20);
-    } else if (context.canvas.width >= 1160) {
-        CELL_SIZE = 20;
-        fontSize = 20;
-    }
-    context.font = `${fontSize}px sans-serif`;
-    if (!skipThisPoint && !canvas.classList.contains("delete-symbol")) {
-        context.fillStyle = chosenColor;
-        context.fillText(chosenSymbol, currentPoint.x, currentPoint.y);
-        if (currentPoint.y / CELL_SIZE < minRow) {
-            minRow = currentPoint.y / CELL_SIZE;
-        }
-        if (currentPoint.y / CELL_SIZE > maxRow) {
-            maxRow = currentPoint.y / CELL_SIZE;
-        }
-        if (currentPoint.x / CELL_SIZE < minCol) {
-            minCol = currentPoint.x / CELL_SIZE;
-        }
-        if (currentPoint.x / CELL_SIZE > maxCol) {
-            maxCol = currentPoint.x / CELL_SIZE;
-        }
-        asciiSymbols[
-            Math.floor(
-                (currentPoint.y / CELL_SIZE) * numberOfColumns +
-                currentPoint.x / CELL_SIZE
-            )
-        ] = { x: currentPoint.x, y: currentPoint.y, symbol: chosenSymbol };
-    } else if (canvas.classList.contains("delete-symbol")) {
-        if (asciiSymbols[Math.floor((currentPoint.y / CELL_SIZE) * numberOfColumns + (currentPoint.x / CELL_SIZE))
-        ] && asciiSymbols[Math.floor((currentPoint.y / CELL_SIZE) * numberOfColumns + (currentPoint.x / CELL_SIZE))
-        ].symbol)
-            asciiSymbols[
-                Math.floor((currentPoint.y / CELL_SIZE) * numberOfColumns + (currentPoint.x / CELL_SIZE))
-            ]['symbol'] = " ";
-        redrawAsciiPicture();
-    }
+  let xRemainder = Math.floor(currentPoint.x) % CELL_SIZE;
+  let yRemainder = Math.floor(currentPoint.y) % CELL_SIZE;
+  if (xRemainder <= CELL_SIZE / 2) {
+    currentPoint.x -= xRemainder;
+  } else {
+    currentPoint.x += CELL_SIZE - xRemainder;
+  }
+  if (yRemainder <= CELL_SIZE / 2) {
+    currentPoint.y -= yRemainder;
+  } else {
+    currentPoint.y += CELL_SIZE - yRemainder;
+  }
+  if (context.canvas.width < 1160 && context.canvas.width >= 600) {
+    fontSize = Math.floor((context.canvas.width / 1160) * 20);
+    CELL_SIZE = Math.floor((context.canvas.width / 1160) * 20);
+  } else if (context.canvas.width >= 1160) {
+    CELL_SIZE = 20;
+    fontSize = 20;
+  }
+  context.font = `${fontSize}px sans-serif`;
+  if (!skipThisPoint && !canvas.classList.contains("delete-symbol")) {
+    context.fillStyle = chosenColor;
+    context.fillText(chosenSymbol, currentPoint.x, currentPoint.y);
+    asciiSymbols[
+      Math.floor(
+        (currentPoint.y / CELL_SIZE) * numberOfColumns +
+          currentPoint.x / CELL_SIZE
+      )
+    ] = { x: currentPoint.x, y: currentPoint.y, symbol: chosenSymbol };
+  } else if (canvas.classList.contains("delete-symbol")) {
+    if (
+      asciiSymbols[
+        Math.floor(
+          (currentPoint.y / CELL_SIZE) * numberOfColumns +
+            currentPoint.x / CELL_SIZE
+        )
+      ] &&
+      asciiSymbols[
+        Math.floor(
+          (currentPoint.y / CELL_SIZE) * numberOfColumns +
+            currentPoint.x / CELL_SIZE
+        )
+      ].symbol
+    )
+      asciiSymbols[
+        Math.floor(
+          (currentPoint.y / CELL_SIZE) * numberOfColumns +
+            currentPoint.x / CELL_SIZE
+        )
+      ]["symbol"] = " ";
+    redrawAsciiPicture();
+  }
 }
-
 
 function isValidCoordinates(x, y) {
-    if (x <= 0 || y <= 0 || x >= numberOfColumns || y >= numberOfRows) {
-        return false;
-    }
-    return true;
+  if (x <= 0 || y <= 0 || x >= numberOfColumns || y >= numberOfRows) {
+    return false;
+  }
+  return true;
 }
 
-function fillCanvasUtil(screen, x, y, prevCharacter, character, visited, counter) {
-    if (!isValidCoordinates(x, y)) {
-        return;
-    }
+function fillCanvasUtil(
+  screen,
+  x,
+  y,
+  prevCharacter,
+  character,
+  visited,
+  counter
+) {
+  if (!isValidCoordinates(x, y)) {
+    return;
+  }
 
-    const currentAsciiIndex = y * numberOfColumns + x;
+  const currentAsciiIndex = y * numberOfColumns + x;
 
-    if (screen[currentAsciiIndex] && screen[currentAsciiIndex].symbol != prevCharacter) return;
+  if (
+    screen[currentAsciiIndex] &&
+    screen[currentAsciiIndex].symbol != prevCharacter
+  )
+    return;
 
-    context.fillStyle = chosenColor;
-    context.fillText(character, x * CELL_SIZE, y * CELL_SIZE);
-    screen[currentAsciiIndex] = {
-        x: x * CELL_SIZE,
-        y: y * CELL_SIZE,
-        symbol: character,
-    };
-    visited.push(currentAsciiIndex);
+  context.fillStyle = chosenColor;
+  context.fillText(character, x * CELL_SIZE, y * CELL_SIZE);
+  screen[currentAsciiIndex] = {
+    x: x * CELL_SIZE,
+    y: y * CELL_SIZE,
+    symbol: character,
+  };
+  visited.push(currentAsciiIndex);
 
-    fillCanvasUtil(screen, x - 1, y, prevCharacter, character, visited, counter + 1);
-    fillCanvasUtil(screen, x + 1, y, prevCharacter, character, visited, counter + 1);
-    fillCanvasUtil(screen, x, y + 1, prevCharacter, character, visited, counter + 1);
-    fillCanvasUtil(screen, x, y - 1, prevCharacter, character, visited, counter + 1);
+  fillCanvasUtil(
+    screen,
+    x - 1,
+    y,
+    prevCharacter,
+    character,
+    visited,
+    counter + 1
+  );
+  fillCanvasUtil(
+    screen,
+    x + 1,
+    y,
+    prevCharacter,
+    character,
+    visited,
+    counter + 1
+  );
+  fillCanvasUtil(
+    screen,
+    x,
+    y + 1,
+    prevCharacter,
+    character,
+    visited,
+    counter + 1
+  );
+  fillCanvasUtil(
+    screen,
+    x,
+    y - 1,
+    prevCharacter,
+    character,
+    visited,
+    counter + 1
+  );
 }
 
 function saveAsciiPicture() {
-    console.log(123);
-    var data = {};
-    document
-        .getElementsByClassName("ascii-form")[0]
-        .addEventListener("submit", function (event) {
-            let result = "";
-            for (
-                let i = minRow * Math.floor(canvas.width / CELL_SIZE);
-                i < maxRow * Math.floor(canvas.width / CELL_SIZE) + maxCol + 1;
-                ++i
-            ) {
-                if (i % Math.floor(canvas.width / CELL_SIZE) == 0) {
-                    result += "\n";
-                }
-                if (asciiSymbols[i] && asciiSymbols[i].symbol) {
-                    result += asciiSymbols[i].symbol;
-                } else {
-                    result += " ";
-                }
-            }
-            asciiText = result;
-            data['owner_id'] = 3;
-            data["value"] = asciiText;
-            data["name"] = asciiName;
-            data["color"] = chosenColor;
-            event.preventDefault();
-            sendRequest(
-                `${BASE_URL}addAsciiPicture.php`,
-                { method: "POST", data: `data=${JSON.stringify(data)}` },
-                addedSuccessfully,
-                handleErrorAscii
-            );
-        });
+  document
+    .getElementsByClassName("ascii-form")[0]
+    .addEventListener("submit", function (event) {
+      let result = "";
+      for (
+        let i = 0;
+        i <
+        numberOfRows * Math.floor(canvas.width / CELL_SIZE) +
+          numberOfColumns +
+          1;
+        ++i
+      ) {
+        if (i % Math.floor(canvas.width / CELL_SIZE) == 0) {
+          result += "\n";
+        }
+        if (asciiSymbols[i] && asciiSymbols[i].symbol) {
+          result += asciiSymbols[i].symbol;
+        } else {
+          result += " ";
+        }
+      }
+      asciiText = result;
+      const jwtToken = getCookie("token");
+      const userId = getUserIdFromJwtToken();
+      if (userId && jwtToken) {
+        const data = {};
+        data["owner_id"] = userId;
+        data["value"] = asciiText;
+        data["name"] = asciiName;
+        data["color"] = chosenColor;
+        event.preventDefault();
+        sendRequest(
+          `${BASE_URL}addAsciiPicture.php`,
+          {
+            method: "POST",
+            data: `data=${JSON.stringify(data)}`,
+            token: jwtToken,
+          },
+          addedSuccessfully,
+          handleErrorAscii
+        );
+      }
+    });
 }
 
 function updateAsciiPicture() {
-    var data = {};
-    document
-        .getElementsByClassName("ascii-name-update")[0]
-        .addEventListener("submit", function (event) {
-            let result = "";
-            for (
-                let i = minRow * Math.floor(canvas.width / CELL_SIZE) + minCol - 1;
-                i < maxRow * Math.floor(canvas.width / CELL_SIZE) + maxCol + 1;
-                ++i
-            ) {
-                if (i % Math.floor(canvas.width / CELL_SIZE) == 0) {
-                    result += "\\n";
-                }
-                if (asciiSymbols[i] && asciiSymbols[i].symbol) {
-                    result += asciiSymbols[i].symbol;
-                } else {
-                    result += " ";
-                }
-            }
-            asciiText = result;
-            // replace later
-            data["owner_id"] = 1;
-            data["value"] = asciiText;
-            data["name"] = updateNameInput.value;
-            data["color"] = chosenColor;
-            data["previous_name"] = document.getElementsByClassName("menu-select")[0].value;
-            event.preventDefault();
-            sendRequest(
-                `${BASE_URL}updateAsciiPicture.php`,
-                { method: "PUT", data: JSON.stringify(data) },
-                updatedSuccessfully,
-                handleErrorAscii
-            );
-        });
+  document
+    .getElementsByClassName("ascii-name-update")[0]
+    .addEventListener("submit", function (event) {
+      let result = "";
+      for (
+        let i = 0;
+        i <
+        numberOfRows * Math.floor(canvas.width / CELL_SIZE) +
+          numberOfColumns +
+          1;
+        ++i
+      ) {
+        if (i % Math.floor(canvas.width / CELL_SIZE) == 0 && i > 0) {
+          result += "\\n";
+        }
+        if (asciiSymbols[i] && asciiSymbols[i].symbol) {
+          result += asciiSymbols[i].symbol;
+        } else {
+          result += " ";
+        }
+      }
+      asciiText = result;
+
+      const jwtToken = getCookie("token");
+      const userId = getUserIdFromJwtToken();
+      if (userId && jwtToken) {
+        const data = {};
+        data["owner_id"] = userId;
+        data["value"] = asciiText;
+        data["name"] = updateNameInput.value;
+        data["color"] = chosenColor;
+        data["previous_name"] =
+          document.getElementsByClassName("menu-select")[0].value;
+        event.preventDefault();
+        sendRequest(
+          `${BASE_URL}updateAsciiPicture.php`,
+          { method: "PUT", data: JSON.stringify(data), token: jwtToken },
+          updatedSuccessfully,
+          handleErrorAscii
+        );
+      }
+    });
 }
 
 function showModalForSeconds(reload = false) {
-    document.getElementsByClassName("editor")[0].classList.add("show-modal");
-    setTimeout(() => {
-        document.getElementsByClassName("editor")[0].classList.remove("show-modal");
-        if (reload) {
-            window.location.reload();
-        }
-    }, 3000);
+  document.getElementsByClassName("editor")[0].classList.add("show-modal");
+  setTimeout(() => {
+    document.getElementsByClassName("editor")[0].classList.remove("show-modal");
+    if (reload) {
+      window.location.reload();
+    }
+  }, 3000);
 }
 
 function updateSearchParams(asciiName) {
-    pageUrl.searchParams.delete("ascii-name");
-    pageUrl.searchParams.append("ascii-name", asciiName);
-    window.history.pushState({}, "", pageUrl);
+  pageUrl.searchParams.delete("ascii-name");
+  pageUrl.searchParams.append("ascii-name", asciiName);
+  window.history.pushState({}, "", pageUrl);
 }
 
 function deleteSearchParams() {
-    pageUrl.searchParams.delete("ascii-name");
-    window.history.pushState({}, "", pageUrl);
+  pageUrl.searchParams.delete("ascii-name");
+  window.history.pushState({}, "", pageUrl);
 }
 
 function updatedSuccessfully(response) {
-    showModalForSeconds(true);
-    if (response["success"]) {
-        updateSearchParams(updateNameInput.value);
-        document.getElementsByClassName("modal-header")[0].style.backgroundColor = "#4BB543";
-        document.getElementsByClassName("modal-footer")[0].style.backgroundColor = "#4BB543";
-        modalContent.innerHTML = "Your Ascii Picture was changed successfully."
-    } else {
-        document.getElementsByClassName("modal-header")[0].style.backgroundColor = "#FF0000";
-        document.getElementsByClassName("modal-footer")[0].style.backgroundColor = "#FF0000";
-        modalContent.innerHTML = "An error has occurred while updating the Ascii Picture. Try again."
-    }
+  showModalForSeconds(true);
+  if (response["success"]) {
+    updateSearchParams(updateNameInput.value);
+    document.getElementsByClassName("modal-header")[0].style.backgroundColor =
+      "#4BB543";
+    document.getElementsByClassName("modal-footer")[0].style.backgroundColor =
+      "#4BB543";
+    modalContent.innerHTML = "Your Ascii Picture was changed successfully.";
+  } else {
+    document.getElementsByClassName("modal-header")[0].style.backgroundColor =
+      "#FF0000";
+    document.getElementsByClassName("modal-footer")[0].style.backgroundColor =
+      "#FF0000";
+    modalContent.innerHTML =
+      "An error has occurred while updating the Ascii Picture. Try again.";
+  }
 }
 
 function addedSuccessfully(response) {
-    if (response["success"]) {
-        showModalForSeconds(true);
-        updateSearchParams(response["data"]["name"]);
-        document.getElementsByClassName("modal-header")[0].style.backgroundColor = "#4BB543";
-        document.getElementsByClassName("modal-footer")[0].style.backgroundColor = "#4BB543";
-        modalContent.innerHTML = "Your Ascii Picture was added successfully.";
+  if (response["success"]) {
+    showModalForSeconds(true);
+    updateSearchParams(response["data"]["name"]);
+    document.getElementsByClassName("modal-header")[0].style.backgroundColor =
+      "#4BB543";
+    document.getElementsByClassName("modal-footer")[0].style.backgroundColor =
+      "#4BB543";
+    modalContent.innerHTML = "Your Ascii Picture was added successfully.";
+  } else {
+    if (response["errors"]) {
+      if (response["code"] == 1062) {
+        showModalForSeconds();
+        modalContent.innerHTML =
+          "An Ascii Picture with this name already exists. Please, enter a different name and then try again.";
+      } else {
+        showModalForSeconds();
+        modalContent.innerHTML = "An error has occurred. Try again.";
+      }
     } else {
-        if (response["errors"]) {
-            if (response["code"] == 1062) {
-                showModalForSeconds();
-                modalContent.innerHTML = "An Ascii Picture with this name already exists. Please, enter a different name and then try again."
-            } else {
-                showModalForSeconds();
-                modalContent.innerHTML = "An error has occurred. Try again."
-            }
-        } else {
-            document.getElementsByClassName("editor")[0].classList.remove("show-modal");
-        }
+      document
+        .getElementsByClassName("editor")[0]
+        .classList.remove("show-modal");
     }
+  }
 }
 
 function handleErrorAscii(response) {
-    if (response["errors"]) {
-        showModalForSeconds();
-        modalContent.innerHTML = "An error has occurred. Try again."
-    } else {
-        document.getElementsByClassName("editor")[0].classList.remove("show-modal");
-    }
+  if (response["errors"]) {
+    showModalForSeconds();
+    modalContent.innerHTML = "An error has occurred. Try again.";
+  } else {
+    document.getElementsByClassName("editor")[0].classList.remove("show-modal");
+  }
 }
