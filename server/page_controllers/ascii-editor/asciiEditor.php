@@ -49,7 +49,7 @@ class AsciiEditor
             //TODO: validate $color variable
             $this->validateAsciiText($value, $name);
             if ($this->errors['success']) {
-                $query = $this->connection->insertNewAsciiText(["value" => json_encode($value), "name" => $name, "color" => $color, "owner_id" => $owner_id]);
+                $query = $this->connection->insertNewAsciiText(["value" => $value, "name" => $name, "color" => $color, "owner_id" => $owner_id]);
                 if ($query["success"]) {
                     echo json_encode(["success" => true, "data" => $data, "message" => "Successfully added ascii text", "token" => $verifiedToken]);
                 } else {

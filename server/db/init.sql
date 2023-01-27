@@ -14,7 +14,7 @@ create table if not exists user(
 
 create table if not exists pictures(
     id int auto_increment,
-    value longtext not null,
+    value longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci not null,
     color char(7) default "#000000",
     name varchar(255) not null,
     likes int unsigned not null default 0,
