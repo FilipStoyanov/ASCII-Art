@@ -25,6 +25,32 @@ var modal = document.getElementById("modal");
 var modalContent = document.getElementsByClassName("modal-body")[0];
 var modalCloseBtn = document.getElementsByClassName("close")[0];
 
+//emojis
+const emojis = [
+  "\u2665",
+  "\u25B6",
+  "\u219D",
+  "\u274C",
+  "\u21F0",
+  "\u2663",
+  "\u263A",
+  "\u2642",
+  "\u2672",
+  "\u203C",
+  "\u2652",
+  "\u2691",
+  "\u1F973",
+  "\u263B",
+  "\u26D4",
+  "\u2744",
+  "\u272D",
+  "\u2600",
+  "\u2660",
+  "\u26BD",
+  "\u266B",
+  "\u261D",
+];
+
 function modalFunctionality() {
   modalCloseBtn.onclick = function () {
     modal.style.display = "none";
@@ -60,6 +86,13 @@ function addAsciiCharacters() {
       letter.innerHTML = String.fromCharCode(i);
       letters.appendChild(letter);
     }
+  }
+
+  for (let emoji of emojis) {
+    let letter = document.createElement("button");
+    letter.classList.add("letter");
+    letter.innerHTML = emoji;
+    letters.appendChild(letter);
   }
 }
 
@@ -154,8 +187,8 @@ function changeAsciiName() {
 }
 
 function addOptionsToSelect(response) {
-  if(response['token']) {
-      setCookie("token", response["token"], 30);
+  if (response["token"]) {
+    setCookie("token", response["token"], 30);
   }
   if (response[0]) {
     let rows = response[0];
@@ -282,8 +315,8 @@ function redrawAsciiPicture(color = chosenColor) {
 }
 
 function loadAsciiPicture(response) {
-  if(response['token']) {
-      setCookie("token", response["token"], 30);
+  if (response["token"]) {
+    setCookie("token", response["token"], 30);
   }
   document.getElementById("color").value = response[0][0].color;
   chosenColor = response[0][0].color;
@@ -694,7 +727,7 @@ function saveAsciiPicture() {
         ++i
       ) {
         if (i % Math.floor(canvas.width / CELL_SIZE) == 0) {
-          result += "\n";
+          result += "\\n";
         }
         if (asciiSymbols[i] && asciiSymbols[i].symbol) {
           result += asciiSymbols[i].symbol;
@@ -795,8 +828,8 @@ function deleteSearchParams() {
 function updatedSuccessfully(response) {
   showModalForSeconds(true);
   if (response["success"]) {
-    if(response['token']) {
-        setCookie("token", response["token"], 30);
+    if (response["token"]) {
+      setCookie("token", response["token"], 30);
     }
     updateSearchParams(updateNameInput.value);
     document.getElementsByClassName("modal-header")[0].style.backgroundColor =
@@ -816,8 +849,8 @@ function updatedSuccessfully(response) {
 
 function addedSuccessfully(response) {
   if (response["success"]) {
-    if(response['token']) {
-        setCookie("token", response["token"], 30);
+    if (response["token"]) {
+      setCookie("token", response["token"], 30);
     }
     showModalForSeconds(true);
     updateSearchParams(response["data"]["name"]);
