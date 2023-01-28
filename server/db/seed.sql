@@ -1,6 +1,6 @@
 use ascii_art;
 DELIMITER $$
-CREATE PROCEDURE SEED_USERS()
+CREATE PROCEDURE `SEED_USERS`()
 BEGIN
 
 	declare username_cnt INT;
@@ -11,7 +11,7 @@ BEGIN
     SET username_cnt = 1;
 
 	INSERT INTO
-        user (username, password_hash, roles)
+        `user` (username, password_hash, roles)
         VALUES ("filip", "7c4a8d09ca3762af61e59520943dc26494f8941b", "ADMIN");
 
 	loop_label:  LOOP
@@ -51,7 +51,7 @@ BEGIN
 END$$
 
 DELIMITER $$
-CREATE PROCEDURE SEED_FOLLOWERS()
+CREATE PROCEDURE `SEED_FOLLOWERS`()
 BEGIN
 
     declare cnt INT;
@@ -71,7 +71,7 @@ BEGIN
             END  IF;
 
             INSERT INTO
-            follower (user, follower)
+            `follower` (user, follower)
             VALUES (cnt, follower_cnt);
 
 		    SET  follower_cnt = follower_cnt + 1;
