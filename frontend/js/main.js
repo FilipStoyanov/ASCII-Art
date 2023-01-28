@@ -248,12 +248,12 @@ function toggleMenu() {
       navigation.classList.toggle("show");
       header.classList.toggle("show");
       window.location.reload();
+      if (navLinks[i].classList.contains("logout")) {
+        localStorage.clear();
+        removeCookie("token", "/");
+        window.location.assign("login.html");
+      }
     });
-    if (navLinks[i].classList.contains("logout")) {
-      localStorage.clear();
-      removeCookie("token", "/");
-      window.location.assign("login.html");
-    }
   }
 }
 
