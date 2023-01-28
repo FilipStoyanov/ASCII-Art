@@ -23,9 +23,6 @@
     --button-height: 40px;
 }
 
-body { 
-}
-
 .login, .signin {
     position: absolute;
     width: 100%;

@@ -2,7 +2,7 @@ create database ascii_art;
 
 use ascii_art;
 
-create table if not exists user(
+create table if not exists `user`(
     id int primary key not null auto_increment,
     username varchar(255) unique not null,
     password_hash varchar(255) not null,
@@ -12,7 +12,7 @@ create table if not exists user(
     unique index(username)
 );
 
-create table if not exists pictures(
+create table if not exists `pictures`(
     id int auto_increment,
     value longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci not null,
     color char(7) default "#000000",
@@ -26,7 +26,7 @@ create table if not exists pictures(
     constraint FK_OWNER foreign key (owner_id) references user(id) on delete cascade
 );
 
-create table if not exists follower(
+create table if not exists `follower`(
     id int auto_increment,
     user int not null,
     follower int not null,
@@ -35,7 +35,7 @@ create table if not exists follower(
     constraint FK_FOLLOWER foreign key (follower) references user(id) on delete cascade
 );
 
-create table if not exists videos(
+create table if not exists `videos`(
     id int auto_increment,
     title varchar(255) not null,
     owner_id int not null,
@@ -50,7 +50,7 @@ create table if not exists videos(
     constraint FK_VIDEO_OWNER foreign key (owner_id) references user(id) on delete cascade
 );
 
-create table if not exists liked(
+create table if not exists `liked`(
     id int auto_increment,
     user int not null,
     picture int not null,
