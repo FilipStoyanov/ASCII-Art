@@ -70,7 +70,7 @@ class Users
 
             if (!$users) {
                 $response['success'] = false;
-                $response['error'] = 'User with id ' . $userId . ' was not found.';
+                $response['error'] = 'No users were found.';
                 return json_encode($response);
             }
 

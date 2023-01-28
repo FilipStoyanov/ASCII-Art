@@ -4,8 +4,6 @@ const baseFollowUrl = dir + 'server/page_controllers/follow/';
 
 function openTab(event, sectionName) {
   setupPages(sectionName);
-  var errorMsg = document.getElementById("error-msg");
-  errorMsg.style.display = "";
   if (getCookie('token') === null) {
     errorMsg.style.display = "block";
     errorMsg.innerHTML = 'User is not chosen.';
@@ -130,13 +128,15 @@ function listUsers() {
 
 function lookupUser() {
   var name = document.getElementById("user-name");
-  if(!name.value || /^\s*$/.test(name.value)){
-    let message = "Empty name. You need to enter the name of the user first.";
-    var modalContents = document.getElementsByClassName("modal-body");
-    Array.from(modalContents).forEach(modalContent => { modalContent.innerHTML = message; });
-    showModalForSeconds();
+  let errorFields = document.getElementsByClassName('error-msg');
+  if (errorFields.length == 0) { return; }
+  let errorField = errorFields[0];
+  if (!name.value || /^\s*$/.test(name.value)) {
+    errorField.innerHTML = 'Mandatory field.';
+    errorField.style.display = 'block';
     return;
   }
+  errorField.style.display = 'none';
   var url = baseUrl + 'user.php?user=' + name.value + '&&page=' + sessionStorage.getItem('page');
   var type = 'user-by-name';
   sendRequestWithHeaders(url, { method: 'GET', data: '' }, (response) => handleListUsers(response, type, false), handleError);
@@ -159,11 +159,12 @@ function sendRequestWithHeaders(url, options, successCallback, errorCallback) {
   var request = new XMLHttpRequest();
 
   request.onload = function () {
+    console.log(request.responseText);
     var response = JSON.parse(request.responseText);
     if (request.status === 200 && response['success']) {
       setCookie('token', response["token"], 1);
       successCallback(response);
-    } else if (request.status ==401 || request.status ==403) {
+    } else if (request.status == 401 || request.status == 403) {
       setCookie('token', token, 1);
       errorCallback(response, true);
     }
@@ -287,6 +288,7 @@ function page(addition, refreshUsers) {
 }
 
 function updateButtonsMode(buttonClass, newMode) {
+  console.log('disable');
   var btns = document.getElementsByClassName(buttonClass);
   Array.from(btns).forEach(btn => { btn.disabled = newMode; });
 }
