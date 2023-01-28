@@ -234,9 +234,8 @@ class DataBaseConnection
     //$input -> ["username" => value, "passowrd" => value]
     public function getUserByUsernameAndPassword($input)
     {
-        $hash = sha1($input["password"]);
         try {
-            $this->selectUser->execute(["username" => $input["username"], "password" => $hash]);
+            $this->selectUser->execute(["username" => $input["username"], "password" => $input["password"]]);
             $user = $this->selectUser->fetch();
             if ($user != null) {
                 return ["success" => true,"user"=>$user["id"], "user_role" => $user["roles"]];
@@ -533,10 +532,8 @@ class DataBaseConnection
     //$input -> ["username" => value, "passowrd" => value]
     public function insertNewUser($input)
     {
-        $hash = sha1($input["password"]);
         try {
-            $this->insertUser->execute(["username" => $input["username"], "password_hash" => $hash]);
-
+            $this->insertUser->execute(["username" => $input["username"], "password_hash" => $input["password"]]);
             return ["success" => true];
         } catch (Exception $e) {
             return ["success" => false, "error" => "Connection failed: " . $e->getMessage(), "code" => $e->getCode()];
