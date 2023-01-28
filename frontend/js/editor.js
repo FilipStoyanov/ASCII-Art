@@ -342,16 +342,6 @@ function loadAsciiPicture(response) {
   }
 }
 
-function getUserIdFromJwtToken() {
-  const token = getCookie("token");
-  let payload, userId;
-  if (token) {
-    payload = JSON.parse(atob(token.split(".")[1]));
-    userId = payload.id;
-  }
-  return userId;
-}
-
 function loadAllAsciiPictures() {
   const jwtToken = getCookie("token");
   const userId = getUserIdFromJwtToken();
