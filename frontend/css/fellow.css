@@ -25,7 +25,7 @@ body {
 }
 
 .search-button:focus {
-  background-color: transparent;
+  background-color: var(--search-button-hover);
 }
 
 .button-like:hover {

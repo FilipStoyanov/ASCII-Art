@@ -85,7 +85,6 @@ var modalCloseBtn = document.getElementsByClassName("close")[0];
 
 function handleError(response, isErrorInAuth) {
   let message = "An error has occurred. Try again.";
-
   if (isErrorInAuth) {
     message = "An error with the authentication has occured. Please, logout and login again."
   }
@@ -131,6 +130,13 @@ function listUsers() {
 
 function lookupUser() {
   var name = document.getElementById("user-name");
+  if(!name.value || /^\s*$/.test(name.value)){
+    let message = "Empty name. You need to enter the name of the user first.";
+    var modalContents = document.getElementsByClassName("modal-body");
+    Array.from(modalContents).forEach(modalContent => { modalContent.innerHTML = message; });
+    showModalForSeconds();
+    return;
+  }
   var url = baseUrl + 'user.php?user=' + name.value + '&&page=' + sessionStorage.getItem('page');
   var type = 'user-by-name';
   sendRequestWithHeaders(url, { method: 'GET', data: '' }, (response) => handleListUsers(response, type, false), handleError);
