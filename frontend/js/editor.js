@@ -187,9 +187,6 @@ function changeAsciiName() {
 }
 
 function addOptionsToSelect(response) {
-  if (response["token"]) {
-    setCookie("token", response["token"], 30);
-  }
   if (response[0]) {
     let rows = response[0];
     for (let i = 0; i < rows.length; ++i) {
@@ -315,9 +312,6 @@ function redrawAsciiPicture(color = chosenColor) {
 }
 
 function loadAsciiPicture(response) {
-  if (response["token"]) {
-    setCookie("token", response["token"], 30);
-  }
   document.getElementById("color").value = response[0][0].color;
   chosenColor = response[0][0].color;
   const START_X = 0;
@@ -828,9 +822,6 @@ function deleteSearchParams() {
 function updatedSuccessfully(response) {
   showModalForSeconds(true);
   if (response["success"]) {
-    if (response["token"]) {
-      setCookie("token", response["token"], 30);
-    }
     updateSearchParams(updateNameInput.value);
     document.getElementsByClassName("modal-header")[0].style.backgroundColor =
       "#4BB543";
@@ -849,9 +840,6 @@ function updatedSuccessfully(response) {
 
 function addedSuccessfully(response) {
   if (response["success"]) {
-    if (response["token"]) {
-      setCookie("token", response["token"], 30);
-    }
     showModalForSeconds(true);
     updateSearchParams(response["data"]["name"]);
     document.getElementsByClassName("modal-header")[0].style.backgroundColor =

@@ -23,10 +23,6 @@
     --button-height: 40px;
 }
 
-body {
-    background-color: #DDD0C8;
-}
-
 .login, .signin {
     position: absolute;
     width: 100%;
