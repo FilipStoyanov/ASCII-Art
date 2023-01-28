@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>ASCII ART</title>
+    <link href="../css/main.css" rel="stylesheet" />
+    <link href="../css/aboutus.css" rel="stylesheet" />
+    <link
+      rel="stylesheet"
+      href="http://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css"
+    />
+  </head>
+
+  <body>
+    <header class="header">
+        <nav class="navigation col-md-10">
+            <ul class="navigation-group">
+                <li class="navigation-item">
+                    <a class="header-item" href="editor.html">Ascii Editor</a>
+                </li>
+                <li class="navigation-item">
+                    <a class="header-item" href="video_editor.html">Video Editor</a>
+                </li>
+                <li class="navigation-item">
+                    <a class="header-item" href="feed.html">Feed</a>
+                </li>
+                <li class="navigation-item">
+                    <a class="header-item" href="followers.html">Followers</a>
+                </li>
+                <li class="navigation-item">
+                  <a class="header-item" href="users.html">Users</a>
+              </li>
+                <!-- <li class="navigation-item">
+                    <a class="header-item" href="feed.html">Profile</a>
+                </li> -->
+                <li class="navigation-item">
+                    <a class="header-item" href="aboutus.html">About us</a>
+                </li>
+            </ul>
+            <ul class="settings">
+                <li>
+                    <span class="greeting">Hello, Name</span>
+                </li>
+                <li>
+                    <a class="header-item logout">Logout</a>
+                </li>
+            </ul>
+        </nav>
+        <button class="header-button"></button>
+        <span class="greeting-mobile">Hello, Name</span>
+        <nav class="navigation-mobile">
+            <a class="header-item" href="editor.html" onclick="toggleMenu()">Ascii Editor</a>
+            <a class="header-item" href="video_editor.html" onclick="toggleMenu()">Video Editor</a>
+            <a class="header-item" href="feed.html" onclick="toggleMenu()">Feed</a>
+            <a class="header-item" href="aboutus.html" onclick="toggleMenu()">Followers</a>
+            <a class="header-item" href="aboutus.html" onclick="toggleMenu()">Profile</a>
+            <a class="header-item" href="aboutus.html" onclick="toggleMenu()">About us</a>
+            <a class="header-item logout" onclick="toggleMenu()">Logout</a>
+        </nav>
+    </header>
+    <section class="aboutus">
+    <h1 class="aboutus-title">About us</h1>
+        <article class="developer">
+           <figure class="developer-img">
+               <img width="100%" height="100%" src="../assets/filipstoyanov.jpg" alt="Filip Stoyanov">
+               <figcaption>Filip Stoyanov</figcaption>
+             </figure>
+             <div class="developer-wrapper">
+                 <p class="developer-info">
+                   Казвам се Филип. На 22 години, от град София и съм завършил Софийска математическа гимназия. В момента съм четвърти курс във ФМИ, специалност компютърни науки.
+       Имам профисионален опит катo Фронтенд софтуерен разработчик.
+       През свободното си време обичам да играя футбол и да ходя на фитнес. Също така обичам да чета статии по математика и информатика.
+       <span class="developer-facebook">Facebook: <a href="https://www.facebook.com/filip.stoianov.3/" class="developer-link" target="_blank">https://www.facebook.com/filip.stoianov.3/</a></span>
+                 </p>
+             </div>
+        </article>
+    </section>
+  </body>
+</html>

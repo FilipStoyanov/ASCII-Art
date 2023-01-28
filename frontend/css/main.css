@@ -23,7 +23,8 @@
     --button-height: 40px;
 }
 
-body { 
+body {
+    background-color: #DDD0C8;
 }
 
 .login, .signin {

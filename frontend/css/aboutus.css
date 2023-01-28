@@ -1,0 +1,47 @@
+@import "../css/main.css";
+
+.aboutus {
+    margin-top: 100px;
+    width: 100%;
+    max-width: 1000px;
+    margin: 100px auto 0;
+    padding-bottom: 20px;
+}
+
+.aboutus-title {
+    text-align: center;
+}
+
+.developer {
+    width: 100%;
+    display: flex;
+    text-align: justify;
+    margin: 0 auto;
+    border-bottom: 1px solid var(--gray);
+    padding: 15px;
+    box-sizing: border-box;
+}
+
+.developer-img img {
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+}
+
+.developer-img figcaption {
+    text-align: center;
+    font-weight: bold;
+    font-size: var(--lg-font);
+}
+
+.developer-wrapper {
+    padding: 0 20px 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+
+.developer-facebook {
+    display: block;
+}
