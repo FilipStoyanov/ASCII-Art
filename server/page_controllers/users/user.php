@@ -1,5 +1,6 @@
 <?php
 include_once("../../db/db.php");
+include_once("../../jwt/jwt.php");
 class User
 {
 

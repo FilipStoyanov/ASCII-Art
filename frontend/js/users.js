@@ -48,6 +48,7 @@ function clearFoundUsers() {
 
 function handleListUsers(response, type, listAllUsers) {
   let userId = response['user'];
+  console.log('user+++'+userId); 
   var tableName = type + '-tb';
   var table = document.getElementById(tableName);
   table.innerHTML = '';
@@ -203,7 +204,7 @@ function addHeaders(table) {
 function removeFollower(user, follower, listAllUsers) {
   console.log('Delete follower ' + follower + ' from user ' + user);
   var url = baseFollowUrl + 'updateFollower.php';
-  var data = { 'follower': follower };
+  var data = { 'user': user, 'follower': follower };
   sendRequestWithHeaders(url, { method: 'DELETE', data: JSON.stringify(data) }, (response) => handleUpdateFollower(listAllUsers, response, 'Successfully deleted follower.'), handleErrorUpdateFollower);
 }
 
@@ -270,7 +271,7 @@ function createAddButton(disable, userId, otherId, listAllUsers) {
 function addFollower(user, follower, listAllUsers) {
   console.log('Add follower ' + follower + ' to user ' + user);
   var url = baseFollowUrl + 'updateFollower.php';
-  var data = { 'follower': follower };
+  var data = { 'user': user, 'follower': follower };
   sendRequestWithHeaders(url, { method: 'POST', data: JSON.stringify(data) }, (response) => handleUpdateFollower(listAllUsers, response, 'Successfully added follower.'), handleErrorUpdateFollower);
 }
 

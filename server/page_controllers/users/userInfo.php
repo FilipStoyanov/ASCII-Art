@@ -30,13 +30,13 @@ class UserInfo
             $components = parse_url($url);
             parse_str($components['query'], $pathParameters);
 
-            $jwtUser = JWT::fetchUserFromJWT($authHeader);
-            $user = $jwtUser['id'];
-            if ($user == null) {
+            if (!array_key_exists('user', $pathParameters) || $pathParameters['user'] == null) {
                 $this->response['success'] = false;
                 $this->response['error'] = 'User is not chosen.';
                 return json_encode($this->response);
             }
+
+            $user = $pathParameters['user'];
 
             if (!is_int($user)) {
                 $user = (int) $user;
@@ -59,10 +59,7 @@ class UserInfo
                 $response['error'] = 'User with id '.$user.' was not found.';
                 return json_encode($response);
             }
-
-            $response['user'] = $this->dropSensitiveInformation($user);
-            $response['success'] = true;
-            return json_encode(['success'=>true,'users'=>$this->dropSensitiveInformation($user),'token'=>$verifiedToken]);
+            return json_encode(['success'=>true,'user'=>$this->dropSensitiveInformation($user),'token'=>$verifiedToken]);
         }
         $this->response['status'] = 'fail';
         $this->response['error'] = 'WRONG HTTP Request method.';

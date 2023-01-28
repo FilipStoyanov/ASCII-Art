@@ -46,37 +46,37 @@ function getCookie(name) {
 function sendRequestWithHeaders(url, options, successCallback, errorCallback) {
     let token = getCookie("token");
     var request = new XMLHttpRequest();
-  
+
     request.onload = function () {
-      console.log(request.responseText);
-      var response = JSON.parse(request.responseText);
-      if (request.status === 200 && response['success']) {
-        setCookie('token', response["token"], 1);
-        successCallback(response);
-      } else {
-        setCookie('token', token, 1);
-        errorCallback(response);
-      }
+        console.log(request.responseText);
+        var response = JSON.parse(request.responseText);
+        if (request.status === 200 && response['success']) {
+            setCookie('token', response["token"], 1);
+            successCallback(response);
+        } else {
+            setCookie('token', token, 1);
+            errorCallback(response);
+        }
     };
-  
+
     request.open(options.method, url, true);
     request.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
     request.setRequestHeader("Accept", "application/json");
     if (token) {
-      request.setRequestHeader("Authorization", "Bearer " + token);
+        request.setRequestHeader("Authorization", "Bearer " + token);
     }
     request.send(options.data);
-  }
-  
+}
+
 function setCookie(name, value, days) {
     var expires = "";
     if (days) {
-      var date = new Date();
-      date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
-      expires = "; expires=" + date.toUTCString();
+        var date = new Date();
+        date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+        expires = "; expires=" + date.toUTCString();
     }
     document.cookie = name + "=" + (value || "") + expires + "; path=/";
-  }
+}
 
 // get all friends' ascii pictures
 function getAllFriendsPictures() {
@@ -148,12 +148,13 @@ function createAscciWrapperEl(asciiPicture) {
 
 function handleError(response) {
     var modalContent = document.getElementsByClassName("modal-body")[0]
-    if (response["error"]) {
-        showModalForSeconds();
-        modalContent.innerHTML = "An error has occurred. Try again."
-    } else {
-        // document.getElementsByClassName("editor")[0].classList.remove("show-modal");
-    }
+    console.log('++++++++++++++++++++++++++++++');
+    // if (response["error"]) {
+    showModalForSeconds();
+    modalContent.innerHTML = "An error has occurred. Try again."
+    // } else {
+    //     // document.getElementsByClassName("editor")[0].classList.remove("show-modal");
+    // }
 }
 
 // Like button
@@ -313,9 +314,12 @@ function createLink(userId, username) {
 
 //  Modal
 function showModalForSeconds(reload = false) {
-    document.getElementsByClassName("feed")[0].classList.add("show-modal");
+    console.log('modal');
+    document.getElementsByClassName("tabcontent")[0].classList.add("show-modal");
+    document.getElementsByClassName("tabcontent")[1].classList.add("show-modal");
     setTimeout(() => {
-        document.getElementsByClassName("feed")[0].classList.remove("show-modal");
+        document.getElementsByClassName("tabcontent")[0].classList.remove("show-modal");
+        document.getElementsByClassName("tabcontent")[1].classList.remove("show-modal");
         if (reload) {
             window.location.reload();
         }
@@ -323,7 +327,7 @@ function showModalForSeconds(reload = false) {
 }
 
 function getAllFriendsVideos() {
-    sendRequestWithHeaders(videoEditorUrl + `get-videos-feed.php?page=${sessionStorage.getItem('page')}`, { method: 'GET', data: "" }, loadUserVideos, handleErrorAscii);
+    sendRequestWithHeaders(videoEditorUrl + `get-videos-feed.php?page=${sessionStorage.getItem('page')}`, { method: 'GET', data: "" }, loadUserVideos, handleError);
 }
 
 function loadUserVideos(response) {
@@ -373,15 +377,6 @@ function deleteLoadedVideos() {
         for (let i = 0; i < length; i++) {
             section.removeChild(loaded_videos_for_del[0]);
         }
-    }
-}
-
-function handleErrorAscii(response) {
-    if (response["errors"]) {
-        showModalForSeconds();
-        modalContent.innerHTML = "An error has occurred. Try again."
-    } else {
-        document.getElementsByClassName("editor")[0].classList.remove("show-modal");
     }
 }
 

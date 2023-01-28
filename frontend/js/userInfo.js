@@ -88,7 +88,7 @@ function setCookie(name, value, days) {
 
 function getUserInfo() {
     var url = userInfoUrl + '?user=' + sessionStorage.getItem('owner');
-    sendRequestWithHeaders(url, { method: 'GET', data: '' }, handleUserInfo, handleErrorUserInfo);
+    sendRequestWithHeaders(url, { method: 'GET', data: '' }, handleUserInfo, handleErrorAscii);
 }
 
 
@@ -96,11 +96,6 @@ function getUserInfo() {
 function handleUserInfo(response) {
     var userNameEl = document.getElementById('username');
     userNameEl.innerHTML = response['user']['username'];
-}
-
-function handleErrorUserInfo(response) {
-    errorMsg.style.display = "block";
-    errorMsg.innerHTML = response['error'];
 }
 
 
@@ -128,7 +123,7 @@ function getAllAsciiPictures() {
         allPicturesUrl + `?owner=${sessionStorage.getItem('owner')}&&page=${sessionStorage.getItem('page')}`,
         { method: "GET", data: '' },
         displayAsciiPictures,
-        handleError,
+        handleErrorAscii,
     );
 }
 
@@ -189,10 +184,6 @@ function createAscciWrapperEl(asciiPicture) {
     return asciiWrapperElement;
 }
 
-function handleError(response) {
-    console.log(response);
-}
-
 
 const USER_ID = 2;
 const ASCII_NAME = "1";
@@ -238,7 +229,7 @@ function addLike(pictureId) {
     sendRequestWithHeaders(`http://localhost:80/project-web-2022/ASCII-Art/server/page_controllers/feed/likes.php`,
         { method: "POST", data: JSON.stringify(data) },
         () => { },
-        handleError,
+        handleErrorAscii,
     );
 }
 
@@ -247,7 +238,7 @@ function deleteLike(pictureId) {
     sendRequestWithHeaders(`http://localhost:80/project-web-2022/ASCII-Art/server/page_controllers/feed/likes.php`,
         { method: "DELETE", data: JSON.stringify(data) },
         () => { },
-        handleError,
+        handleErrorAscii,
     );
 }
 
@@ -324,7 +315,6 @@ function updateButtonsMode(buttonClass, newMode) {
 }
 
 function setupPages() {
-    sessionStorage.setItem('user', 2);//TODO delete
     updateButtonsMode('prevPage', true);
     updateButtonsMode('nextPage', false);
     sessionStorage.setItem('page', 1);

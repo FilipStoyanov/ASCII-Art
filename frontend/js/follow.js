@@ -1,17 +1,11 @@
 const dir = '../../';
 const baseUrl = dir + 'server/page_controllers/follow/';
-sessionStorage.setItem('userId', 2);
 
 function openTab(event, sectionName) {
   setupPages(sectionName);
   var errorMsg = document.getElementById("error-msg");
   errorMsg.style.display = "";
-  var userId = sessionStorage.getItem('user');
-  if (userId === null) {
-    errorMsg.style.display = "block";
-    errorMsg.innerHTML = 'User is not chosen.';
-    return;
-  }
+
   var i, tabcontent, tablinks;
   tabcontent = document.getElementsByClassName("tabcontent");
   for (i = 0; i < tabcontent.length; i++) {
@@ -27,14 +21,14 @@ function openTab(event, sectionName) {
 }
 
 function setupPages(sectionName) {
-  sessionStorage.setItem('user', 3);// TO DO delete
   updateButtonsMode('prevPage', true);
   updateButtonsMode('nextPage', false);
   sessionStorage.setItem('page', 1);
   sessionStorage.setItem('section', sectionName);
 }
 
-function handleListFellows(response, type, userId) {
+function handleListFellows(response, type) {
+  let userId = response['user'];
   var tableName = type + '-tb';
   var table = document.getElementById(tableName);
   table.innerHTML = '';
@@ -88,7 +82,6 @@ function handleErrorFollowers(response) {
 }
 
 function listFellows(searchFollowers) {
-  var userId = sessionStorage.getItem('user');
   var url;
   var type = '';
   if (searchFollowers) {
@@ -98,8 +91,8 @@ function listFellows(searchFollowers) {
     url = baseUrl + 'listFollowings.php';
     type = 'followings';
   }
-  url += '?user=' + userId + '&&page=' + sessionStorage.getItem("page");
-  sendRequestWithHeaders(url, { method: 'GET', data: '' }, (response) => (handleListFellows(response, type, userId)), handleErrorFollowers);
+  url += '?page=' + sessionStorage.getItem("page");
+  sendRequestWithHeaders(url, { method: 'GET', data: '' }, (response) => (handleListFellows(response, type)), handleErrorFollowers);
 }
 
 
