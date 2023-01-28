@@ -180,7 +180,7 @@ function addLikeButton(el, pictureId, isLiked, likesCount) {
 
 
 function addLike(pictureId) {
-    var data = { 'user': sessionStorage.getItem('user'), 'picture': pictureId };
+    var data = { 'picture': pictureId };
     sendRequestWithHeaders(feedUrl + `likes.php`,
         { method: "POST", data: JSON.stringify(data) },
         () => { },
@@ -189,7 +189,7 @@ function addLike(pictureId) {
 }
 
 function deleteLike(pictureId) {
-    var data = { 'user': sessionStorage.getItem('user'), 'picture': pictureId };
+    var data = { 'picture': pictureId };
     sendRequestWithHeaders(feedUrl + `likes.php`,
         { method: "DELETE", data: JSON.stringify(data) },
         () => { },
