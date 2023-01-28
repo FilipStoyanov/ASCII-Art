@@ -6,13 +6,7 @@ const editorUrl = baseUrl + 'ascii-editor/';
 
 function openTab(event, sectionName) {
     setupPages(sectionName);
-    var errorMsg = document.getElementById("error-msg");
-    errorMsg.style.display = "";
-    if (sessionStorage.getItem('user') === null) {
-        errorMsg.style.display = "block";
-        errorMsg.innerHTML = 'User is not chosen.';
-        return;
-    }
+
     var i, tabcontent, tablinks;
     tabcontent = document.getElementsByClassName("tabcontent");
     for (i = 0; i < tabcontent.length; i++) {
@@ -48,14 +42,17 @@ function sendRequestWithHeaders(url, options, successCallback, errorCallback) {
     var request = new XMLHttpRequest();
 
     request.onload = function () {
-        console.log(request.responseText);
         var response = JSON.parse(request.responseText);
         if (request.status === 200 && response['success']) {
             setCookie('token', response["token"], 1);
             successCallback(response);
-        } else {
+        } else if (request.status == 401 || request.status == 403) {
             setCookie('token', token, 1);
-            errorCallback(response);
+            errorCallback(response, true);
+        }
+        else {
+            setCookie('token', token, 1);
+            errorCallback(response, false);
         }
     };
 
@@ -78,10 +75,9 @@ function setCookie(name, value, days) {
     document.cookie = name + "=" + (value || "") + expires + "; path=/";
 }
 
-// get all friends' ascii pictures
+
 function getAllFriendsPictures() {
     sendRequestWithHeaders(
-        // editorUrl + `/getAllFriendsPictures.php?user=${sessionStorage.getItem('user')}&&page=${sessionStorage.getItem('page')}`,
         editorUrl + `/getAllFriendsPictures.php?page=${sessionStorage.getItem('page')}`,
         { method: "GET", data: '' },
         displayAsciiPictures,
@@ -98,7 +94,6 @@ function displayAsciiPictures(response) {
         }
         if (pictures.length == 0) {
             console.log('No pictures found.')
-            // TODO add message on the UI or something else
             return;
         }
         for (let currentAscii of pictures) {
@@ -108,11 +103,8 @@ function displayAsciiPictures(response) {
             let owner = currentAscii['owner'];
             showAsciiPicture(wrapper, asciiPicture, isLiked, likesCount, owner['username']);
         }
-    } else {
-        // show error message
     }
 }
-
 
 function showAsciiPicture(element, asciiPicture, isLiked, likesCount, ownerName) {
     if (element && asciiPicture) {
@@ -146,18 +138,16 @@ function createAscciWrapperEl(asciiPicture) {
     return asciiWrapperElement;
 }
 
-function handleError(response) {
-    var modalContent = document.getElementsByClassName("modal-body")[0]
-    console.log('++++++++++++++++++++++++++++++');
-    // if (response["error"]) {
+function handleError(response, isErrorInAuth) {
+    let message = "An error has occurred. Try again.";
+    if (isErrorInAuth) {
+        message = "An error with the authentication has occured. Please, logout and login again."
+    }
+    var modalContents = document.getElementsByClassName("modal-body");
+    Array.from(modalContents).forEach(modalContent => { modalContent.innerHTML = message; });
     showModalForSeconds();
-    modalContent.innerHTML = "An error has occurred. Try again."
-    // } else {
-    //     // document.getElementsByClassName("editor")[0].classList.remove("show-modal");
-    // }
 }
 
-// Like button
 function addLikeButton(el, pictureId, isLiked, likesCount) {
     let button = document.createElement('a');
 
@@ -247,15 +237,6 @@ function refreshCounter(button) {
     button.getElementsByClassName('counter')[0].innerHTML = likesCount;
 }
 
-
-
-
-
-
-
-
-
-// Pagination
 function page(addition) {
     var currentPage = parseInt(sessionStorage.getItem('page'));
     currentPage += parseInt(addition);
@@ -283,7 +264,6 @@ function updateButtonsMode(buttonClass, newMode) {
 }
 
 function setupPages(sectionName) {
-    sessionStorage.setItem('user', 3);// TO DO delete
     updateButtonsMode('prevPage', true);
     updateButtonsMode('nextPage', false);
     sessionStorage.setItem('page', 1);
@@ -300,8 +280,6 @@ function flush() {
     loaded_videos = [];
 }
 
-
-// Create a link
 function createLink(userId, username) {
     var a = document.createElement('a');
     var linkText = document.createTextNode("User: " + username);
@@ -311,15 +289,11 @@ function createLink(userId, username) {
     return a;
 }
 
-
-//  Modal
 function showModalForSeconds(reload = false) {
-    console.log('modal');
-    document.getElementsByClassName("tabcontent")[0].classList.add("show-modal");
-    document.getElementsByClassName("tabcontent")[1].classList.add("show-modal");
+    var tabcontents = document.getElementsByClassName("tabcontent");
+    Array.from(tabcontents).forEach(tabcontent => { tabcontent.classList.add("show-modal"); });
     setTimeout(() => {
-        document.getElementsByClassName("tabcontent")[0].classList.remove("show-modal");
-        document.getElementsByClassName("tabcontent")[1].classList.remove("show-modal");
+        Array.from(tabcontents).forEach(tabcontent => { tabcontent.classList.remove("show-modal"); });
         if (reload) {
             window.location.reload();
         }
@@ -440,15 +414,11 @@ class Video {
 
 
     play() {
-        let get_last = document.getElementById(`loaded-frame-video-${this.id}-${this.current}`);
-        get_last.style.display = "none";
-
         if (this.current++ == this.frames.length - 1) {
             this.current = 0;
         }
-
-        let get_next = document.getElementById(`loaded-frame-video-${this.id}-${this.current}`);
-        get_next.style.display = "block";
+        let video_element = document.getElementById(`loaded-frame-video-${this.id}`);
+        video_element.innerHTML = this.frames[this.current];
 
         clearTimeout(this.timer);
         this.timer = setTimeout(this.name + '.play()', this.time);

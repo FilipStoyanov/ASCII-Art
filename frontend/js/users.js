@@ -30,7 +30,6 @@ function openTab(event, sectionName) {
 }
 
 function setupPages(sectionName) {
-  sessionStorage.setItem('user', 3);// TO DO delete
   updateButtonsMode('prevPage', true);
   updateButtonsMode('nextPage', false);
   sessionStorage.setItem('page', 1);
@@ -48,7 +47,6 @@ function clearFoundUsers() {
 
 function handleListUsers(response, type, listAllUsers) {
   let userId = response['user'];
-  console.log('user+++'+userId); 
   var tableName = type + '-tb';
   var table = document.getElementById(tableName);
   table.innerHTML = '';
@@ -60,7 +58,6 @@ function handleListUsers(response, type, listAllUsers) {
   }
   if (users.length == 0) {
     console.log('No users found.')
-    // TODO add message on the UI or something else
     return;
   }
 
@@ -81,24 +78,20 @@ function handleListUsers(response, type, listAllUsers) {
 }
 
 
-// MODAL
+
 var modal = document.getElementById("modal");
 
 var modalCloseBtn = document.getElementsByClassName("close")[0];
 
-function handleErrorUsers(response) {
-  // var errorMsg = document.getElementById("error-msg");
+function handleError(response, isErrorInAuth) {
+  let message = "An error has occurred. Try again.";
 
-  // errorMsg.style.display = "block";
-  // errorMsg.innerHTML = response['error'];
-  if ("error" in response) {
-    console.error(response['error']);
-    showModalForSeconds();
-    var modalContent = document.getElementsByClassName("modal-body")[0]
-    modalContent.innerHTML = "An error has occurred. Try again."
-  } else {
-    document.getElementById(sessionStorage.getItem('section')).classList.remove("show-modal");
+  if (isErrorInAuth) {
+    message = "An error with the authentication has occured. Please, logout and login again."
   }
+  var modalContents = document.getElementsByClassName("modal-body");
+  Array.from(modalContents).forEach(modalContent => { modalContent.innerHTML = message; });
+  showModalForSeconds();
 }
 
 function showModalForSeconds(reload = false) {
@@ -132,7 +125,7 @@ function modalFunctionality() {
 function listUsers() {
   var url = baseUrl + 'users.php?' + '&&page=' + sessionStorage.getItem('page');
   var type = 'users';
-  sendRequestWithHeaders(url, { method: 'GET', data: '' }, (response) => handleListUsers(response, type, true), handleErrorUsers);
+  sendRequestWithHeaders(url, { method: 'GET', data: '' }, (response) => handleListUsers(response, type, true), handleError);
 }
 
 
@@ -140,7 +133,7 @@ function lookupUser() {
   var name = document.getElementById("user-name");
   var url = baseUrl + 'user.php?user=' + name.value + '&&page=' + sessionStorage.getItem('page');
   var type = 'user-by-name';
-  sendRequestWithHeaders(url, { method: 'GET', data: '' }, (response) => handleListUsers(response, type, false), handleErrorUsers);
+  sendRequestWithHeaders(url, { method: 'GET', data: '' }, (response) => handleListUsers(response, type, false), handleError);
 }
 
 
@@ -160,14 +153,17 @@ function sendRequestWithHeaders(url, options, successCallback, errorCallback) {
   var request = new XMLHttpRequest();
 
   request.onload = function () {
-    console.log(request.responseText);
     var response = JSON.parse(request.responseText);
     if (request.status === 200 && response['success']) {
       setCookie('token', response["token"], 1);
       successCallback(response);
-    } else {
+    } else if (request.status ==401 || request.status ==403) {
       setCookie('token', token, 1);
-      errorCallback(response);
+      errorCallback(response, true);
+    }
+    else {
+      setCookie('token', token, 1);
+      errorCallback(response, false);
     }
   };
 
@@ -205,7 +201,7 @@ function removeFollower(user, follower, listAllUsers) {
   console.log('Delete follower ' + follower + ' from user ' + user);
   var url = baseFollowUrl + 'updateFollower.php';
   var data = { 'user': user, 'follower': follower };
-  sendRequestWithHeaders(url, { method: 'DELETE', data: JSON.stringify(data) }, (response) => handleUpdateFollower(listAllUsers, response, 'Successfully deleted follower.'), handleErrorUpdateFollower);
+  sendRequestWithHeaders(url, { method: 'DELETE', data: JSON.stringify(data) }, (response) => handleUpdateFollower(listAllUsers, response, 'Successfully deleted follower.'), handleError);
 }
 
 function handleUpdateFollower(listAllUsers, response, msg) {
@@ -216,19 +212,6 @@ function handleUpdateFollower(listAllUsers, response, msg) {
   lookupUser();
 }
 
-function handleErrorUpdateFollower(response) {
-  // var errorMsg = document.getElementById("error-msg");
-
-  // errorMsg.style.display = "block";
-  // errorMsg.innerHTML = response['error'];
-  if ('error' in response) {
-    console.error(response['error']);
-    showModalForSeconds();
-    modalContent.innerHTML = "An error has occurred. Try again."
-  } else {
-    document.getElementsByClassName("editor")[0].classList.remove("show-modal");
-  }
-}
 
 function createLink(userId) {
   var a = document.createElement('a');
@@ -272,7 +255,7 @@ function addFollower(user, follower, listAllUsers) {
   console.log('Add follower ' + follower + ' to user ' + user);
   var url = baseFollowUrl + 'updateFollower.php';
   var data = { 'user': user, 'follower': follower };
-  sendRequestWithHeaders(url, { method: 'POST', data: JSON.stringify(data) }, (response) => handleUpdateFollower(listAllUsers, response, 'Successfully added follower.'), handleErrorUpdateFollower);
+  sendRequestWithHeaders(url, { method: 'POST', data: JSON.stringify(data) }, (response) => handleUpdateFollower(listAllUsers, response, 'Successfully added follower.'), handleError);
 }
 
 

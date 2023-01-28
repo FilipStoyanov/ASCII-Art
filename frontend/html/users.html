@@ -96,7 +96,7 @@
     <label class="user-name" for="user-name">Find user by name</label>
     <input class="login-data login-input" name="name" id="user-name" placeholder="Username" />
 
-    <button class="login-submit" type="button" onClick="lookupUser()">Search</button>
+    <button class="search-button" type="button" onClick="lookupUser()">Search</button>
 
     <table id="user-by-name-tb" name="User">
       <caption>Users</caption>
@@ -108,6 +108,20 @@
     </table>
     <button class='prevPage' onclick="page(-1,false)">prev</button>
     <button class='nextPage' onclick="page(1,false)">next</button>
+    <div id="modal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <span class="close">&times;</span>
+          <h2>Alert!</h2>
+        </div>
+        <div class="modal-body">
+          <p>Some text in the Modal Body</p>
+          <p>Some other text...</p>
+        </div>
+        <div class="modal-footer">
+        </div>
+      </div>
+    </div>
   </section>
 
 
