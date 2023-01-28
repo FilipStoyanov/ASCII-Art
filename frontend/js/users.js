@@ -4,8 +4,6 @@ const baseFollowUrl = dir + 'server/page_controllers/follow/';
 
 function openTab(event, sectionName) {
   setupPages(sectionName);
-  var errorMsg = document.getElementById("error-msg");
-  errorMsg.style.display = "";
   if (getCookie('token') === null) {
     errorMsg.style.display = "block";
     errorMsg.innerHTML = 'User is not chosen.';
@@ -30,7 +28,6 @@ function openTab(event, sectionName) {
 }
 
 function setupPages(sectionName) {
-  sessionStorage.setItem('user', 3);// TO DO delete
   updateButtonsMode('prevPage', true);
   updateButtonsMode('nextPage', false);
   sessionStorage.setItem('page', 1);
@@ -59,7 +56,6 @@ function handleListUsers(response, type, listAllUsers) {
   }
   if (users.length == 0) {
     console.log('No users found.')
-    // TODO add message on the UI or something else
     return;
   }
 
@@ -80,24 +76,19 @@ function handleListUsers(response, type, listAllUsers) {
 }
 
 
-// MODAL
+
 var modal = document.getElementById("modal");
 
 var modalCloseBtn = document.getElementsByClassName("close")[0];
 
-function handleErrorUsers(response) {
-  // var errorMsg = document.getElementById("error-msg");
-
-  // errorMsg.style.display = "block";
-  // errorMsg.innerHTML = response['error'];
-  if ("error" in response) {
-    console.error(response['error']);
-    showModalForSeconds();
-    var modalContent = document.getElementsByClassName("modal-body")[0]
-    modalContent.innerHTML = "An error has occurred. Try again."
-  } else {
-    document.getElementById(sessionStorage.getItem('section')).classList.remove("show-modal");
+function handleError(response, isErrorInAuth) {
+  let message = "An error has occurred. Try again.";
+  if (isErrorInAuth) {
+    message = "An error with the authentication has occured. Please, logout and login again."
   }
+  var modalContents = document.getElementsByClassName("modal-body");
+  Array.from(modalContents).forEach(modalContent => { modalContent.innerHTML = message; });
+  showModalForSeconds();
 }
 
 function showModalForSeconds(reload = false) {
@@ -131,15 +122,24 @@ function modalFunctionality() {
 function listUsers() {
   var url = baseUrl + 'users.php?' + '&&page=' + sessionStorage.getItem('page');
   var type = 'users';
-  sendRequestWithHeaders(url, { method: 'GET', data: '' }, (response) => handleListUsers(response, type, true), handleErrorUsers);
+  sendRequestWithHeaders(url, { method: 'GET', data: '' }, (response) => handleListUsers(response, type, true), handleError);
 }
 
 
 function lookupUser() {
   var name = document.getElementById("user-name");
+  let errorFields = document.getElementsByClassName('error-msg');
+  if (errorFields.length == 0) { return; }
+  let errorField = errorFields[0];
+  if (!name.value || /^\s*$/.test(name.value)) {
+    errorField.innerHTML = 'Mandatory field.';
+    errorField.style.display = 'block';
+    return;
+  }
+  errorField.style.display = 'none';
   var url = baseUrl + 'user.php?user=' + name.value + '&&page=' + sessionStorage.getItem('page');
   var type = 'user-by-name';
-  sendRequestWithHeaders(url, { method: 'GET', data: '' }, (response) => handleListUsers(response, type, false), handleErrorUsers);
+  sendRequestWithHeaders(url, { method: 'GET', data: '' }, (response) => handleListUsers(response, type, false), handleError);
 }
 
 
@@ -164,9 +164,13 @@ function sendRequestWithHeaders(url, options, successCallback, errorCallback) {
     if (request.status === 200 && response['success']) {
       setCookie('token', response["token"], 1);
       successCallback(response);
-    } else {
+    } else if (request.status == 401 || request.status == 403) {
       setCookie('token', token, 1);
-      errorCallback(response);
+      errorCallback(response, true);
+    }
+    else {
+      setCookie('token', token, 1);
+      errorCallback(response, false);
     }
   };
 
@@ -203,8 +207,8 @@ function addHeaders(table) {
 function removeFollower(user, follower, listAllUsers) {
   console.log('Delete follower ' + follower + ' from user ' + user);
   var url = baseFollowUrl + 'updateFollower.php';
-  var data = { 'follower': follower };
-  sendRequestWithHeaders(url, { method: 'DELETE', data: JSON.stringify(data) }, (response) => handleUpdateFollower(listAllUsers, response, 'Successfully deleted follower.'), handleErrorUpdateFollower);
+  var data = { 'user': user, 'follower': follower };
+  sendRequestWithHeaders(url, { method: 'DELETE', data: JSON.stringify(data) }, (response) => handleUpdateFollower(listAllUsers, response, 'Successfully deleted follower.'), handleError);
 }
 
 function handleUpdateFollower(listAllUsers, response, msg) {
@@ -215,19 +219,6 @@ function handleUpdateFollower(listAllUsers, response, msg) {
   lookupUser();
 }
 
-function handleErrorUpdateFollower(response) {
-  // var errorMsg = document.getElementById("error-msg");
-
-  // errorMsg.style.display = "block";
-  // errorMsg.innerHTML = response['error'];
-  if ('error' in response) {
-    console.error(response['error']);
-    showModalForSeconds();
-    modalContent.innerHTML = "An error has occurred. Try again."
-  } else {
-    document.getElementsByClassName("editor")[0].classList.remove("show-modal");
-  }
-}
 
 function createLink(userId) {
   var a = document.createElement('a');
@@ -270,8 +261,8 @@ function createAddButton(disable, userId, otherId, listAllUsers) {
 function addFollower(user, follower, listAllUsers) {
   console.log('Add follower ' + follower + ' to user ' + user);
   var url = baseFollowUrl + 'updateFollower.php';
-  var data = { 'follower': follower };
-  sendRequestWithHeaders(url, { method: 'POST', data: JSON.stringify(data) }, (response) => handleUpdateFollower(listAllUsers, response, 'Successfully added follower.'), handleErrorUpdateFollower);
+  var data = { 'user': user, 'follower': follower };
+  sendRequestWithHeaders(url, { method: 'POST', data: JSON.stringify(data) }, (response) => handleUpdateFollower(listAllUsers, response, 'Successfully added follower.'), handleError);
 }
 
 
@@ -297,6 +288,7 @@ function page(addition, refreshUsers) {
 }
 
 function updateButtonsMode(buttonClass, newMode) {
+  console.log('disable');
   var btns = document.getElementsByClassName(buttonClass);
   Array.from(btns).forEach(btn => { btn.disabled = newMode; });
 }

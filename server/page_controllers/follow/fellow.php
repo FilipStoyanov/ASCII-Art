@@ -30,15 +30,14 @@ class Fellow
                 $this->response['error'] = 'Follower is not chosen.';
                 return json_encode($this->response);
             }
-            $jwtUser = JWT::fetchUserFromJWT($authHeader);
-            $user = $jwtUser['id'];
-            if ($user == null) {
+            if (!array_key_exists('user', $data) || $data['user'] == null) {
                 $this->response['success'] = false;
                 $this->response['error'] = 'User is not chosen.';
                 return json_encode($this->response);
             }
 
             $follower = $data['follower'];
+            $user = $data['user'];
             if (!is_int($user)) {
                 $user = (int) $user;
             }
@@ -127,7 +126,7 @@ class Fellow
             $fellows = array_map(function ($v) {
                 return $this->dropSensitiveInformation($v);
             }, $fellows);
-            return json_encode([$search_key=>$fellows,'success'=>true,'token'=>$verifiedToken]);
+            return json_encode([$search_key=>$fellows,'success'=>true,'token'=>$verifiedToken,'user'=>$user]);
         }
         $this->response['success'] = false;
         $this->response['error'] = 'WRONG HTTP Request method.';

@@ -1,133 +1,145 @@
-*{
-    margin: 0;
-    padding: 0;
+* {
+  margin: 0;
+  padding: 0;
 }
 
-/*  CSS VARIABLES */
-:root {
-    --sm-font: 10px;
-    --md-font: 12px;
-    --normal-font: 16px;
-    --lg-font: 20px;
-    --xl-font: 25px;
-    --font: "Roboto, sans-serif";
-    --error: #FF0000;
-    --success: #4BB543;
-    --skyblue: #87CEEB;
-    --white: #ffffff;
-    --light-gray: #ECF0F1;
-    --gray: #D3D3D3;
-    --button-height: 40px;
+
+body {
+  background: var(--skyblue);
 }
 
-body { background: var(--skyblue);
+.search-button {
+  background-color: var(--search-button);
+  width: 300px;
+  max-width: 100%;
+  height: 50px;
+  margin: 20px auto 0;
+  display: block;
+  text-transform: uppercase;
+  letter-spacing: 0.02857em;
+  box-shadow: 0px 3px 1px -2px rgb(0 0 0 / 20%), 0px 2px 2px 0px rgb(0 0 0 / 14%), 0px 1px 5px 0px rgb(0 0 0 / 12%);
+  border: none;
+  color: var(--white);
+  font-weight: bold;
+  border-radius: 25px;
 }
+
+.search-button:focus {
+  background-color: var(--search-button-hover);
+}
+
+.button-like:hover {
+  background-color: var(--search-button-hover);
+}
+
 
 .signin-form,
 .login-form {
-    width: 40%;
-    margin: 0 auto;
-    background-color: var(--white);
-    margin-top: 200px;
-    border-radius: 20px;
-    padding: 20px;
+  width: 40%;
+  margin: 0 auto;
+  background-color: var(--white);
+  margin-top: 200px;
+  border-radius: 20px;
+  padding: 20px;
 }
 
 .signin-label,
 .login-label {
-    margin-bottom: 5px;
+  margin-bottom: 5px;
 }
 
 .signin-label,
 .signin-input,
 .login-label,
 .login-input {
-    display: block;
-    width: 100%;
+  display: block;
+  width: 100%;
 }
 
 .signin-input,
 .login-input {
-    height: 30px;
-    margin-bottom: 20px;
-    text-indent: 10px;
+  height: 30px;
+  margin-bottom: 20px;
+  text-indent: 10px;
 }
 
 .signin-submit,
 .login-submit {
-    display: block;
-    text-align: center;
-    height: 40px;
-    width: 50%;
-    border-radius: 10px;
-    border: 1px solid var(--skyblue);
-    margin: 0 auto;
+  display: block;
+  text-align: center;
+  height: 40px;
+  width: 50%;
+  border-radius: 10px;
+  border: 1px solid var(--skyblue);
+  margin: 0 auto;
 }
 
 .error-msg {
-    display: none;
-    margin: 10px auto;
-    color: var(--error);
-    font-size: var(--normal-font);
+  display: none;
+  margin: 10px auto;
+  color: var(--error);
+  font-size: var(--normal-font);
 }
 
 table {
-    font-family: arial, sans-serif;
-    border-collapse: collapse;
-    width: 100%;
-  }
-  
-  td,th {
-    border: 1px solid #dddddd;
-    text-align: left;
-    padding: 8px;
-  }
+  font-family: arial, sans-serif;
+  border-collapse: collapse;
+  width: 100%;
+}
 
-  th {
-    background-color: #e8d018;
-  }
-  
-  tr:nth-child(even) {
-    background-color: #dddddd;
-  }
+td,
+th {
+  border: 1px solid #dddddd;
+  text-align: left;
+  padding: 8px;
+}
 
-  /* Style the tab */
+th {
+  background-color: var(--table-header);
+  ;
+}
+
+tr:nth-child(even) {
+  background-color: #dddddd;
+}
+
+/* Style the tab */
 .tab {
-    overflow: hidden;
-    border: 1px solid #ccc;
-    background-color: #f1f1f1;
-    margin-top:60px
-  }
-  
-  /* Style the buttons inside the tab */
-  .tab button {
-    background-color: inherit;
-    float: left;
-    border: none;
-    outline: none;
-    cursor: pointer;
-    padding: 14px 16px;
-    transition: 0.3s;
-    font-size: 17px;
-  }
-  
-  /* Change background color of buttons on hover */
-  .tab button:hover {
-    background-color: #ddd;
-  }
-  
-  /* Create an active/current tablink class */
-  .tab button.active {
-    background-color: #ccc;
-  }
-  
-  /* Style the tab content */
-  .tabcontent {
-    display: none;
-    padding: 6px 12px;
-    border: 1px solid #ccc;
-    border-top: none;
-  }
+  overflow: hidden;
+  border: 1px solid #ccc;
+  background-color: #f1f1f1;
+  margin-top: 60px
+}
+
+/* Style the buttons inside the tab */
+.tab button {
+  background-color: inherit;
+  float: left;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  padding: 14px 16px;
+  transition: 0.3s;
+  font-size: 17px;
+}
+
+/* Change background color of buttons on hover */
+.tab button:hover {
+  background-color: #ddd;
+}
+
+/* Create an active/current tablink class */
+.tab button.active {
+  background-color: #ccc;
+}
+
+/* Style the tab content */
+.tabcontent {
+  display: none;
+  padding: 6px 12px;
+  border: 1px solid #ccc;
+  border-top: none;
+}
 
 /* Modal */
 .modal {
@@ -139,11 +151,11 @@ table {
   width: 100%;
   height: 100%;
   overflow: auto;
-  background-color: rgb(0,0,0);
-  background-color: rgba(0,0,0,0.8);
+  background-color: rgb(0, 0, 0);
+  background-color: rgba(0, 0, 0, 0.8);
 }
 
-.editor.show-modal .modal {
+.tabcontent.show-modal .modal {
   display: block;
 }
 
@@ -156,7 +168,7 @@ table {
   padding: 0;
   border-radius: 10px;
   width: 30%;
-  box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
   -webkit-animation-name: animatetop;
   -webkit-animation-duration: 0.4s;
   animation-name: animatetop;
@@ -186,7 +198,7 @@ table {
 }
 
 .modal-body {
-  padding: 2px 16px; 
+  padding: 2px 16px;
   min-height: 40px;
   display: flex;
   align-items: center;
@@ -277,6 +289,6 @@ table {
 
 @media screen and (max-width: 1200px) {
   .tab {
-    margin-top:50px
+    margin-top: 50px
   }
 }

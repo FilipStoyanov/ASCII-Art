@@ -1,17 +1,11 @@
 const dir = '../../';
 const baseUrl = dir + 'server/page_controllers/follow/';
-sessionStorage.setItem('userId', 2);
 
 function openTab(event, sectionName) {
   setupPages(sectionName);
   var errorMsg = document.getElementById("error-msg");
   errorMsg.style.display = "";
-  var userId = sessionStorage.getItem('user');
-  if (userId === null) {
-    errorMsg.style.display = "block";
-    errorMsg.innerHTML = 'User is not chosen.';
-    return;
-  }
+
   var i, tabcontent, tablinks;
   tabcontent = document.getElementsByClassName("tabcontent");
   for (i = 0; i < tabcontent.length; i++) {
@@ -27,30 +21,26 @@ function openTab(event, sectionName) {
 }
 
 function setupPages(sectionName) {
-  sessionStorage.setItem('user', 3);// TO DO delete
   updateButtonsMode('prevPage', true);
   updateButtonsMode('nextPage', false);
   sessionStorage.setItem('page', 1);
   sessionStorage.setItem('section', sectionName);
 }
 
-function handleListFellows(response, type, userId) {
+function handleListFellows(response, type) {
+  let userId = response['user'];
   var tableName = type + '-tb';
   var table = document.getElementById(tableName);
   table.innerHTML = '';
   addHeaders(table);
 
-  console.log(response);
   var followers = response[type];
-  console.log(followers);
   if (followers.length < 20) {
     updateButtonsMode('nextPage', true);
   }
 
   if (followers.length == 0) {
     console.log('No users found.')
-    // TODO add message on the UI or something else
-
     return;
   }
   followers.forEach(item => {
@@ -75,20 +65,28 @@ function handleListFellows(response, type, userId) {
   });
 }
 
-function handleErrorFollowers(response) {
-  var errorMsg = document.getElementById("error-msg");
+function handleError(response, isErrorInAuth) {
+  let message = "An error has occurred. Try again.";
+  if (isErrorInAuth) {
+      message = "An error with the authentication has occured. Please, logout and login again."
+  }
+  var modalContents = document.getElementsByClassName("modal-body");
+  Array.from(modalContents).forEach(modalContent => { modalContent.innerHTML = message; });
+  showModalForSeconds();
+}
 
-  // if (response["error"]) {
-
-  errorMsg.style.display = "block";
-  errorMsg.innerHTML = response['error'];
-  // } else {
-  //   errorMsg.style.display = "none";
-  // }
+function showModalForSeconds(reload = false) {
+  var tabcontents = document.getElementsByClassName("tabcontent");
+  Array.from(tabcontents).forEach(tabcontent => { tabcontent.classList.add("show-modal"); });
+  setTimeout(() => {
+    Array.from(tabcontents).forEach(tabcontent => { tabcontent.classList.remove("show-modal"); });
+    if (reload) {
+      window.location.reload();
+    }
+  }, 3000);
 }
 
 function listFellows(searchFollowers) {
-  var userId = sessionStorage.getItem('user');
   var url;
   var type = '';
   if (searchFollowers) {
@@ -98,8 +96,8 @@ function listFellows(searchFollowers) {
     url = baseUrl + 'listFollowings.php';
     type = 'followings';
   }
-  url += '?user=' + userId + '&&page=' + sessionStorage.getItem("page");
-  sendRequestWithHeaders(url, { method: 'GET', data: '' }, (response) => (handleListFellows(response, type, userId)), handleErrorFollowers);
+  url += '?page=' + sessionStorage.getItem("page");
+  sendRequestWithHeaders(url, { method: 'GET', data: '' }, (response) => (handleListFellows(response, type)), handleError);
 }
 
 
@@ -108,9 +106,9 @@ function getCookie(name) {
   var nameEQ = name + "=";
   var ca = document.cookie.split(';');
   for (var i = 0; i < ca.length; i++) {
-      var c = ca[i];
-      while (c.charAt(0) == ' ') c = c.substring(1, c.length);
-      if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length, c.length);
+    var c = ca[i];
+    while (c.charAt(0) == ' ') c = c.substring(1, c.length);
+    if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length, c.length);
   }
   return null;
 }
@@ -120,22 +118,25 @@ function sendRequestWithHeaders(url, options, successCallback, errorCallback) {
   var request = new XMLHttpRequest();
 
   request.onload = function () {
-    console.log(request.responseText);
-    var response = JSON.parse(request.responseText);
-    if (request.status === 200 && response['success']) {
-      setCookie('token', response["token"], 1);
-      successCallback(response);
-    } else {
-      setCookie('token', token, 1);
-      errorCallback(response);
-    }
+      var response = JSON.parse(request.responseText);
+      if (request.status === 200 && response['success']) {
+          setCookie('token', response["token"], 1);
+          successCallback(response);
+      } else if (request.status ==401 || request.status ==403) {
+          setCookie('token', token, 1);
+          errorCallback(response, true);
+      }
+      else {
+          setCookie('token', token, 1);
+          errorCallback(response, false);
+      }
   };
 
   request.open(options.method, url, true);
   request.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
   request.setRequestHeader("Accept", "application/json");
   if (token) {
-    request.setRequestHeader("Authorization", "Bearer " + token);
+      request.setRequestHeader("Authorization", "Bearer " + token);
   }
   request.send(options.data);
 }
@@ -165,25 +166,13 @@ function removeFollower(user, follower, changeFollowersTable) {
   console.log('Delete follower ' + follower + ' from user ' + user);
   var url = baseUrl + 'updateFollower.php';
   var data = { 'user': user, 'follower': follower };
-  sendRequestWithHeaders(url, { method: 'DELETE', data: JSON.stringify(data) }, (response) => handleRemoveFollower(response, changeFollowersTable), handleErrorRemoveFollower);
+  sendRequestWithHeaders(url, { method: 'DELETE', data: JSON.stringify(data) }, (response) => handleRemoveFollower(response, changeFollowersTable), handleError);
 }
 
 function handleRemoveFollower(response, searchFollowers) {
   console.log('Successfully deleted follower.');
   sessionStorage.setItem("page", 1);
-  listFellows(searchFollowers);//TODO decide whether to go back to first page on delete
-}
-
-function handleErrorRemoveFollower(response) {
-  var errorMsg = document.getElementById("error-msg");
-
-  // if (response["error"]) {
-
-  errorMsg.style.display = "block";
-  errorMsg.innerHTML = response['error'];
-  // } else {
-  //   errorMsg.style.display = "none";
-  // }
+  listFellows(searchFollowers);
 }
 
 function createLink(userId) {

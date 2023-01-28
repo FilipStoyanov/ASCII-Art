@@ -52,18 +52,20 @@ function getCookie(name) {
 
 function sendRequestWithHeaders(url, options, successCallback, errorCallback) {
     let token = getCookie("token");
-    console.log(token);
     var request = new XMLHttpRequest();
 
     request.onload = function () {
-        console.log(request.responseText);
         var response = JSON.parse(request.responseText);
         if (request.status === 200 && response['success']) {
             setCookie('token', response["token"], 1);
             successCallback(response);
-        } else {
+        } else if (request.status == 401 || request.status == 403) {
             setCookie('token', token, 1);
-            errorCallback(response);
+            errorCallback(response, true);
+        }
+        else {
+            setCookie('token', token, 1);
+            errorCallback(response, false);
         }
     };
 
@@ -88,7 +90,7 @@ function setCookie(name, value, days) {
 
 function getUserInfo() {
     var url = userInfoUrl + '?user=' + sessionStorage.getItem('owner');
-    sendRequestWithHeaders(url, { method: 'GET', data: '' }, handleUserInfo, handleErrorUserInfo);
+    sendRequestWithHeaders(url, { method: 'GET', data: '' }, handleUserInfo, handleError);
 }
 
 
@@ -98,31 +100,9 @@ function handleUserInfo(response) {
     userNameEl.innerHTML = response['user']['username'];
 }
 
-function handleErrorUserInfo(response) {
-    errorMsg.style.display = "block";
-    errorMsg.innerHTML = response['error'];
-}
-
 
 var wrapper = document.getElementsByClassName("wrapper")[0];
-// function sendRequest(url, options, successCallback, errorCallback) {
-//     var request = new XMLHttpRequest();
 
-//     request.onload = function () {
-//         var response = JSON.parse(request.responseText);
-//         if (request.status === 200 && response['success']) {
-//             successCallback(response);
-//         } else {
-//             errorCallback(response);
-//         }
-//     };
-//     request.open(options.method, url, true);
-//     request.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-//     request.send(options.data);
-// }
-
-
-// get all ascii pictures by owner_id
 function getAllAsciiPictures() {
     sendRequestWithHeaders(
         allPicturesUrl + `?owner=${sessionStorage.getItem('owner')}&&page=${sessionStorage.getItem('page')}`,
@@ -141,7 +121,6 @@ function displayAsciiPictures(response) {
         }
         if (pictures.length == 0) {
             console.log('No pictures found.')
-            // TODO add message on the UI or something else
             return;
         }
         for (let currentAscii of pictures) {
@@ -150,13 +129,10 @@ function displayAsciiPictures(response) {
             let likesCount = currentAscii['likes_count'];
             showAsciiPicture(wrapper, asciiPicture, isLiked, likesCount);
         }
-    } else {
-        // show error message
     }
 }
 
 
-// element => html element; asciiText => value attribute from PICTURES sql table
 function showAsciiPicture(element, asciiPicture, isLiked, likesCount) {
     if (element && asciiPicture) {
 
@@ -189,10 +165,6 @@ function createAscciWrapperEl(asciiPicture) {
     return asciiWrapperElement;
 }
 
-function handleError(response) {
-    console.log(response);
-}
-
 
 const USER_ID = 2;
 const ASCII_NAME = "1";
@@ -201,7 +173,6 @@ const PAGINATION_PAGESIZE = 10;
 
 
 
-// Like button
 function addLikeButton(el, pictureId, isLiked, likesCount) {
     let button = document.createElement('a');
 
@@ -235,7 +206,7 @@ function addLikeButton(el, pictureId, isLiked, likesCount) {
 
 function addLike(pictureId) {
     var data = { 'picture': pictureId };
-    sendRequestWithHeaders(`http://localhost:80/project-web-2022/ASCII-Art/server/page_controllers/feed/likes.php`,
+    sendRequestWithHeaders(`../../../server/page_controllers/feed/likes.php`,
         { method: "POST", data: JSON.stringify(data) },
         () => { },
         handleError,
@@ -244,7 +215,7 @@ function addLike(pictureId) {
 
 function deleteLike(pictureId) {
     var data = { 'picture': pictureId };
-    sendRequestWithHeaders(`http://localhost:80/project-web-2022/ASCII-Art/server/page_controllers/feed/likes.php`,
+    sendRequestWithHeaders(`../../../server/page_controllers/feed/likes.php`,
         { method: "DELETE", data: JSON.stringify(data) },
         () => { },
         handleError,
@@ -292,9 +263,6 @@ function refreshCounter(button) {
 }
 
 
-
-
-// Pagination
 function page(addition) {
     var currentPage = parseInt(sessionStorage.getItem('page'));
     currentPage += parseInt(addition);
@@ -324,7 +292,6 @@ function updateButtonsMode(buttonClass, newMode) {
 }
 
 function setupPages() {
-    sessionStorage.setItem('user', 2);//TODO delete
     updateButtonsMode('prevPage', true);
     updateButtonsMode('nextPage', false);
     sessionStorage.setItem('page', 1);
@@ -354,7 +321,7 @@ function flushVideos() {
 }
 
 function getUserInfoVideos() {
-    sendRequestWithHeaders(videoEditorUrl + `get-user-videos.php?owner_id=${sessionStorage.getItem('owner')}&&page=${sessionStorage.getItem('page')}`, { method: 'GET', data: "" }, loadUserVideos, handleErrorAscii);
+    sendRequestWithHeaders(videoEditorUrl + `get-user-videos.php?owner_id=${sessionStorage.getItem('owner')}&&page=${sessionStorage.getItem('page')}`, { method: 'GET', data: "" }, loadUserVideos, handleError);
 }
 
 function loadUserVideos(response) {
@@ -406,13 +373,26 @@ function deleteLoadedVideos() {
     }
 }
 
-function handleErrorAscii(response) {
-    if (response["errors"]) {
-        showModalForSeconds();
-        modalContent.innerHTML = "An error has occurred. Try again."
-    } else {
-        document.getElementsByClassName("editor")[0].classList.remove("show-modal");
+function handleError(response, isErrorInAuth) {
+    let message = "An error has occurred. Try again.";
+    if (isErrorInAuth) {
+        message = "An error with the authentication has occured. Please, logout and login again."
     }
+    var modalContents = document.getElementsByClassName("modal-body");
+    Array.from(modalContents).forEach(modalContent => { modalContent.innerHTML = message; });
+    showModalForSeconds();
+}
+
+
+function showModalForSeconds(reload = false) {
+    var tabcontents = document.getElementsByClassName("tabcontent");
+    Array.from(tabcontents).forEach(tabcontent => { tabcontent.classList.add("show-modal"); });
+    setTimeout(() => {
+        Array.from(tabcontents).forEach(tabcontent => { tabcontent.classList.remove("show-modal"); });
+        if (reload) {
+            window.location.reload();
+        }
+    }, 3000);
 }
 
 
@@ -472,18 +452,15 @@ class Video {
 
 
     play() {
-        let get_last = document.getElementById(`loaded-frame-video-${this.id}-${this.current}`);
-        get_last.style.display = "none";
-
         if (this.current++ == this.frames.length - 1) {
             this.current = 0;
         }
-
-        let get_next = document.getElementById(`loaded-frame-video-${this.id}-${this.current}`);
-        get_next.style.display = "block";
+        let video_element = document.getElementById(`loaded-frame-video-${this.id}`);
+        video_element.innerHTML = this.frames[this.current];
 
         clearTimeout(this.timer);
         this.timer = setTimeout(this.name + '.play()', this.time);
+
     }
 
 }

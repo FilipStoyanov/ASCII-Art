@@ -1,5 +1,6 @@
 <?php
 include_once("../../db/db.php");
+include_once("../../jwt/jwt.php");
 class User
 {
 
@@ -69,7 +70,7 @@ class User
                 $this->response['error'] = 'Invalid owner id.';
                 return json_encode($this->response);
             }
-            
+
             $username = $pathParameters['user'];
             if (!is_string($username)) {
                 $this->response['status'] = 'fail';
@@ -78,7 +79,7 @@ class User
             }
 
             try {
-                $users = $this->connection->getUserByName($username,$page,$limit,$owner);
+                $users = $this->connection->getUserByName($username, $page, $limit, $owner);
             } catch (Exception $e) {
                 $response['success'] = false;
                 $response['error'] = $e->getMessage();
@@ -86,9 +87,9 @@ class User
             }
 
             if (!$users) {
-                $response['success'] = false;
+                $response['success'] = true;
                 $response['error'] = 'User with name ' . $username . ' was not found.';
-                return json_encode($response);
+                return json_encode(['success' => true, 'users' => [], 'token' => $verifiedToken, 'user' => $owner, 'error' => 'User with name ' . $username . ' was not found.']);
             }
 
             $users = array_values(array_filter($users, function ($v) {
@@ -98,9 +99,8 @@ class User
             $users = array_map(function ($v) {
                 return $this->dropSensitiveInformation($v);
             }, $users);
-            $response['users'] = $users;
-            $response['success'] = true;
-            return json_encode(['success'=>true,'users'=>$users,'token'=>$verifiedToken,'user'=> $owner]);
+
+            return json_encode(['success' => true, 'users' => $users, 'token' => $verifiedToken, 'user' => $owner]);
         }
         $this->response['status'] = 'fail';
         $this->response['error'] = 'WRONG HTTP Request method.';

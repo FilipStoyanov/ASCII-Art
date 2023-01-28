@@ -6,13 +6,7 @@ const editorUrl = baseUrl + 'ascii-editor/';
 
 function openTab(event, sectionName) {
     setupPages(sectionName);
-    var errorMsg = document.getElementById("error-msg");
-    errorMsg.style.display = "";
-    if (sessionStorage.getItem('user') === null) {
-        errorMsg.style.display = "block";
-        errorMsg.innerHTML = 'User is not chosen.';
-        return;
-    }
+
     var i, tabcontent, tablinks;
     tabcontent = document.getElementsByClassName("tabcontent");
     for (i = 0; i < tabcontent.length; i++) {
@@ -46,42 +40,44 @@ function getCookie(name) {
 function sendRequestWithHeaders(url, options, successCallback, errorCallback) {
     let token = getCookie("token");
     var request = new XMLHttpRequest();
-  
+
     request.onload = function () {
-      console.log(request.responseText);
-      var response = JSON.parse(request.responseText);
-      if (request.status === 200 && response['success']) {
-        setCookie('token', response["token"], 1);
-        successCallback(response);
-      } else {
-        setCookie('token', token, 1);
-        errorCallback(response);
-      }
+        var response = JSON.parse(request.responseText);
+        if (request.status === 200 && response['success']) {
+            setCookie('token', response["token"], 1);
+            successCallback(response);
+        } else if (request.status == 401 || request.status == 403) {
+            setCookie('token', token, 1);
+            errorCallback(response, true);
+        }
+        else {
+            setCookie('token', token, 1);
+            errorCallback(response, false);
+        }
     };
-  
+
     request.open(options.method, url, true);
     request.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
     request.setRequestHeader("Accept", "application/json");
     if (token) {
-      request.setRequestHeader("Authorization", "Bearer " + token);
+        request.setRequestHeader("Authorization", "Bearer " + token);
     }
     request.send(options.data);
-  }
-  
+}
+
 function setCookie(name, value, days) {
     var expires = "";
     if (days) {
-      var date = new Date();
-      date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
-      expires = "; expires=" + date.toUTCString();
+        var date = new Date();
+        date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+        expires = "; expires=" + date.toUTCString();
     }
     document.cookie = name + "=" + (value || "") + expires + "; path=/";
-  }
+}
 
-// get all friends' ascii pictures
+
 function getAllFriendsPictures() {
     sendRequestWithHeaders(
-        // editorUrl + `/getAllFriendsPictures.php?user=${sessionStorage.getItem('user')}&&page=${sessionStorage.getItem('page')}`,
         editorUrl + `/getAllFriendsPictures.php?page=${sessionStorage.getItem('page')}`,
         { method: "GET", data: '' },
         displayAsciiPictures,
@@ -98,7 +94,6 @@ function displayAsciiPictures(response) {
         }
         if (pictures.length == 0) {
             console.log('No pictures found.')
-            // TODO add message on the UI or something else
             return;
         }
         for (let currentAscii of pictures) {
@@ -108,11 +103,8 @@ function displayAsciiPictures(response) {
             let owner = currentAscii['owner'];
             showAsciiPicture(wrapper, asciiPicture, isLiked, likesCount, owner['username']);
         }
-    } else {
-        // show error message
     }
 }
-
 
 function showAsciiPicture(element, asciiPicture, isLiked, likesCount, ownerName) {
     if (element && asciiPicture) {
@@ -146,17 +138,16 @@ function createAscciWrapperEl(asciiPicture) {
     return asciiWrapperElement;
 }
 
-function handleError(response) {
-    var modalContent = document.getElementsByClassName("modal-body")[0]
-    if (response["error"]) {
-        showModalForSeconds();
-        modalContent.innerHTML = "An error has occurred. Try again."
-    } else {
-        // document.getElementsByClassName("editor")[0].classList.remove("show-modal");
+function handleError(response, isErrorInAuth) {
+    let message = "An error has occurred. Try again.";
+    if (isErrorInAuth) {
+        message = "An error with the authentication has occured. Please, logout and login again."
     }
+    var modalContents = document.getElementsByClassName("modal-body");
+    Array.from(modalContents).forEach(modalContent => { modalContent.innerHTML = message; });
+    showModalForSeconds();
 }
 
-// Like button
 function addLikeButton(el, pictureId, isLiked, likesCount) {
     let button = document.createElement('a');
 
@@ -189,7 +180,7 @@ function addLikeButton(el, pictureId, isLiked, likesCount) {
 
 
 function addLike(pictureId) {
-    var data = { 'user': sessionStorage.getItem('user'), 'picture': pictureId };
+    var data = { 'picture': pictureId };
     sendRequestWithHeaders(feedUrl + `likes.php`,
         { method: "POST", data: JSON.stringify(data) },
         () => { },
@@ -198,7 +189,7 @@ function addLike(pictureId) {
 }
 
 function deleteLike(pictureId) {
-    var data = { 'user': sessionStorage.getItem('user'), 'picture': pictureId };
+    var data = { 'picture': pictureId };
     sendRequestWithHeaders(feedUrl + `likes.php`,
         { method: "DELETE", data: JSON.stringify(data) },
         () => { },
@@ -246,15 +237,6 @@ function refreshCounter(button) {
     button.getElementsByClassName('counter')[0].innerHTML = likesCount;
 }
 
-
-
-
-
-
-
-
-
-// Pagination
 function page(addition) {
     var currentPage = parseInt(sessionStorage.getItem('page'));
     currentPage += parseInt(addition);
@@ -282,7 +264,6 @@ function updateButtonsMode(buttonClass, newMode) {
 }
 
 function setupPages(sectionName) {
-    sessionStorage.setItem('user', 3);// TO DO delete
     updateButtonsMode('prevPage', true);
     updateButtonsMode('nextPage', false);
     sessionStorage.setItem('page', 1);
@@ -299,8 +280,6 @@ function flush() {
     loaded_videos = [];
 }
 
-
-// Create a link
 function createLink(userId, username) {
     var a = document.createElement('a');
     var linkText = document.createTextNode("User: " + username);
@@ -310,12 +289,11 @@ function createLink(userId, username) {
     return a;
 }
 
-
-//  Modal
 function showModalForSeconds(reload = false) {
-    document.getElementsByClassName("feed")[0].classList.add("show-modal");
+    var tabcontents = document.getElementsByClassName("tabcontent");
+    Array.from(tabcontents).forEach(tabcontent => { tabcontent.classList.add("show-modal"); });
     setTimeout(() => {
-        document.getElementsByClassName("feed")[0].classList.remove("show-modal");
+        Array.from(tabcontents).forEach(tabcontent => { tabcontent.classList.remove("show-modal"); });
         if (reload) {
             window.location.reload();
         }
@@ -323,7 +301,7 @@ function showModalForSeconds(reload = false) {
 }
 
 function getAllFriendsVideos() {
-    sendRequestWithHeaders(videoEditorUrl + `get-videos-feed.php?page=${sessionStorage.getItem('page')}`, { method: 'GET', data: "" }, loadUserVideos, handleErrorAscii);
+    sendRequestWithHeaders(videoEditorUrl + `get-videos-feed.php?page=${sessionStorage.getItem('page')}`, { method: 'GET', data: "" }, loadUserVideos, handleError);
 }
 
 function loadUserVideos(response) {
@@ -373,15 +351,6 @@ function deleteLoadedVideos() {
         for (let i = 0; i < length; i++) {
             section.removeChild(loaded_videos_for_del[0]);
         }
-    }
-}
-
-function handleErrorAscii(response) {
-    if (response["errors"]) {
-        showModalForSeconds();
-        modalContent.innerHTML = "An error has occurred. Try again."
-    } else {
-        document.getElementsByClassName("editor")[0].classList.remove("show-modal");
     }
 }
 
@@ -445,15 +414,11 @@ class Video {
 
 
     play() {
-        let get_last = document.getElementById(`loaded-frame-video-${this.id}-${this.current}`);
-        get_last.style.display = "none";
-
         if (this.current++ == this.frames.length - 1) {
             this.current = 0;
         }
-
-        let get_next = document.getElementById(`loaded-frame-video-${this.id}-${this.current}`);
-        get_next.style.display = "block";
+        let video_element = document.getElementById(`loaded-frame-video-${this.id}`);
+        video_element.innerHTML = this.frames[this.current];
 
         clearTimeout(this.timer);
         this.timer = setTimeout(this.name + '.play()', this.time);
