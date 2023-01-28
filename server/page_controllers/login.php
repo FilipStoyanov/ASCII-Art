@@ -36,7 +36,7 @@ class Login
             $this->validateLoginForm($username, $password);
             if ($this->errors['success']) {
                 session_start();
-                $query = $this->connection->getUserByUsernameAndPassword(["username" => $username, "password" => $password]);
+                $query = $this->connection->getUserByUsernameAndPassword(["username" => $username, "password" => sha1($password)]);
                 if(array_key_exists('user', $query)) {
                     $_SESSION['user'] = $query['user'];
                 }
