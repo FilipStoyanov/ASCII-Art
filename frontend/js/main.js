@@ -21,6 +21,9 @@ function sendRequest(url, options, successCallback, errorCallback) {
 
     if (request.status === 200) {
       successCallback(response);
+      if (response["success"] && response['token']) {
+          setCookie("token", response["token"], 30);
+      }
     } else if (request.status === 401) {
       localStorage.clear();
       removeCookie("token", "/");
