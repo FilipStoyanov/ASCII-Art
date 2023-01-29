@@ -220,7 +220,7 @@ function addLikeButton(el, pictureId, isLiked, likesCount) {
 
 function addLike(pictureId) {
     var data = { 'picture': pictureId };
-    sendRequestWithHeaders(`../../../server/page_controllers/feed/likes.php`,
+    sendRequestWithHeaders(`../../server/page_controllers/feed/likes.php`,
         { method: "POST", data: JSON.stringify(data) },
         () => { },
         handleError,
@@ -229,7 +229,7 @@ function addLike(pictureId) {
 
 function deleteLike(pictureId) {
     var data = { 'picture': pictureId };
-    sendRequestWithHeaders(`../../../server/page_controllers/feed/likes.php`,
+    sendRequestWithHeaders(`../../server/page_controllers/feed/likes.php`,
         { method: "DELETE", data: JSON.stringify(data) },
         () => { },
         handleError,
