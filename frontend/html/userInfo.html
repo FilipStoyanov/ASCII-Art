@@ -61,21 +61,22 @@
   </header>
 
   <div class="tab">
+    <button class="tablinks active" onclick="openTab(event, 'user-info-img-section')">Images</button>
     <button class="tablinks" onclick="openTab(event, 'user-info-video-section')">Videos</button>
-    <button class="tablinks" onclick="openTab(event, 'user-info-img-section')">Images</button>
   </div>
-  <h1>User Info</h1>
-  <h2 class="user-info" id='username'></h2>
+  <h1 class="user-info-title">Username: </h1>
   <p id="error-msg" class="error-msg error-dup-username"></p>
 
   <section id="user-info-img-section" class="tabcontent">
 
     <section class='images'>
       <div class="wrapper">
-
       </div>
-      <button class='prevPage' onclick="page(-1,false)">prev</button>
-      <button class='nextPage' onclick="page(1,false)">next</button>
+      <p class="not-found">No Images Found</p>
+      <div class="button-wrapper">
+        <button class='prevPage' onclick="page(-1,false)"><span>&#171;</span> Prev</button>
+        <button class='nextPage' onclick="page(1,false)">Next <span>&#187;</span</button>
+      </div>
     </section>
     <div id="modal" class="modal">
       <div class="modal-content">
@@ -98,8 +99,11 @@
       <div class="wrapper" id="videos-wrapper">
 
       </div>
-      <button class='prevPage' onclick="page(-1,false)">prev</button>
-      <button class='nextPage' onclick="page(1,false)">next</button>
+      <p class="not-found">No Videos Found</p>
+      <div class="button-wrapper">
+        <button class='prevPage' onclick="page(-1,false)"><span>&#171;</span> Prev</button>
+        <button class='nextPage' onclick="page(1,false)">Next <span>&#187;</span</button>
+      </div>
     </section>
     <div id="modal" class="modal">
       <div class="modal-content">

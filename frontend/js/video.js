@@ -630,7 +630,7 @@ function showAsciiPicture(element, asciiPicture) {
     if (element && asciiPicture) {
         let responseAsciiValue = asciiPicture.value;
         let asciiColor = asciiPicture.color;
-        let asciiText = responseAsciiValue.substring(1, responseAsciiValue.length - 1).replace(/\\n/g, '\n');
+        let asciiText = responseAsciiValue.substring(2, responseAsciiValue.length - 1).replace(/\\n/g, '\n');
         let value_text_node = document.createTextNode(asciiText);
         let asciiTextElement = document.createElement("pre");
 

@@ -60,7 +60,7 @@
     </nav>
   </header>
   <div class="tab">
-    <button class="tablinks" onclick="openTab(event, 'followers-section')">My followers</button>
+    <button class="tablinks active" onclick="openTab(event, 'followers-section')">My followers</button>
     <button class="tablinks" onclick="openTab(event, 'followings-section')">My followings</button>
   </div>
   <p id="error-msg" class="error-msg error-dup-username"></p>
@@ -68,13 +68,16 @@
     <table id="followers-tb" name="Followers">
       <caption>Followers</caption>
       <tr>
-        <th>Id</th>
+        <!-- <th>Id</th> -->
         <th>Name</th>
         <th>Link</th>
       </tr>
     </table>
-    <button class='prevPage' onclick="page(-1,true)">prev</button>
-    <button class='nextPage' onclick="page(1,true)">next</button>
+    <p class="not-found">No Followers Found</p>
+    <div class="button-wrapper">
+      <button class='prevPage' onclick="page(-1,true)"><span>&#171;</span> Prev</button>
+      <button class='nextPage' onclick="page(1,true)">Next <span>&#187;</span></button>
+    </div>
     <div id="modal" class="modal">
       <div class="modal-content">
         <div class="modal-header">
@@ -96,14 +99,17 @@
     <table id="followings-tb" name="Followers">
       <caption>Followings</caption>
       <tr>
-        <th>Id</th>
+        <!-- <th>Id</th> -->
         <th>Name</th>
         <th>Link</th>
         <th>Action</th>
       </tr>
     </table>
-    <button class='prevPage' onclick="page(-1,false)">prev</button>
-    <button class='nextPage' onclick="page(1,false)">next</button>
+    <p class="not-found">No Followings Found</p>
+    <div class="button-wrapper">
+      <button class='prevPage' onclick="page(-1,false)"><span>&#171;</span> Prev</button>
+      <button class='nextPage' onclick="page(1,false)">Next <span>&#187;</span></button>
+    </div>
     <div id="modal" class="modal">
       <div class="modal-content">
         <div class="modal-header">

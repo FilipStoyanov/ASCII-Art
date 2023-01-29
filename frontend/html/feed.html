@@ -59,11 +59,10 @@
       <a class="header-item logout" onclick="toggleMenu()">Logout</a>
     </nav>
   </header>
-  <h1>Your feed</h1>
   <h2 class="feed" id='username'></h2>
   <div class="tab">
+    <button class="tablinks active" onclick="openTab(event, 'feed-img-section')">My feed with images</button>
     <button class="tablinks" onclick="openTab(event, 'feed-video-section')">My feed with videos</button>
-    <button class="tablinks" onclick="openTab(event, 'feed-img-section')">My feed with images</button>
   </div>
 
   <p id="error-msg" class="error-msg error-dup-username"></p>
@@ -74,8 +73,11 @@
       <div class="wrapper">
 
       </div>
-      <button class='prevPage' onclick="page(-1,false)">prev</button>
-      <button class='nextPage' onclick="page(1,false)">next</button>
+      <p class="not-found">No Images Found</p>
+      <div class="button-wrapper">
+        <button class='prevPage' onclick="page(-1,false)"><span>&#171;</span> Prev</button>
+        <button class='nextPage' onclick="page(1,false)">Next <span>&#187;</span></button>
+      </div>
     </section>
     <div id="modal" class="modal">
       <div class="modal-content">
@@ -98,8 +100,11 @@
       <div class="wrapper" id="videos-wrapper">
 
       </div>
-      <button class='prevPage' onclick="page(-1,false)">prev</button>
-      <button class='nextPage' onclick="page(1,false)">next</button>
+      <p class="not-found">No Videos Found</p>
+      <div class="button-wrapper">
+        <button class='prevPage' onclick="page(-1,false)"><span>&#171;</span> Prev</button>
+        <button class='nextPage' onclick="page(1,false)">Next <span>&#187;</span></button>
+      </div>
     </section>
     <div id="modal" class="modal">
       <div class="modal-content">

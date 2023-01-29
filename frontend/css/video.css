@@ -224,7 +224,7 @@ body {
 .modal {
     display: none;
     position: fixed;
-    z-index: 10;
+    z-index: 3;
     left: 0;
     top: 0;
     width: 100%;
@@ -234,7 +234,7 @@ body {
     background-color: rgba(0, 0, 0, 0.8);
 }
 
-.editor.show-modal .modal {
+.sections.show-modal .modal {
     display: block;
 }
 
@@ -378,5 +378,14 @@ body {
 
     .fake-scroll {
         display: none;
+    }
+
+    .sections {
+        min-width: auto;
+        max-width: 90%;
+    }
+
+    .sections:last-of-type {
+        margin-bottom: 80px;
     }
 }
