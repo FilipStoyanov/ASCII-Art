@@ -195,20 +195,26 @@ class Video {
         let delete_video = document.getElementById(`delete-button-${this.id}`);
 
         var title = this.title;
-        var owner_id = this.owner_id;
         delete_video.addEventListener("click", function () {
 
             var data = {};
-            //TO DO GET ONWER ID FROM THE SESSION
-            data["owner_id"] = 1;
-            data["title"] = title;
+            const jwtToken = getCookie("token");
+            const userId = getUserIdFromJwtToken();
+            if (userId && jwtToken) {
+                data["owner_id"] = userId;
+                data["title"] = title;
 
-            sendRequest(
-                "../../server/page_controllers/ascii-video-editor/delete-video.php",
-                { method: "DELETE", data: JSON.stringify(data) },
-                deletedSuccessfully,
-                handleErrorAscii,
-            );
+                sendRequest(
+                    "../../server/page_controllers/ascii-video-editor/delete-video.php",
+                    {
+                        method: "DELETE",
+                        data: JSON.stringify(data),
+                        token: jwtToken
+                    },
+                    deletedSuccessfully,
+                    handleErrorAscii,
+                );
+            }
         })
     }
 
@@ -334,7 +340,6 @@ function handleErrorAscii(response) {
 
 //save the currently displayed video
 function saveVideo() {
-    //TO DO THIS NEEDS THE OWNER ID GET IT OR SEND IT SOMEHOW
     document.getElementsByClassName("ascii-form")[0].addEventListener("submit", function (event) {
         event.preventDefault();
         if (Options_vid.frames.length >= 2) {
@@ -373,13 +378,18 @@ function getUserIdFromJwtToken() {
 function loadVideos() {
 
     document.getElementById("load-videos").addEventListener("click", function (event) {
-        var data = {};
-
-        //TO DO GET THE OWNER ID FROM THE SESSION
-        data["owner_id"] = 1;
-
-        sendRequest(`../../server/page_controllers/ascii-video-editor/get-videos.php?owner_id=${data["owner_id"]}`, { method: 'GET', data: "" }, loadUserVideos, handleErrorAscii);
         event.preventDefault();
+        const jwtToken = getCookie("token");
+        const userId = getUserIdFromJwtToken();
+        if (userId && jwtToken) {
+            const data = {};
+            data["owner_id"] = userId;
+            sendRequest(`../../server/page_controllers/ascii-video-editor/get-videos.php?owner_id=${data["owner_id"]}`,
+                { method: 'GET', data: "", token: jwtToken },
+                loadUserVideos,
+                handleErrorAscii
+            );
+        }
     });
 }
 
@@ -605,14 +615,17 @@ function stopVideo() {
 //send a request for the pictures
 function getAllAsciiPictures() {
     //TO DO get the user id from session
-    let ownerId = 1;
     document.getElementById("load-pictures").addEventListener("click", function (event) {
-        sendRequest(
-            `../../server/page_controllers/ascii-editor/getAllPictures.php?user=${ownerId}`,
-            { method: "GET", data: '' },
-            displayAsciiPictures,
-            handleErrorAscii,
-        );
+        const jwtToken = getCookie("token");
+        const userId = getUserIdFromJwtToken();
+        if (userId && jwtToken) {
+            sendRequest(
+                `../../server/page_controllers/ascii-editor/getAllPictures.php?user=${userId}`,
+                { method: "GET", data: '', token: jwtToken },
+                displayAsciiPictures,
+                handleErrorAscii,
+            );
+        }
     });
 }
 
