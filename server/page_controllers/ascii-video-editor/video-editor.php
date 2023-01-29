@@ -39,19 +39,34 @@ class AsciiVideoEditor
     public function add()
     {
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            $authHeader = $_SERVER['HTTP_AUTHORIZATION'] ?? null;
+            if ($authHeader == null) {
+                header('HTTP/1.0 401 Unauthorized');
+                return json_encode(["success" => false, "error" => "No token"]);
+            }
+            // var_dump($_POST);
+            $verifiedToken = JWT::verify($authHeader);
+            // var_dump($authHeader);
+            if ($verifiedToken == null) {
+                header('HTTP/1.0 401 Unauthorized');
+                return json_encode(["success" => false, "error" => "Expired token"]);
+            }
             $data = json_decode($_POST['data'], true);
             $title = $data['title'];
             $time = $data['time'];
             $color = $data['color'];
             $background = $data['background'];
             $frames = $data['frames'];
+            $owner_id = $data['owner_id'];
 
-
+            $jwtUser = JWT::fetchUserFromJWT($authHeader);
+            if ($jwtUser['id'] != $owner_id && $jwtUser['role'] != 'ADMIN') {
+                header('HTTP/1.0 403 Forbidden');
+                return json_encode(["success" => false, "error" => "You are not authorized to access this page"]);
+            }
             $this->validateAsciiText($title);
 
             if ($this->errors['success']) {
-                //TO DO GET THE OWNER ID ->> MAYBE ADD IT FROM THE REQUEST DATA??
-                $owner_id = 1;
                 $serialized_frames = serialize($frames);
 
                 $query = $this->connection->insertNewAsciiVideo([
@@ -86,6 +101,18 @@ class AsciiVideoEditor
     public function update()
     {
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            $authHeader = $_SERVER['HTTP_AUTHORIZATION'] ?? null;
+            if ($authHeader == null) {
+                header('HTTP/1.0 401 Unauthorized');
+                return json_encode(["success" => false, "error" => "No token"]);
+            }
+            // var_dump($_POST);
+            $verifiedToken = JWT::verify($authHeader);
+            // var_dump($authHeader);
+            if ($verifiedToken == null) {
+                header('HTTP/1.0 401 Unauthorized');
+                return json_encode(["success" => false, "error" => "Expired token"]);
+            }
             $data = json_decode($_POST['data'], true);
             $title = $data['title'];
             $time = $data['time'];
@@ -96,7 +123,11 @@ class AsciiVideoEditor
             $owner_id = $data["owner_id"];
 
             // var_dump($_POST);
-
+            $jwtUser = JWT::fetchUserFromJWT($authHeader);
+            if ($jwtUser['id'] != $owner_id && $jwtUser['role'] != 'ADMIN') {
+                header('HTTP/1.0 403 Forbidden');
+                return json_encode(["success" => false, "error" => "You are not authorized to access this page"]);
+            }
 
             $this->validateAsciiText($title);
             $this->validateAsciiFrames($frames);
@@ -189,7 +220,7 @@ class AsciiVideoEditor
                     $query["data"][$i]["frames"] = $unserialised_frames;
                 }
 
-                return json_encode(['success'=>true,"data" => $query['data'],'token'=>$verifiedToken]);
+                return json_encode(['success' => true, "data" => $query['data'], 'token' => $verifiedToken]);
             }
             return json_encode([
                 "success" => false,
@@ -266,7 +297,7 @@ class AsciiVideoEditor
                     $videos[$i]['data']["frames"] = $unserialised_frames;
                 }
 
-                return json_encode(["success" => true, 'data' => $videos,'token'=>$verifiedToken]);
+                return json_encode(["success" => true, 'data' => $videos, 'token' => $verifiedToken]);
             } catch (Exception $e) {
                 $this->response['success'] = false;
                 $this->response['error'] = $e->getMessage();
@@ -281,6 +312,18 @@ class AsciiVideoEditor
     public function get_video()
     {
         if ($_SERVER['REQUEST_METHOD'] == 'GET') {
+            $authHeader = $_SERVER['HTTP_AUTHORIZATION'] ?? null;
+            if ($authHeader == null) {
+                header('HTTP/1.0 401 Unauthorized');
+                return json_encode(["success" => false, "error" => "No token"]);
+            }
+            // var_dump($_POST);
+            $verifiedToken = JWT::verify($authHeader);
+            // var_dump($authHeader);
+            if ($verifiedToken == null) {
+                header('HTTP/1.0 401 Unauthorized');
+                return json_encode(["success" => false, "error" => "Expired token"]);
+            }
             $url = $_SERVER['REQUEST_URI'];
             $components = parse_url($url);
             parse_str($components['query'], $pathParameters);
@@ -291,6 +334,12 @@ class AsciiVideoEditor
 
             $owner_id = $pathParameters['owner_id'];
             $id = $pathParameters["id"];
+
+            $jwtUser = JWT::fetchUserFromJWT($authHeader);
+            if ($jwtUser['id'] != $owner_id && $jwtUser['role'] != 'ADMIN') {
+                header('HTTP/1.0 403 Forbidden');
+                return json_encode(["success" => false, "error" => "You are not authorized to access this page"]);
+            }
 
             if (!is_int($owner_id)) {
                 $owner_id = (int) $owner_id;

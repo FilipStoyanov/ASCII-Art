@@ -325,7 +325,7 @@ function loadUserVideos(response) {
     const pagination = document.getElementsByClassName("button-wrapper")[1];
     let videos = response["data"];
 
-    if(videos.length == 0) {
+    if (videos.length == 0) {
         notFoundText.style.display = "block";
         pagination.style.display = "none";
         return;
@@ -415,25 +415,22 @@ class Video {
     }
 
     makeLoadedVideo() {
-        for (let i = 0; i < this.frames_count; i++) {
-
-            var new_frame = document.createElement("textarea");
-            new_frame.classList.add("loaded-video-frames", `video-frame-${this.id}`);
-            new_frame.setAttribute("id", `loaded-frame-video-${this.id}-${i}`);
-            new_frame.setAttribute("rows", TEXT_ROWS);
-            new_frame.setAttribute("readonly", "");
+        var new_frame = document.createElement("textarea");
+        new_frame.setAttribute("class", "loaded-video-frames");
+        new_frame.setAttribute("id", `loaded-frame-video-${this.id}`);
+        new_frame.setAttribute("rows", TEXT_ROWS);
+        new_frame.setAttribute("readonly", "");
 
 
-            let text_value = this.frames[i];
-            new_frame.appendChild(document.createTextNode(text_value));
+        let text_value = this.frames[0];
+        new_frame.appendChild(document.createTextNode(text_value));
 
-            new_frame.style.color = this.color;
-            new_frame.style.background = this.background;
+        new_frame.style.color = this.color;
+        new_frame.style.background = this.background;
 
-            let section = document.getElementById("videos-wrapper");
+        let section = document.getElementsByClassName("sections")[3];
 
-            section.appendChild(new_frame);
-        }
+        section.appendChild(new_frame);
 
     }
 
