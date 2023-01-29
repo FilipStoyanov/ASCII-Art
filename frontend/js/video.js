@@ -71,28 +71,28 @@ class Options {
 
 var Options_vid = new Options("null", 2000, "#000000", "#ffffff");
 
-function sendRequest(url, options, successCallback, errorCallback) {
-    var request = new XMLHttpRequest();
+// function sendRequest(url, options, successCallback, errorCallback) {
+//     var request = new XMLHttpRequest();
 
 
-    request.onload = function () {
-        console.log(request.responseText);
-        var response = JSON.parse(request.responseText);
+//     request.onload = function () {
+//         console.log(request.responseText);
+//         var response = JSON.parse(request.responseText);
 
-        if (request.status === 200) {
-            successCallback(response);
-        } else {
-            console.log('Not authorized')
-            errorCallback(response);
-        }
-    }
+//         if (request.status === 200) {
+//             successCallback(response);
+//         } else {
+//             console.log('Not authorized')
+//             errorCallback(response);
+//         }
+//     }
 
-    request.open(options.method, url, true);
-    request.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-    request.send(options.data);
-}
+//     request.open(options.method, url, true);
+//     request.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+//     request.send(options.data);
+// }
 
-function addedSuccessfully(response) {
+function addedSuccessfullyl(response) {
     if (response["success"]) {
         showModalForSeconds(true);
         document.getElementsByClassName("modal-header")[0].style.backgroundColor = "#4BB543";
@@ -145,22 +145,22 @@ class Video {
     }
 
     makeLoadedVideo() {
-            var new_frame = document.createElement("textarea");
-            new_frame.setAttribute("class", "loaded-video-frames");
-            new_frame.setAttribute("id", `loaded-frame-video-${this.id}`);
-            new_frame.setAttribute("rows", TEXT_ROWS);
-            new_frame.setAttribute("readonly", "");
+        var new_frame = document.createElement("textarea");
+        new_frame.setAttribute("class", "loaded-video-frames");
+        new_frame.setAttribute("id", `loaded-frame-video-${this.id}`);
+        new_frame.setAttribute("rows", TEXT_ROWS);
+        new_frame.setAttribute("readonly", "");
 
 
-            let text_value = this.frames[0];
-            new_frame.appendChild(document.createTextNode(text_value));
+        let text_value = this.frames[0];
+        new_frame.appendChild(document.createTextNode(text_value));
 
-            new_frame.style.color = this.color;
-            new_frame.style.background = this.background;
+        new_frame.style.color = this.color;
+        new_frame.style.background = this.background;
 
-            let section = document.getElementsByClassName("sections")[3];
+        let section = document.getElementsByClassName("sections")[3];
 
-            section.appendChild(new_frame);
+        section.appendChild(new_frame);
 
     }
 
@@ -195,20 +195,26 @@ class Video {
         let delete_video = document.getElementById(`delete-button-${this.id}`);
 
         var title = this.title;
-        var owner_id = this.owner_id;
         delete_video.addEventListener("click", function () {
 
             var data = {};
-            //TO DO GET ONWER ID FROM THE SESSION
-            data["owner_id"] = 1;
-            data["title"] = title;
+            const jwtToken = getCookie("token");
+            const userId = getUserIdFromJwtToken();
+            if (userId && jwtToken) {
+                data["owner_id"] = userId;
+                data["title"] = title;
 
-            sendRequest(
-                "../../server/page_controllers/ascii-video-editor/delete-video.php",
-                { method: "DELETE", data: JSON.stringify(data) },
-                deletedSuccessfully,
-                handleErrorAscii,
-            );
+                sendRequest(
+                    "../../server/page_controllers/ascii-video-editor/delete-video.php",
+                    {
+                        method: "DELETE",
+                        data: JSON.stringify(data),
+                        token: jwtToken
+                    },
+                    deletedSuccessfully,
+                    handleErrorAscii,
+                );
+            }
         })
     }
 
@@ -234,8 +240,6 @@ class Video {
         edit_video.addEventListener("click", function () {
 
             var data = {};
-            //TO DO GET THE ONWER ID FROM THE SESSION
-            data["owner_id"] = 1;
             data["title"] = title;
 
             const url = `http://localhost/ASCII-Art/frontend/html/edit-video.html?id=${id}&title=${title}`;
@@ -334,25 +338,56 @@ function handleErrorAscii(response) {
 
 //save the currently displayed video
 function saveVideo() {
-    //TO DO THIS NEEDS THE OWNER ID GET IT OR SEND IT SOMEHOW
     document.getElementsByClassName("ascii-form")[0].addEventListener("submit", function (event) {
-        if (Options_vid.frames.length >= 2) {
-            sendRequest('../../server/page_controllers/ascii-video-editor/save-video.php', { method: 'POST', data: `data=${JSON.stringify(Options_vid)}` }, addedSuccessfully, handleErrorAscii);
-        }
         event.preventDefault();
+        if (Options_vid.frames.length >= 2) {
+            const jwtToken = getCookie("token");
+            console.log("???");
+            const userId = getUserIdFromJwtToken();
+            if (userId && jwtToken) {
+                const data = {};
+                data["owner_id"] = userId;
+                data["title"] = Options_vid.title;
+                data["time"] = Options_vid.time;
+                data["color"] = Options_vid.color;
+                data["background"] = Options_vid.background;
+                data["frames"] = Options_vid.frames;
+                sendRequest('../../server/page_controllers/ascii-video-editor/save-video.php',
+                    {
+                        method: 'POST',
+                        data: `data=${JSON.stringify(data)}`,
+                        token: jwtToken
+                    }, addedSuccessfullyl, handleErrorAscii);
+            }
+        }
     });
+}
+
+function getUserIdFromJwtToken() {
+    const token = getCookie("token");
+    let payload, userId;
+    if (token) {
+        payload = JSON.parse(atob(token.split(".")[1]));
+        userId = payload.id;
+    }
+    return userId;
 }
 
 function loadVideos() {
 
     document.getElementById("load-videos").addEventListener("click", function (event) {
-        var data = {};
-
-        //TO DO GET THE OWNER ID FROM THE SESSION
-        data["owner_id"] = 1;
-
-        sendRequest(`../../server/page_controllers/ascii-video-editor/get-videos.php?owner_id=${data["owner_id"]}`, { method: 'GET', data: "" }, loadUserVideos, handleErrorAscii);
         event.preventDefault();
+        const jwtToken = getCookie("token");
+        const userId = getUserIdFromJwtToken();
+        if (userId && jwtToken) {
+            const data = {};
+            data["owner_id"] = userId;
+            sendRequest(`../../server/page_controllers/ascii-video-editor/get-videos.php?owner_id=${data["owner_id"]}`,
+                { method: 'GET', data: "", token: jwtToken },
+                loadUserVideos,
+                handleErrorAscii
+            );
+        }
     });
 }
 
@@ -578,14 +613,17 @@ function stopVideo() {
 //send a request for the pictures
 function getAllAsciiPictures() {
     //TO DO get the user id from session
-    let ownerId = 1;
     document.getElementById("load-pictures").addEventListener("click", function (event) {
-        sendRequest(
-            `../../server/page_controllers/ascii-editor/getAllPictures.php?user=${ownerId}`,
-            { method: "GET", data: '' },
-            displayAsciiPictures,
-            handleErrorAscii,
-        );
+        const jwtToken = getCookie("token");
+        const userId = getUserIdFromJwtToken();
+        if (userId && jwtToken) {
+            sendRequest(
+                `../../server/page_controllers/ascii-editor/getAllPictures.php?user=${userId}`,
+                { method: "GET", data: '', token: jwtToken },
+                displayAsciiPictures,
+                handleErrorAscii,
+            );
+        }
     });
 }
 
@@ -663,8 +701,10 @@ function autoPasteText(textarea) {
     textarea.addEventListener('click', async () => {
         try {
             let text = await navigator.clipboard.readText();
-            textarea.value = text;
-            navigator.clipboard.writeText("");
+            if(text != ""){
+                textarea.value = text;
+                navigator.clipboard.writeText("");
+            }
         } catch (error) {
             console.log("The clipboard was empty");
         }

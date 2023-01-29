@@ -7,6 +7,7 @@ const videoEditorUrl = baseUrl + 'ascii-video-editor/';
 window.addEventListener("load", (event) => {
     setupPages();
     getUserInfo();
+    openTab(event, 'user-info-img-section');
 });
 function openTab(event, sectionName) {
     if (sessionStorage.getItem('owner') === null && getCookie('token') === null) {
@@ -23,9 +24,9 @@ function openTab(event, sectionName) {
         tabcontent[i].style.display = "none";
     }
     tablinks = document.getElementsByClassName("tablinks");
-    if (event.currentTarget != document) {
+    if (event.currentTarget != window) {
         for (i = 0; i < tablinks.length; i++) {
-          tablinks[i].classList.remove("active");
+            tablinks[i].classList.remove("active");
         }
     }
     document.getElementById(sectionName).style.display = "block";
@@ -145,6 +146,7 @@ function displayAsciiPictures(response) {
 function showAsciiPicture(element, asciiPicture, isLiked, likesCount) {
     if (element && asciiPicture) {
         let nameEl = document.createElement('span');
+        let wrapper = document.createElement('div');
         nameEl.style.fontWeight = 'bold';
         nameEl.innerHTML = 'Picture name: ' + asciiPicture['picture_name'];
         nameEl.style.fontSize = "20px";
@@ -153,13 +155,13 @@ function showAsciiPicture(element, asciiPicture, isLiked, likesCount) {
         updatedEl.innerHTML = 'Last update on: ' + asciiPicture['updated_at'];
         let asciiItemElement = createAscciWrapperEl(asciiPicture);
         let asciiFooter = document.createElement("div");
-        asciiFooter.style.padding = "15px";
-        asciiFooter.style.display = "flex";
-        asciiFooter.style.alignItems = "center";
-        asciiFooter.style.gap = "20px";
-        asciiFooter.appendChild(nameEl);
+        asciiFooter.classList.add("ascii-footer");
+        wrapper.appendChild(nameEl);
+        asciiFooter.appendChild(wrapper);
         addLikeButton(asciiFooter, asciiPicture['id'], isLiked, likesCount);
-        asciiFooter.appendChild(updatedEl);
+        wrapper = document.createElement("div");
+        wrapper.appendChild(updatedEl);
+        asciiFooter.appendChild(wrapper);
         asciiItemElement.appendChild(asciiFooter);
         element.appendChild(asciiItemElement);
     }
@@ -176,6 +178,7 @@ function createAscciWrapperEl(asciiPicture) {
     asciiTextElement.className = "ascii-picture";
     asciiTextElement.style.color = asciiColor;
     asciiTextElement.style.backgroundColor = "#ffffff";
+    asciiTextElement.style.overflowY = "auto";
     asciiTextElement.innerHTML = asciiText;
     asciiWrapperElement.appendChild(asciiTextElement);
     return asciiWrapperElement;
@@ -340,7 +343,7 @@ function loadUserVideos(response) {
     const pagination = document.getElementsByClassName("button-wrapper")[1];
     let videos = response["data"];
 
-    if(videos.length == 0) {
+    if (videos.length == 0) {
         notFoundText.style.display = "block";
         pagination.style.display = "none";
         return;
@@ -362,9 +365,10 @@ function loadUserVideos(response) {
             let new_color = videos[i]["color"];
             let new_background = videos[i]["background"];
             let new_frames = videos[i]["frames"];
+            let updated_at = videos[i]['updated_at'];
             let new_name = `loaded_videos[${i}]`;
 
-            let new_video = new Video(new_title, new_time, new_color, new_background, new_frames, new_id, new_name);
+            let new_video = new Video(new_title, new_time, new_color, new_background, new_frames, new_id, new_name, updated_at);
 
             new_video.addLabels();
             new_video.makeLoadedVideo();
@@ -399,6 +403,11 @@ function handleError(response, isErrorInAuth) {
     let message = "An error has occurred. Try again.";
     if (isErrorInAuth) {
         message = "An error with the authentication has occured. Please, logout and login again."
+        var modalContents = document.getElementsByClassName("modal-body");
+        Array.from(modalContents).forEach(modalContent => { modalContent.innerHTML = message; });
+        showModalForSeconds();
+        window.location.assign("login.html");
+        return;
     }
     var modalContents = document.getElementsByClassName("modal-body");
     Array.from(modalContents).forEach(modalContent => { modalContent.innerHTML = message; });
@@ -424,7 +433,7 @@ var loaded_videos = [];
 class Video {
 
 
-    constructor(title, time, color, background, frames, id, name) {
+    constructor(title, time, color, background, frames, id, name, updated_at) {
         this.title = title;
         this.time = time;
         this.color = color;
@@ -435,41 +444,63 @@ class Video {
         this.current = 0;
         this.timer = 0;
         this.name = name;
+        this.updated_at = updated_at;
     }
 
     addLabels() {
         let label = document.createElement("label");
-        let title = document.createTextNode(this.title);
-
         label.setAttribute("class", "loaded-video-title");
 
-        label.appendChild(title);
+        let videoWrapperEl = document.getElementById("videos-wrapper");
 
-        let display_section = document.getElementById("videos-wrapper");
+        videoWrapperEl.className = "ascii-wrapper";
 
-        display_section.appendChild(label);
+        let nameEl = document.createElement('span');
+        let wrapper = document.createElement('div');
+        nameEl.style.fontWeight = 'bold';
+        nameEl.innerHTML = 'Video name: ' + this.title;
+        nameEl.style.fontSize = "20px";
+        let updatedEl = document.createElement('span');
+        updatedEl.style.fontWeight = 'bold';
+        updatedEl.innerHTML = 'Last update on: ' + this.updated_at;
+        let asciiFooter = document.createElement("div");
+        asciiFooter.classList.add("ascii-footer");
+        wrapper.appendChild(nameEl);
+        asciiFooter.appendChild(wrapper);
+
+        wrapper = document.createElement("div");
+        asciiFooter.appendChild(wrapper);
+        wrapper = document.createElement("div");
+        wrapper.appendChild(updatedEl);
+        asciiFooter.appendChild(wrapper);
+        videoWrapperEl.appendChild(asciiFooter);
+
+        videoWrapperEl.style.margin = '20px auto';
+        videoWrapperEl.style.width = '500px';
+        videoWrapperEl.appendChild(label);
     }
 
     makeLoadedVideo() {
-        for (let i = 0; i < this.frames_count; i++) {
-            var new_frame = document.createElement("textarea");
-            new_frame.classList.add("loaded-video-frames", `video-frame-${this.id}`);
-            new_frame.setAttribute("id", `loaded-frame-video-${this.id}-${i}`);
-            new_frame.setAttribute("rows", TEXT_ROWS);
-            new_frame.setAttribute("readonly", "");
+        var new_frame = document.createElement("textarea");
+        new_frame.setAttribute("class", "loaded-video-frames");
+        new_frame.setAttribute("id", `loaded-frame-video-${this.id}`);
+        new_frame.setAttribute("rows", TEXT_ROWS);
+        new_frame.style.width = '500px';
+        new_frame.readOnly = true;
+        new_frame.style.resize = 'none';
+        new_frame.style.border = 'none';
+        new_frame.setAttribute("readonly", "");
 
 
-            let text_value = this.frames[i];
-            new_frame.appendChild(document.createTextNode(text_value));
+        let text_value = this.frames[0];
+        new_frame.appendChild(document.createTextNode(text_value));
 
-            new_frame.style.color = this.color;
-            new_frame.style.background = this.background;
+        new_frame.style.color = this.color;
+        new_frame.style.background = this.background;
 
-            let section = document.getElementById("videos-wrapper");
+        let section = document.getElementById("videos-wrapper");
 
-            section.appendChild(new_frame);
-        }
-
+        section.appendChild(new_frame);
     }
 
 
@@ -486,7 +517,3 @@ class Video {
     }
 
 }
-
-document.addEventListener("DOMContentLoaded", function (event) {
-    openTab(event, 'user-info-img-section')
-});
