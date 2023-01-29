@@ -26,7 +26,7 @@ function openTab(event, sectionName) {
     tablinks = document.getElementsByClassName("tablinks");
     if (event.currentTarget != window) {
         for (i = 0; i < tablinks.length; i++) {
-          tablinks[i].classList.remove("active");
+            tablinks[i].classList.remove("active");
         }
     }
     document.getElementById(sectionName).style.display = "block";
@@ -343,7 +343,7 @@ function loadUserVideos(response) {
     const pagination = document.getElementsByClassName("button-wrapper")[1];
     let videos = response["data"];
 
-    if(videos.length == 0) {
+    if (videos.length == 0) {
         notFoundText.style.display = "block";
         pagination.style.display = "none";
         return;
@@ -365,9 +365,10 @@ function loadUserVideos(response) {
             let new_color = videos[i]["color"];
             let new_background = videos[i]["background"];
             let new_frames = videos[i]["frames"];
+            let updated_at = videos[i]['updated_at'];
             let new_name = `loaded_videos[${i}]`;
 
-            let new_video = new Video(new_title, new_time, new_color, new_background, new_frames, new_id, new_name);
+            let new_video = new Video(new_title, new_time, new_color, new_background, new_frames, new_id, new_name, updated_at);
 
             new_video.addLabels();
             new_video.makeLoadedVideo();
@@ -432,7 +433,7 @@ var loaded_videos = [];
 class Video {
 
 
-    constructor(title, time, color, background, frames, id, name) {
+    constructor(title, time, color, background, frames, id, name, updated_at) {
         this.title = title;
         this.time = time;
         this.color = color;
@@ -443,41 +444,53 @@ class Video {
         this.current = 0;
         this.timer = 0;
         this.name = name;
+        this.updated_at = updated_at;
     }
 
     addLabels() {
         let label = document.createElement("label");
-        let title = document.createTextNode(this.title);
+        // let title = document.createTextNode(this.title);
+        // let owner = createLink(owner_id, owner_name);
 
         label.setAttribute("class", "loaded-video-title");
 
         // label.appendChild(title);
+        // label.appendChild(owner);
+
+        let videoWrapperEl = document.getElementById("videos-wrapper");
+
+        videoWrapperEl.className = "ascii-wrapper";
+        let asciiTextElement = document.createElement("pre");
+        asciiTextElement.className = "ascii-picture";
+        // asciiTextElement.style.color = asciiColor;
+        asciiTextElement.style.backgroundColor = "#ffffff";
+        asciiTextElement.style.overflowY = "auto";
+        // asciiTextElement.innerHTML = asciiText;
+        videoWrapperEl.appendChild(asciiTextElement);
 
         let nameEl = document.createElement('span');
         let wrapper = document.createElement('div');
         nameEl.style.fontWeight = 'bold';
         nameEl.innerHTML = 'Video name: ' + this.title;
         nameEl.style.fontSize = "20px";
-        // let updatedEl = document.createElement('span');
-        // updatedEl.style.fontWeight = 'bold';
-        // updatedEl.innerHTML = 'Last update on: ' + asciiPicture['updated_at'];
-        // let asciiItemElement = createAscciWrapperEl(asciiPicture);
+        let updatedEl = document.createElement('span');
+        updatedEl.style.fontWeight = 'bold';
+        updatedEl.innerHTML = 'Last update on: ' + this.updated_at;
         let asciiFooter = document.createElement("div");
         asciiFooter.classList.add("ascii-footer");
         wrapper.appendChild(nameEl);
         asciiFooter.appendChild(wrapper);
+    
         wrapper = document.createElement("div");
-        // wrapper.appendChild(createLink(asciiPicture['owner_id'], ownerName));
         asciiFooter.appendChild(wrapper);
         wrapper = document.createElement("div");
-        // wrapper.appendChild(updatedEl);
+        wrapper.appendChild(updatedEl);
         asciiFooter.appendChild(wrapper);
-        // asciiItemElement.appendChild(asciiFooter);
-        // element.appendChild(asciiFooter);
-        label.appendChild(asciiFooter);
-        let display_section = document.getElementById("videos-wrapper");
-        display_section.appendChild(label);
-        // label.appendChild(displaySection);
+        videoWrapperEl.appendChild(asciiFooter);
+
+
+
+        videoWrapperEl.appendChild(label);
     }
 
     makeLoadedVideo() {
