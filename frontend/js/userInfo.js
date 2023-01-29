@@ -171,14 +171,13 @@ function createAscciWrapperEl(asciiPicture) {
     let responseAsciiValue = asciiPicture.value;
     let asciiColor = asciiPicture.color;
     let asciiText = responseAsciiValue.substring(2, responseAsciiValue.length - 1).replace(/\\n/g, '<br/>');
-    asciiText = asciiText.replace('<br/>', '');
+    console.log(asciiText);
     let asciiWrapperElement = document.createElement('div');
     asciiWrapperElement.className = "ascii-wrapper";
     let asciiTextElement = document.createElement("pre");
     asciiTextElement.className = "ascii-picture";
     asciiTextElement.style.color = asciiColor;
     asciiTextElement.style.backgroundColor = "#ffffff";
-    asciiTextElement.style.overflowY = "auto";
     asciiTextElement.innerHTML = asciiText;
     asciiWrapperElement.appendChild(asciiTextElement);
     return asciiWrapperElement;
@@ -369,9 +368,14 @@ function loadUserVideos(response) {
             let new_name = `loaded_videos[${i}]`;
 
             let new_video = new Video(new_title, new_time, new_color, new_background, new_frames, new_id, new_name, updated_at);
-
-            new_video.addLabels();
+            var asciiWrapperElement = document.createElement("div");
+            asciiWrapperElement.className = "ascii-wrapper";
+            asciiWrapperElement.setAttribute("id", `${videos[i]["id"]}`);
+            let videoWrapper = document.getElementsByClassName("wrapper")[1];
+            videoWrapper.appendChild(asciiWrapperElement);
+            document.getElementsByClassName("wrapper")[1].appendChild(asciiWrapperElement);
             new_video.makeLoadedVideo();
+            new_video.addLabels();
             loaded_videos.push(new_video);
             loaded_videos[i].play();
         }
@@ -451,11 +455,8 @@ class Video {
         let label = document.createElement("label");
         label.setAttribute("class", "loaded-video-title");
 
-        let videoWrapperEl = document.getElementById("videos-wrapper");
-
-        videoWrapperEl.className = "ascii-wrapper";
-
         let nameEl = document.createElement('span');
+        let asciiWrapperElement = document.getElementById(this.id);
         let wrapper = document.createElement('div');
         nameEl.style.fontWeight = 'bold';
         nameEl.innerHTML = 'Video name: ' + this.title;
@@ -473,11 +474,9 @@ class Video {
         wrapper = document.createElement("div");
         wrapper.appendChild(updatedEl);
         asciiFooter.appendChild(wrapper);
-        videoWrapperEl.appendChild(asciiFooter);
+        asciiWrapperElement.appendChild(asciiFooter);
 
-        videoWrapperEl.style.margin = '20px auto';
-        videoWrapperEl.style.width = '500px';
-        videoWrapperEl.appendChild(label);
+        asciiWrapperElement.appendChild(label);
     }
 
     makeLoadedVideo() {
@@ -485,7 +484,7 @@ class Video {
         new_frame.setAttribute("class", "loaded-video-frames");
         new_frame.setAttribute("id", `loaded-frame-video-${this.id}`);
         new_frame.setAttribute("rows", TEXT_ROWS);
-        new_frame.style.width = '500px';
+        new_frame.style.width = '100%';
         new_frame.readOnly = true;
         new_frame.style.resize = 'none';
         new_frame.style.border = 'none';
@@ -498,9 +497,8 @@ class Video {
         new_frame.style.color = this.color;
         new_frame.style.background = this.background;
 
-        let section = document.getElementById("videos-wrapper");
-
-        section.appendChild(new_frame);
+        let asciiWrapperElement = document.getElementById(this.id);
+        asciiWrapperElement.appendChild(new_frame);
     }
 
 
@@ -509,7 +507,9 @@ class Video {
             this.current = 0;
         }
         let video_element = document.getElementById(`loaded-frame-video-${this.id}`);
-        video_element.innerHTML = this.frames[this.current];
+        if(video_element && this.frames && this.frames[this.current]) {
+            video_element.innerHTML = this.frames[this.current];
+        }
 
         clearTimeout(this.timer);
         this.timer = setTimeout(this.name + '.play()', this.time);

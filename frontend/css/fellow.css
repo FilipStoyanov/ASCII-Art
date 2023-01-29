@@ -43,6 +43,7 @@ body {
   margin: 0px;
   text-underline-offset: 5px;
   font-size: 30px;
+  text-align: center;
 }
 
 .search-button:focus {
@@ -396,7 +397,16 @@ tr:nth-child(odd) {
 .ascii-wrapper {
   background-color: var(--gray);
   box-shadow: 0px 3px 3px -2px rgb(0 0 0 / 20%), 0px 3px 4px 0px rgb(0 0 0 / 14%), 0px 1px 8px 0px rgb(0 0 0 / 12%);
-  margin-bottom: 50px;
+  margin: 0px auto 50px;
+  width: 600px;
+  max-width: 100%;
+}
+
+.ascii-picture {
+  font-size: 14px;
+  letter-spacing: 1.4px;
+  overflow-x: auto;
+  width: 100%;
 }
 
 .ascii-footer {
