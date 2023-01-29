@@ -107,10 +107,6 @@ th {
   ;
 }
 
-tr {
-  height: 50px;
-}
-
 tr:nth-child(even) {
   background-color: #dddddd;
 }
@@ -421,4 +417,44 @@ tr:nth-child(odd) {
     display: block;
     text-align: center;
   }
+
+	table, thead, tbody, th, td, tr { 
+		display: block; 
+	}
+	
+	.tabcontent thead { 
+		display: none;
+	}
+	
+	tr { border: 1px solid #ccc; }
+	
+	td { 
+		border: none;
+		border-bottom: 1px solid #eee; 
+		position: relative;
+		padding-left: 50%; 
+    height: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+	}
+	
+	td:before { 
+		position: absolute;
+		top: 20px;
+		left: 6px;
+		width: 45%; 
+		padding-right: 10px; 
+		white-space: nowrap;
+	}
+
+  td:nth-of-type(1):before { content: "№"; }
+	td:nth-of-type(2):before { content: "Username"; }
+	td:nth-of-type(3):before { content: "Link"; }
+	td:nth-of-type(4):before { content: "Remove"; }
+	td:nth-of-type(5):before { content: "Unfollow"; }
+	td:nth-of-type(6):before { content: "Follow"; }
+
+  #followings-tb td:nth-of-type(4):before { content: "Action"; }
+
 }
