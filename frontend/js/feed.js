@@ -163,6 +163,11 @@ function handleError(response, isErrorInAuth) {
     let message = "An error has occurred. Try again.";
     if (isErrorInAuth) {
         message = "An error with the authentication has occured. Please, logout and login again."
+        var modalContents = document.getElementsByClassName("modal-body");
+        Array.from(modalContents).forEach(modalContent => { modalContent.innerHTML = message; });
+        showModalForSeconds();
+        window.location.assign("login.html");
+        return;
     }
     var modalContents = document.getElementsByClassName("modal-body");
     Array.from(modalContents).forEach(modalContent => { modalContent.innerHTML = message; });
@@ -347,9 +352,10 @@ function loadUserVideos(response) {
             let new_frames = videos[i]['data']["frames"];
             let owner_id = videos[i]['owner']['id'];
             let owner_name = videos[i]['owner']['username'];
+            let updated_at = videos[i]['data']['updated_at'];
             let new_name = `loaded_videos[${i}]`;
 
-            let new_video = new Video(new_title, new_time, new_color, new_background, new_frames, new_id, new_name);
+            let new_video = new Video(new_title, new_time, new_color, new_background, new_frames, new_id, new_name, updated_at);
 
             new_video.addLabels(owner_id, owner_name);
             new_video.makeLoadedVideo();
@@ -381,12 +387,13 @@ function deleteLoadedVideos() {
 
 
 const TEXT_ROWS = 41;
+const TEXT_COLS = 50;
 var loaded_videos = [];
 
 class Video {
 
 
-    constructor(title, time, color, background, frames, id, name) {
+    constructor(title, time, color, background, frames, id, name, updated_at) {
         this.title = title;
         this.time = time;
         this.color = color;
@@ -397,21 +404,42 @@ class Video {
         this.current = 0;
         this.timer = 0;
         this.name = name;
+        this.updated_at = updated_at;
     }
 
     addLabels(owner_id, owner_name) {
         let label = document.createElement("label");
-        let title = document.createTextNode(this.title);
-        let owner = createLink(owner_id, owner_name);
 
         label.setAttribute("class", "loaded-video-title");
 
-        label.appendChild(title);
-        label.appendChild(owner);
+        let videoWrapperEl = document.getElementById("videos-wrapper");
 
-        let display_section = document.getElementById("videos-wrapper");
+        videoWrapperEl.className = "ascii-wrapper";
 
-        display_section.appendChild(label);
+        let nameEl = document.createElement('span');
+        let wrapper = document.createElement('div');
+        nameEl.style.fontWeight = 'bold';
+        nameEl.innerHTML = 'Video name: ' + this.title;
+        nameEl.style.fontSize = "20px";
+        let updatedEl = document.createElement('span');
+        updatedEl.style.fontWeight = 'bold';
+        updatedEl.innerHTML = 'Last update on: ' + this.updated_at;
+        let asciiFooter = document.createElement("div");
+        asciiFooter.classList.add("ascii-footer");
+        wrapper.appendChild(nameEl);
+        asciiFooter.appendChild(wrapper);
+    
+        wrapper = document.createElement("div");
+        wrapper.appendChild(createLink(owner_id, owner_name));
+        asciiFooter.appendChild(wrapper);
+        wrapper = document.createElement("div");
+        wrapper.appendChild(updatedEl);
+        asciiFooter.appendChild(wrapper);
+
+        videoWrapperEl.style.margin = '20px auto';
+        videoWrapperEl.style.width = '500px';
+        videoWrapperEl.appendChild(label);
+        videoWrapperEl.appendChild(asciiFooter);
     }
 
     makeLoadedVideo() {
@@ -419,8 +447,11 @@ class Video {
         new_frame.setAttribute("class", "loaded-video-frames");
         new_frame.setAttribute("id", `loaded-frame-video-${this.id}`);
         new_frame.setAttribute("rows", TEXT_ROWS);
+        new_frame.style.width = '500px';
+        new_frame.readOnly = true;
+        new_frame.style.resize = 'none';
+        new_frame.style.border = 'none';
         new_frame.setAttribute("readonly", "");
-
 
         let text_value = this.frames[0];
         new_frame.appendChild(document.createTextNode(text_value));
@@ -428,10 +459,9 @@ class Video {
         new_frame.style.color = this.color;
         new_frame.style.background = this.background;
 
-        let section = document.getElementsByClassName("sections")[3];
+        let section = document.getElementById("videos-wrapper");
 
         section.appendChild(new_frame);
-
     }
 
 

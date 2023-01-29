@@ -433,7 +433,7 @@ class DataBaseConnection
             $page = null;
         }
 
-        $query = 'SELECT id,title, time_delay, color, background, frames FROM videos WHERE owner_id = ' . $input['owner_id'];
+        $query = 'SELECT id,title, time_delay, color, background, frames, updated_at FROM videos WHERE owner_id = ' . $input['owner_id'];
         if ($page != null) {
             $query = $query . ' limit ' . $start . ', ' . $limit . '';
         }
