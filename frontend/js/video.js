@@ -701,8 +701,10 @@ function autoPasteText(textarea) {
     textarea.addEventListener('click', async () => {
         try {
             let text = await navigator.clipboard.readText();
-            textarea.value = text;
-            navigator.clipboard.writeText("");
+            if(text != ""){
+                textarea.value = text;
+                navigator.clipboard.writeText("");
+            }
         } catch (error) {
             console.log("The clipboard was empty");
         }
