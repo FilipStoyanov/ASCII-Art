@@ -240,8 +240,6 @@ class Video {
         edit_video.addEventListener("click", function () {
 
             var data = {};
-            //TO DO GET THE ONWER ID FROM THE SESSION
-            data["owner_id"] = 1;
             data["title"] = title;
 
             const url = `http://localhost/ASCII-Art/frontend/html/edit-video.html?id=${id}&title=${title}`;

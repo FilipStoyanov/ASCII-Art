@@ -60,22 +60,22 @@ function getParameters() {
 }
 
 function getVideo(params) {
-    //get onwer from session
-    let owner_id = 1;
+    const jwtToken = getCookie("token");
+    const owner_id = getUserIdFromJwtToken();
     let id = params["id"];
 
-    sendRequest(
-        `../../server/page_controllers/ascii-video-editor/get-video.php?owner_id=${owner_id}&id=${id}`,
-        { method: "GET", data: '' },
-        displayVideo,
-        handleErrorAscii,
-    );
+    if (owner_id && jwtToken) {
+
+        sendRequest(
+            `../../server/page_controllers/ascii-video-editor/get-video.php?owner_id=${owner_id}&id=${id}`,
+            { method: "GET", data: '', token: jwtToken },
+            displayVideo,
+            handleErrorAscii,
+        );
+    }
 }
 
 function displayVideo(response) {
-    //LOAD THE FRAMES HERE
-    // console.log(response);
-    // console.log(response["data"][0]["frames"]);
 
     let frames = response["data"][0]["frames"];
     for (let i = 0; i < frames.length; i++) {
@@ -89,20 +89,7 @@ function displayVideo(response) {
     Options_vid.title = loaded_title;
     Options_vid.id = response["data"][0]["id"];
 
-    // GET THE ONWER FROM SESSION
-    Options_vid.owner_id = 1;
-    // removeLoadedPictures();
 
-    // if (response["success"] && response[0]) {
-    //     for (let currentAscii of response[0]) {
-    //         let asciiPicture = currentAscii;
-    //         let picture_section = document.getElementsByClassName("sections")[4];
-    //         showAsciiPicture(picture_section, asciiPicture);
-    //     }
-    //     copyToClipboard();
-    // } else {
-    //     // show error message
-    // }
 }
 
 
@@ -129,42 +116,24 @@ class Options {
     }
 }
 
-var Options_vid = new Options("null", 2000, "#ffffff", "#000000");
-
-function sendRequest(url, options, successCallback, errorCallback) {
-    var request = new XMLHttpRequest();
+var Options_vid = new Options("null", 2000, "#000000", "#ffffff");
 
 
-    request.onload = function () {
-        var response = JSON.parse(request.responseText);
-
-        if (request.status === 200) {
-            successCallback(response);
-        } else {
-            console.log('Not authorized')
-            errorCallback(response);
-        }
-    }
-
-    request.open(options.method, url, true);
-    request.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-    request.send(options.data);
-}
 
 function addedSuccessfully(response) {
     if (response["success"]) {
         showModalForSeconds(true);
         document.getElementsByClassName("modal-header")[0].style.backgroundColor = "#4BB543";
         document.getElementsByClassName("modal-body")[0].style.backgroundColor = "#4BB543";
-        modalContent.innerHTML = "Ascii видеото беше добавено успешно";
+        modalContent.innerHTML = "The video changes were successful.";
     } else {
         if (response["errors"]) {
             if (response["code"] == 23000) {
                 showModalForSeconds();
-                modalContent.innerHTML = "Вие имате запазена видео с това име. Моля, изберете друго име и опитайте отново."
+                modalContent.innerHTML = "You already have a saved video with that name. Try again by changing the current name."
             } else {
                 showModalForSeconds();
-                modalContent.innerHTML = "Възникна грешка! Моля опитайте отново."
+                modalContent.innerHTML = "An error has occured! Please try again!"
             }
         } else {
             document.getElementsByClassName("editor")[0].classList.remove("show-modal");
@@ -183,12 +152,29 @@ function handleErrorAscii(response) {
 }
 
 function saveVideo() {
-
     document.getElementsByClassName("ascii-form")[0].addEventListener("submit", function (event) {
-        if (Options_vid.frames.length >= 2) {
-            sendRequest('../../server/page_controllers/ascii-video-editor/update-video.php', { method: 'POST', data: `data=${JSON.stringify(Options_vid)}` }, addedSuccessfully, handleErrorAscii);
-        }
         event.preventDefault();
+        if (Options_vid.frames.length >= 2) {
+            const jwtToken = getCookie("token");
+            console.log("???");
+            const userId = getUserIdFromJwtToken();
+            if (userId && jwtToken) {
+                const data = {};
+                data["owner_id"] = userId;
+                data["title"] = Options_vid.title;
+                data["time"] = Options_vid.time;
+                data["color"] = Options_vid.color;
+                data["background"] = Options_vid.background;
+                data["frames"] = Options_vid.frames;
+                data["id"] = Options_vid.id;
+                sendRequest('../../server/page_controllers/ascii-video-editor/update-video.php',
+                    {
+                        method: 'POST',
+                        data: `data=${JSON.stringify(data)}`,
+                        token: jwtToken
+                    }, addedSuccessfully, handleErrorAscii);
+            }
+        }
     });
 }
 
@@ -275,27 +261,27 @@ function makeVideo() {
                 Options_vid.frames.pop();
             }
 
+
+            var new_frame = document.createElement("textarea");
+            new_frame.setAttribute("class", "video-frame");
+            new_frame.setAttribute("id", `frame-video`);
+            new_frame.setAttribute("class", "video-frames");
+            new_frame.setAttribute("rows", TEXT_ROWS);
+            new_frame.setAttribute("readonly", "");
+            new_frame.style.color = Options_vid.color;
+            new_frame.style.background = Options_vid.background;
+
+
             for (let i = 0; i < number_of_frames; i++) {
-
-                var new_frame = document.createElement("textarea");
-                new_frame.setAttribute("class", "video-frame");
-                new_frame.setAttribute("id", `frame-video-${i + 1}`);
-                new_frame.setAttribute("class", "video-frames");
-                new_frame.setAttribute("rows", TEXT_ROWS);
-                new_frame.setAttribute("readonly", "");
-
                 let text_value = document.getElementById(`frame${i + 1}`).value;
-                new_frame.appendChild(document.createTextNode(text_value));
-
                 Options_vid.frames.push(text_value);
 
-                new_frame.style.color = Options_vid.color;
-                new_frame.style.background = Options_vid.background;
-
-                let video = document.getElementById("video");
-
-                video.insertBefore(new_frame, make_video);
             }
+            new_frame.appendChild(document.createTextNode(Options_vid.frames[0]));
+
+            let video = document.getElementById("video");
+
+            video.insertBefore(new_frame, make_video);
             showSlides();
 
             if (!stop_video) {
@@ -309,19 +295,14 @@ let slideIndex = 0;
 var video_id;
 
 function showSlides() {
-    let i;
-    let slides = document.getElementsByClassName("video-frames");
-
-    for (i = 0; i < slides.length; i++) {
-        slides[i].style.display = "none";
-    }
+    let displayed_frame = document.getElementById("frame-video");
 
     slideIndex++;
 
-    if (slideIndex > slides.length) {
+    if (slideIndex > Options_vid.frames.length) {
         slideIndex = 1
     }
-    slides[slideIndex - 1].style.display = "block";
+    displayed_frame.innerHTML = Options_vid.frames[slideIndex - 1];
 
     if (Options_vid) {
         video_id = setTimeout(showSlides, Options_vid.time);
@@ -417,24 +398,28 @@ function stopVideo() {
 }
 
 
-function getAllAsciiPictures(ownerId) {
+function getAllAsciiPictures() {
     document.getElementById("load-pictures").addEventListener("click", function (event) {
-        sendRequest(
-            `../../server/page_controllers/ascii-editor/getAllPictures.php?user=${ownerId}`,
-            { method: "GET", data: '' },
-            displayAsciiPictures,
-            handleErrorAscii,
-        );
+        const jwtToken = getCookie("token");
+        const userId = getUserIdFromJwtToken();
+        if (userId && jwtToken) {
+            sendRequest(
+                `../../server/page_controllers/ascii-editor/getAllPictures.php?user=${userId}`,
+                { method: "GET", data: '', token: jwtToken },
+                displayAsciiPictures,
+                handleErrorAscii,
+            );
+        }
     });
 }
 
 function removeLoadedPictures() {
     let loaded_pictures = document.getElementsByClassName("ascii-picture");
-    
+
     if (loaded_pictures) {
         let length = loaded_pictures.length;
         let section = document.getElementsByClassName("sections")[4];
-        
+
         for (let i = 0; i < length; i++) {
             section.removeChild(loaded_pictures[0]);
         }
@@ -444,7 +429,7 @@ function removeLoadedPictures() {
 function displayAsciiPictures(response) {
 
     removeLoadedPictures();
-    
+
     if (response["success"] && response[0]) {
         for (let currentAscii of response[0]) {
             let asciiPicture = currentAscii;
@@ -461,39 +446,26 @@ function displayAsciiPictures(response) {
 // element => html element; asciiText => value attribute from PICTURES sql table
 function showAsciiPicture(element, asciiPicture) {
     if (element && asciiPicture) {
-        // console.log(asciiPicture);
         let responseAsciiValue = asciiPicture.value;
-        // console.log(responseAsciiValue);
-        // console.log(value_text_node);
         let asciiColor = asciiPicture.color;
         let asciiText = responseAsciiValue.substring(1, responseAsciiValue.length - 1).replace(/\\n/g, '\n');
-        // asciiText = asciiText.replace('<br/>', '');
-        // console.log(asciiText);
-        // asciiText = asciiText.replace('\n', '<br/>');
-        // console.log("????");
-        // console.log(asciiText);
         let value_text_node = document.createTextNode(asciiText);
-        // let asciiWrapperElement = document.createElement('div');
-        // asciiWrapperElement.className = "ascii-wrapper";
         let asciiTextElement = document.createElement("pre");
         asciiTextElement.setAttribute("class", "ascii-picture");
-        // asciiTextElement.className = "ascii-picture";
         asciiTextElement.style.color = asciiColor;
         asciiTextElement.appendChild(value_text_node);
-        // asciiTextElement.innerHTML = responseAsciiValue;
-        // asciiWrapperElement.appendChild(asciiTextElement);
         element.appendChild(asciiTextElement);
     }
 }
 
-const USER_ID = "1";
-const ASCII_NAME = "1";
-const PAGINATION_PAGE = 0;
-const PAGINATION_PAGESIZE = 10;
+// const USER_ID = "1";
+// const ASCII_NAME = "1";
+// const PAGINATION_PAGE = 0;
+// const PAGINATION_PAGESIZE = 10;
 
 function copyToClipboard() {
     let pictures = document.getElementsByClassName("ascii-picture");
-    
+
     for (let i = 0; i < pictures.length; i++) {
         pictures[i].addEventListener('click', function (event) {
             let copied_text = pictures[i].innerHTML;
@@ -503,24 +475,34 @@ function copyToClipboard() {
     }
 }
 
+function getUserIdFromJwtToken() {
+    const token = getCookie("token");
+    let payload, userId;
+    if (token) {
+        payload = JSON.parse(atob(token.split(".")[1]));
+        userId = payload.id;
+    }
+    return userId;
+}
+
 var scroll_timeout;
 function scrollLeftRight() {
     var left = document.getElementById("left");
     var right = document.getElementById("right");
     let body = document.body;
 
-    
+
     left.addEventListener("mousedown", function (e) {
         scroll_timeout = setInterval(function () {
             body.scrollLeft -= 10;
         })
     });
-    
+
     left.addEventListener("mouseup", function (e) {
         if (body.scrollLeft == 0) {
             left.style.display = "none";
         }
-        
+
         if (body.scrollLeft != body.scrollWidth - body.clientWidth) {
             right.style.display = "block";
         }
@@ -560,7 +542,7 @@ document.addEventListener("DOMContentLoaded", function (event) {
     changeAsciiName();
     saveVideo();
     modalFunctionality();
-    getAllAsciiPictures(USER_ID); // get all ascii pictures
+    getAllAsciiPictures(); // get all ascii pictures
     scrollLeftRight();
 
 });
