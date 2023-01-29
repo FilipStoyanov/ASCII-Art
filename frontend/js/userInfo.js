@@ -7,6 +7,7 @@ const videoEditorUrl = baseUrl + 'ascii-video-editor/';
 window.addEventListener("load", (event) => {
     setupPages();
     getUserInfo();
+    openTab(event, 'user-info-img-section');
 });
 function openTab(event, sectionName) {
     if (sessionStorage.getItem('owner') === null && getCookie('token') === null) {
@@ -23,8 +24,10 @@ function openTab(event, sectionName) {
         tabcontent[i].style.display = "none";
     }
     tablinks = document.getElementsByClassName("tablinks");
-    for (i = 0; i < tablinks.length; i++) {
-        tablinks[i].className = tablinks[i].className.replace(" active", "");
+    if (event.currentTarget != window) {
+        for (i = 0; i < tablinks.length; i++) {
+          tablinks[i].classList.remove("active");
+        }
     }
     document.getElementById(sectionName).style.display = "block";
     event.currentTarget.className += " active";
@@ -32,6 +35,7 @@ function openTab(event, sectionName) {
     sessionStorage.setItem('current_section', sectionName);
 
     if (sectionName == 'user-info-img-section') {
+        document.getElementsByClassName("wrapper")[0].innerHTML = "";
         getAllAsciiPictures();
         return;
     }
@@ -52,18 +56,20 @@ function getCookie(name) {
 
 function sendRequestWithHeaders(url, options, successCallback, errorCallback) {
     let token = getCookie("token");
-    console.log(token);
     var request = new XMLHttpRequest();
 
     request.onload = function () {
-        console.log(request.responseText);
         var response = JSON.parse(request.responseText);
         if (request.status === 200 && response['success']) {
-            setCookie('token', response["token"], 1);
+            setCookie('token', response["token"], 30);
             successCallback(response);
-        } else {
-            setCookie('token', token, 1);
-            errorCallback(response);
+        } else if (request.status == 401 || request.status == 403) {
+            setCookie('token', token, 30);
+            errorCallback(response, true);
+        }
+        else {
+            setCookie('token', token, 30);
+            errorCallback(response, false);
         }
     };
 
@@ -88,41 +94,19 @@ function setCookie(name, value, days) {
 
 function getUserInfo() {
     var url = userInfoUrl + '?user=' + sessionStorage.getItem('owner');
-    sendRequestWithHeaders(url, { method: 'GET', data: '' }, handleUserInfo, handleErrorUserInfo);
+    sendRequestWithHeaders(url, { method: 'GET', data: '' }, handleUserInfo, handleError);
 }
 
 
 
 function handleUserInfo(response) {
-    var userNameEl = document.getElementById('username');
-    userNameEl.innerHTML = response['user']['username'];
-}
-
-function handleErrorUserInfo(response) {
-    errorMsg.style.display = "block";
-    errorMsg.innerHTML = response['error'];
+    var userNameEl = document.getElementsByClassName('user-info-title')[0];
+    userNameEl.innerHTML = `<span>Username:</span> ${response['user']['username']}`;
 }
 
 
 var wrapper = document.getElementsByClassName("wrapper")[0];
-// function sendRequest(url, options, successCallback, errorCallback) {
-//     var request = new XMLHttpRequest();
 
-//     request.onload = function () {
-//         var response = JSON.parse(request.responseText);
-//         if (request.status === 200 && response['success']) {
-//             successCallback(response);
-//         } else {
-//             errorCallback(response);
-//         }
-//     };
-//     request.open(options.method, url, true);
-//     request.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-//     request.send(options.data);
-// }
-
-
-// get all ascii pictures by owner_id
 function getAllAsciiPictures() {
     sendRequestWithHeaders(
         allPicturesUrl + `?owner=${sessionStorage.getItem('owner')}&&page=${sessionStorage.getItem('page')}`,
@@ -133,15 +117,20 @@ function getAllAsciiPictures() {
 }
 
 function displayAsciiPictures(response) {
+    const notFoundText = document.getElementsByClassName("not-found")[0];
+    const pagination = document.getElementsByClassName("button-wrapper")[0];
     if (response["success"] && response['pictures']) {
         var wrapper = document.getElementsByClassName("wrapper")[0];
         let pictures = response['pictures'];
         if (pictures.length < 10) {
+            notFoundText.style.display = "none";
+            pagination.style.display = "flex";
             updateButtonsMode('nextPage', true);
         }
         if (pictures.length == 0) {
-            console.log('No pictures found.')
-            // TODO add message on the UI or something else
+            console.log('No pictures found.');
+            notFoundText.style.display = "block";
+            pagination.style.display = "none";
             return;
         }
         for (let currentAscii of pictures) {
@@ -150,47 +139,49 @@ function displayAsciiPictures(response) {
             let likesCount = currentAscii['likes_count'];
             showAsciiPicture(wrapper, asciiPicture, isLiked, likesCount);
         }
-    } else {
-        // show error message
     }
 }
 
 
-// element => html element; asciiText => value attribute from PICTURES sql table
 function showAsciiPicture(element, asciiPicture, isLiked, likesCount) {
     if (element && asciiPicture) {
-
         let nameEl = document.createElement('span');
+        let wrapper = document.createElement('div');
         nameEl.style.fontWeight = 'bold';
         nameEl.innerHTML = 'Picture name: ' + asciiPicture['picture_name'];
+        nameEl.style.fontSize = "20px";
         let updatedEl = document.createElement('span');
         updatedEl.style.fontWeight = 'bold';
         updatedEl.innerHTML = 'Last update on: ' + asciiPicture['updated_at'];
-        element.appendChild(createAscciWrapperEl(asciiPicture));
-        element.appendChild(nameEl);
-        addLikeButton(element, asciiPicture['id'], isLiked, likesCount);
-        element.appendChild(updatedEl);
+        let asciiItemElement = createAscciWrapperEl(asciiPicture);
+        let asciiFooter = document.createElement("div");
+        asciiFooter.classList.add("ascii-footer");
+        wrapper.appendChild(nameEl);
+        asciiFooter.appendChild(wrapper);
+        addLikeButton(asciiFooter, asciiPicture['id'], isLiked, likesCount);
+        wrapper = document.createElement("div");
+        wrapper.appendChild(updatedEl);
+        asciiFooter.appendChild(wrapper);
+        asciiItemElement.appendChild(asciiFooter);
+        element.appendChild(asciiItemElement);
     }
 }
 
 function createAscciWrapperEl(asciiPicture) {
     let responseAsciiValue = asciiPicture.value;
     let asciiColor = asciiPicture.color;
-    let asciiText = responseAsciiValue.substring(1, responseAsciiValue.length - 1).replace(/\\n/g, '<br/>');
+    let asciiText = responseAsciiValue.substring(2, responseAsciiValue.length - 1).replace(/\\n/g, '<br/>');
     asciiText = asciiText.replace('<br/>', '');
     let asciiWrapperElement = document.createElement('div');
     asciiWrapperElement.className = "ascii-wrapper";
-    asciiWrapperElement.style.backgroundColor = 'white';
     let asciiTextElement = document.createElement("pre");
     asciiTextElement.className = "ascii-picture";
     asciiTextElement.style.color = asciiColor;
+    asciiTextElement.style.backgroundColor = "#ffffff";
+    asciiTextElement.style.overflowY = "auto";
     asciiTextElement.innerHTML = asciiText;
     asciiWrapperElement.appendChild(asciiTextElement);
     return asciiWrapperElement;
-}
-
-function handleError(response) {
-    console.log(response);
 }
 
 
@@ -201,17 +192,11 @@ const PAGINATION_PAGESIZE = 10;
 
 
 
-// Like button
 function addLikeButton(el, pictureId, isLiked, likesCount) {
     let button = document.createElement('a');
-
     button.className = "button button-like";
-    let i = document.createElement('i');
-    i.classList.add('fa');
-    i.classList.add('fa-heart');
-    button.appendChild(i);
     let span = document.createElement('span');
-    span.innerHTML = 'Like';
+    span.innerHTML = '\u2764';
     let likesCountEl = document.createElement('span');
     likesCountEl.innerHTML = likesCount;
     likesCountEl.className = 'counter';
@@ -235,7 +220,7 @@ function addLikeButton(el, pictureId, isLiked, likesCount) {
 
 function addLike(pictureId) {
     var data = { 'picture': pictureId };
-    sendRequestWithHeaders(`http://localhost:80/project-web-2022/ASCII-Art/server/page_controllers/feed/likes.php`,
+    sendRequestWithHeaders(`../../../server/page_controllers/feed/likes.php`,
         { method: "POST", data: JSON.stringify(data) },
         () => { },
         handleError,
@@ -244,7 +229,7 @@ function addLike(pictureId) {
 
 function deleteLike(pictureId) {
     var data = { 'picture': pictureId };
-    sendRequestWithHeaders(`http://localhost:80/project-web-2022/ASCII-Art/server/page_controllers/feed/likes.php`,
+    sendRequestWithHeaders(`../../../server/page_controllers/feed/likes.php`,
         { method: "DELETE", data: JSON.stringify(data) },
         () => { },
         handleError,
@@ -252,10 +237,10 @@ function deleteLike(pictureId) {
 }
 
 function makeButtonLiked(button) {
-    button.style.color = 'green';
+    button.style.color = 'red';
     button.style.fontWeight = 'bold';
     button.style.borderWidth = 'thick ';
-    button.style.borderColor = 'green';
+    button.style.borderColor = 'red';
 }
 
 function makeButtonNotLiked(button) {
@@ -292,9 +277,6 @@ function refreshCounter(button) {
 }
 
 
-
-
-// Pagination
 function page(addition) {
     var currentPage = parseInt(sessionStorage.getItem('page'));
     currentPage += parseInt(addition);
@@ -309,7 +291,7 @@ function page(addition) {
         updateButtonsMode('prevPage', false);
     }
     sessionStorage.setItem('page', currentPage);
-    if (sessionStorage.getItem('current_section') == 'user-infor-img-section') {
+    if (sessionStorage.getItem('current_section') == 'user-info-img-section') {
         flush();
         getAllAsciiPictures(); return;
     }
@@ -324,7 +306,6 @@ function updateButtonsMode(buttonClass, newMode) {
 }
 
 function setupPages() {
-    sessionStorage.setItem('user', 2);//TODO delete
     updateButtonsMode('prevPage', true);
     updateButtonsMode('nextPage', false);
     sessionStorage.setItem('page', 1);
@@ -354,13 +335,24 @@ function flushVideos() {
 }
 
 function getUserInfoVideos() {
-    sendRequestWithHeaders(videoEditorUrl + `get-user-videos.php?owner_id=${sessionStorage.getItem('owner')}&&page=${sessionStorage.getItem('page')}`, { method: 'GET', data: "" }, loadUserVideos, handleErrorAscii);
+    sendRequestWithHeaders(videoEditorUrl + `get-user-videos.php?owner_id=${sessionStorage.getItem('owner')}&&page=${sessionStorage.getItem('page')}`, { method: 'GET', data: "" }, loadUserVideos, handleError);
 }
 
 function loadUserVideos(response) {
+    const notFoundText = document.getElementsByClassName("not-found")[1];
+    const pagination = document.getElementsByClassName("button-wrapper")[1];
     let videos = response["data"];
+
+    if(videos.length == 0) {
+        notFoundText.style.display = "block";
+        pagination.style.display = "none";
+        return;
+    }
+
     if (videos.length < 10) {
         updateButtonsMode('nextPage', true);
+        notFoundText.style.display = "none";
+        pagination.style.display = "flex";
     }
 
     deleteLoadedVideos();
@@ -406,13 +398,26 @@ function deleteLoadedVideos() {
     }
 }
 
-function handleErrorAscii(response) {
-    if (response["errors"]) {
-        showModalForSeconds();
-        modalContent.innerHTML = "An error has occurred. Try again."
-    } else {
-        document.getElementsByClassName("editor")[0].classList.remove("show-modal");
+function handleError(response, isErrorInAuth) {
+    let message = "An error has occurred. Try again.";
+    if (isErrorInAuth) {
+        message = "An error with the authentication has occured. Please, logout and login again."
     }
+    var modalContents = document.getElementsByClassName("modal-body");
+    Array.from(modalContents).forEach(modalContent => { modalContent.innerHTML = message; });
+    showModalForSeconds();
+}
+
+
+function showModalForSeconds(reload = false) {
+    var tabcontents = document.getElementsByClassName("tabcontent");
+    Array.from(tabcontents).forEach(tabcontent => { tabcontent.classList.add("show-modal"); });
+    setTimeout(() => {
+        Array.from(tabcontents).forEach(tabcontent => { tabcontent.classList.remove("show-modal"); });
+        if (reload) {
+            window.location.reload();
+        }
+    }, 3000);
 }
 
 
@@ -472,18 +477,15 @@ class Video {
 
 
     play() {
-        let get_last = document.getElementById(`loaded-frame-video-${this.id}-${this.current}`);
-        get_last.style.display = "none";
-
         if (this.current++ == this.frames.length - 1) {
             this.current = 0;
         }
-
-        let get_next = document.getElementById(`loaded-frame-video-${this.id}-${this.current}`);
-        get_next.style.display = "block";
+        let video_element = document.getElementById(`loaded-frame-video-${this.id}`);
+        video_element.innerHTML = this.frames[this.current];
 
         clearTimeout(this.timer);
         this.timer = setTimeout(this.name + '.play()', this.time);
+
     }
 
 }

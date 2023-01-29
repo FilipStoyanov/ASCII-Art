@@ -5,6 +5,7 @@ var errorMsg = document.getElementsByClassName("error-dup-username")[0];
 var errorMsgForUsername = document.getElementsByClassName("error-username")[0];
 var errorMsgForPassword = document.getElementsByClassName("error-password")[0];
 var errorMsgForLogin = document.getElementsByClassName("error-credentials")[0];
+var navigationLinks = document.getElementsByClassName("navigation-item");
 
 //make a request to the {$url}
 //{$options} what type of request 'POST' 'GET'
@@ -301,8 +302,82 @@ function setHeaderName() {
   }
 }
 
+function clearCookieAndStorages () {
+  const page = window.location.pathname;
+  if(page.indexOf("/login.html") > -1 || page.indexOf("/signup.html") > -1) {
+      localStorage.clear();
+      sessionStorage.clear();
+      removeCookie("token", "/");
+  }
+}
+
+function getUserIdFromJwtToken() {
+  const token = getCookie("token");
+  let payload, userId;
+  if (token) {
+    payload = JSON.parse(atob(token.split(".")[1]));
+    userId = payload.id;
+  }
+  return userId;
+}
+
+function redirectToLogin () {
+  const jwtToken = getCookie("token");
+  const userId = getUserIdFromJwtToken();
+  const page = window.location.pathname;
+  if((!jwtToken || !userId) && page.indexOf("/login.html") == -1 && page.indexOf("/signup.html") == -1) {
+    window.location.assign("login.html");
+  }
+}
+
+function deactivateLinks(currentLink) {
+    navigationLinks.map((current, index) => {
+      if(index !== currentLink) {
+        current.classList.remove("active");
+      }
+    })
+}
+
+function currentPage () {
+  const page = window.location.pathname;
+  if(navigationLinks.length === 0) return;
+  if(page.indexOf("editor.html") > -1 && page.indexOf("video_editor.html") === -1) {
+    navigationLinks[0].classList.add("active");
+  } else {
+    navigationLinks[0].classList.remove("active");
+  }
+  if(page.indexOf("video_editor.html") > -1) {
+    navigationLinks[1].classList.add("active");
+  } else {
+    navigationLinks[1].classList.remove("active");
+  }
+  if(page.indexOf("feed.html") > -1) {
+    navigationLinks[2].classList.add("active");
+  } else {
+    navigationLinks[2].classList.remove("active");
+  }
+  if(page.indexOf("followers.html") > -1) {
+    navigationLinks[3].classList.add("active");
+  } else {
+    navigationLinks[3].classList.remove("active");
+  }
+  if(page.indexOf("users.html") > -1) {
+    navigationLinks[4].classList.add("active");
+  } else {
+    navigationLinks[4].classList.remove("active");
+  }
+  if(page.indexOf("aboutus.html") > -1) {
+    navigationLinks[5].classList.add("active");
+  } else {
+    navigationLinks[5].classList.remove("active");
+  }
+}
+
 // call functions after DOM is loaded
 document.addEventListener("DOMContentLoaded", function (event) {
+  currentPage();
+  redirectToLogin();
+  clearCookieAndStorages();
   setHeaderName();
   submitSignInForm();
   submitLogInForm();

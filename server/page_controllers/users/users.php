@@ -57,11 +57,11 @@ class Users
             }
 
             if (!is_int($user)) {
-                $userId = (int) $user;
+                $user = (int) $user;
             }
 
             try {
-                $users = $this->connection->getAllFilteredUsers($userId,$page,$limit);
+                $users = $this->connection->getAllFilteredUsers($user,$page,$limit);
             } catch (Exception $e) {
                 $response['success'] = false;
                 $response['error'] = $e->getMessage();
@@ -70,7 +70,7 @@ class Users
 
             if (!$users) {
                 $response['success'] = false;
-                $response['error'] = 'User with id ' . $userId . ' was not found.';
+                $response['error'] = 'No users were found.';
                 return json_encode($response);
             }
 

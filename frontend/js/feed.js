@@ -6,26 +6,23 @@ const editorUrl = baseUrl + 'ascii-editor/';
 
 function openTab(event, sectionName) {
     setupPages(sectionName);
-    var errorMsg = document.getElementById("error-msg");
-    errorMsg.style.display = "";
-    if (sessionStorage.getItem('user') === null) {
-        errorMsg.style.display = "block";
-        errorMsg.innerHTML = 'User is not chosen.';
-        return;
-    }
+
     var i, tabcontent, tablinks;
     tabcontent = document.getElementsByClassName("tabcontent");
     for (i = 0; i < tabcontent.length; i++) {
         tabcontent[i].style.display = "none";
     }
     tablinks = document.getElementsByClassName("tablinks");
-    for (i = 0; i < tablinks.length; i++) {
-        tablinks[i].className = tablinks[i].className.replace(" active", "");
+    if (event.currentTarget != document) {
+        for (i = 0; i < tablinks.length; i++) {
+            tablinks[i].classList.remove("active");
+        }
     }
     document.getElementById(sectionName).style.display = "block";
     event.currentTarget.className += " active";
 
     if (sectionName == 'feed-img-section') {
+        document.getElementsByClassName("wrapper")[0].innerHTML = "";
         getAllFriendsPictures();
         return;
     }
@@ -46,42 +43,44 @@ function getCookie(name) {
 function sendRequestWithHeaders(url, options, successCallback, errorCallback) {
     let token = getCookie("token");
     var request = new XMLHttpRequest();
-  
+
     request.onload = function () {
-      console.log(request.responseText);
-      var response = JSON.parse(request.responseText);
-      if (request.status === 200 && response['success']) {
-        setCookie('token', response["token"], 1);
-        successCallback(response);
-      } else {
-        setCookie('token', token, 1);
-        errorCallback(response);
-      }
+        var response = JSON.parse(request.responseText);
+        if (request.status === 200 && response['success']) {
+            setCookie('token', response["token"], 30);
+            successCallback(response);
+        } else if (request.status == 401 || request.status == 403) {
+            setCookie('token', token, 30);
+            errorCallback(response, true);
+        }
+        else {
+            setCookie('token', token, 30);
+            errorCallback(response, false);
+        }
     };
-  
+
     request.open(options.method, url, true);
     request.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
     request.setRequestHeader("Accept", "application/json");
     if (token) {
-      request.setRequestHeader("Authorization", "Bearer " + token);
+        request.setRequestHeader("Authorization", "Bearer " + token);
     }
     request.send(options.data);
-  }
-  
+}
+
 function setCookie(name, value, days) {
     var expires = "";
     if (days) {
-      var date = new Date();
-      date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
-      expires = "; expires=" + date.toUTCString();
+        var date = new Date();
+        date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+        expires = "; expires=" + date.toUTCString();
     }
     document.cookie = name + "=" + (value || "") + expires + "; path=/";
-  }
+}
 
-// get all friends' ascii pictures
+
 function getAllFriendsPictures() {
     sendRequestWithHeaders(
-        // editorUrl + `/getAllFriendsPictures.php?user=${sessionStorage.getItem('user')}&&page=${sessionStorage.getItem('page')}`,
         editorUrl + `/getAllFriendsPictures.php?page=${sessionStorage.getItem('page')}`,
         { method: "GET", data: '' },
         displayAsciiPictures,
@@ -90,15 +89,20 @@ function getAllFriendsPictures() {
 }
 
 function displayAsciiPictures(response) {
+    const notFoundText = document.getElementsByClassName("not-found")[0];
+    const pagination = document.getElementsByClassName("button-wrapper")[0];
     if (response["success"] && response['pictures']) {
         var wrapper = document.getElementsByClassName("wrapper")[0];
         let pictures = response['pictures'];
         if (pictures.length < 10) {
+            notFoundText.style.display = "none";
+            pagination.style.display = "flex";
             updateButtonsMode('nextPage', true);
         }
         if (pictures.length == 0) {
-            console.log('No pictures found.')
-            // TODO add message on the UI or something else
+            console.log('No pictures found.');
+            notFoundText.style.display = "block";
+            pagination.style.display = "none";
             return;
         }
         for (let currentAscii of pictures) {
@@ -108,65 +112,68 @@ function displayAsciiPictures(response) {
             let owner = currentAscii['owner'];
             showAsciiPicture(wrapper, asciiPicture, isLiked, likesCount, owner['username']);
         }
-    } else {
-        // show error message
     }
 }
-
 
 function showAsciiPicture(element, asciiPicture, isLiked, likesCount, ownerName) {
     if (element && asciiPicture) {
         let nameEl = document.createElement('span');
+        let wrapper = document.createElement('div');
         nameEl.style.fontWeight = 'bold';
         nameEl.innerHTML = 'Picture name: ' + asciiPicture['picture_name'];
+        nameEl.style.fontSize = "20px";
         let updatedEl = document.createElement('span');
         updatedEl.style.fontWeight = 'bold';
         updatedEl.innerHTML = 'Last update on: ' + asciiPicture['updated_at'];
-        element.appendChild(createAscciWrapperEl(asciiPicture));
-        element.appendChild(nameEl);
-        addLikeButton(element, asciiPicture['id'], isLiked, likesCount);
-        element.appendChild(createLink(asciiPicture['owner_id'], ownerName));
-        element.appendChild(updatedEl);
+        let asciiItemElement = createAscciWrapperEl(asciiPicture);
+        let asciiFooter = document.createElement("div");
+        asciiFooter.classList.add("ascii-footer");
+        wrapper.appendChild(nameEl);
+        asciiFooter.appendChild(wrapper);
+        addLikeButton(asciiFooter, asciiPicture['id'], isLiked, likesCount);
+        wrapper = document.createElement("div");
+        wrapper.appendChild(createLink(asciiPicture['owner_id'], ownerName));
+        asciiFooter.appendChild(wrapper);
+        wrapper = document.createElement("div");
+        wrapper.appendChild(updatedEl);
+        asciiFooter.appendChild(wrapper);
+        asciiItemElement.appendChild(asciiFooter);
+        element.appendChild(asciiItemElement);
     }
 }
 
 function createAscciWrapperEl(asciiPicture) {
     let responseAsciiValue = asciiPicture.value;
     let asciiColor = asciiPicture.color;
-    let asciiText = responseAsciiValue.substring(1, responseAsciiValue.length - 1).replace(/\\n/g, '<br/>');
+    let asciiText = responseAsciiValue.substring(2, responseAsciiValue.length - 1).replace(/\\n/g, '<br/>');
     asciiText = asciiText.replace('<br/>', '');
     let asciiWrapperElement = document.createElement('div');
     asciiWrapperElement.className = "ascii-wrapper";
-    asciiWrapperElement.style.backgroundColor = 'white';
     let asciiTextElement = document.createElement("pre");
     asciiTextElement.className = "ascii-picture";
     asciiTextElement.style.color = asciiColor;
+    asciiTextElement.style.backgroundColor = "#ffffff";
+    asciiTextElement.style.overflowY = "auto";
     asciiTextElement.innerHTML = asciiText;
     asciiWrapperElement.appendChild(asciiTextElement);
     return asciiWrapperElement;
 }
 
-function handleError(response) {
-    var modalContent = document.getElementsByClassName("modal-body")[0]
-    if (response["error"]) {
-        showModalForSeconds();
-        modalContent.innerHTML = "An error has occurred. Try again."
-    } else {
-        // document.getElementsByClassName("editor")[0].classList.remove("show-modal");
+function handleError(response, isErrorInAuth) {
+    let message = "An error has occurred. Try again.";
+    if (isErrorInAuth) {
+        message = "An error with the authentication has occured. Please, logout and login again."
     }
+    var modalContents = document.getElementsByClassName("modal-body");
+    Array.from(modalContents).forEach(modalContent => { modalContent.innerHTML = message; });
+    showModalForSeconds();
 }
 
-// Like button
 function addLikeButton(el, pictureId, isLiked, likesCount) {
     let button = document.createElement('a');
-
     button.className = "button button-like";
-    let i = document.createElement('i');
-    i.classList.add('fa');
-    i.classList.add('fa-heart');
-    button.appendChild(i);
     let span = document.createElement('span');
-    span.innerHTML = 'Like';
+    span.innerHTML = '\u2764';
     let likesCountEl = document.createElement('span');
     likesCountEl.innerHTML = likesCount;
     likesCountEl.className = 'counter';
@@ -187,9 +194,8 @@ function addLikeButton(el, pictureId, isLiked, likesCount) {
     el.appendChild(button);
 }
 
-
 function addLike(pictureId) {
-    var data = { 'user': sessionStorage.getItem('user'), 'picture': pictureId };
+    var data = { 'picture': pictureId };
     sendRequestWithHeaders(feedUrl + `likes.php`,
         { method: "POST", data: JSON.stringify(data) },
         () => { },
@@ -198,7 +204,7 @@ function addLike(pictureId) {
 }
 
 function deleteLike(pictureId) {
-    var data = { 'user': sessionStorage.getItem('user'), 'picture': pictureId };
+    var data = { 'picture': pictureId };
     sendRequestWithHeaders(feedUrl + `likes.php`,
         { method: "DELETE", data: JSON.stringify(data) },
         () => { },
@@ -207,10 +213,10 @@ function deleteLike(pictureId) {
 }
 
 function makeButtonLiked(button) {
-    button.style.color = 'green';
+    button.style.color = 'red';
     button.style.fontWeight = 'bold';
     button.style.borderWidth = 'thick ';
-    button.style.borderColor = 'green';
+    button.style.borderColor = 'red';
 }
 
 function makeButtonNotLiked(button) {
@@ -246,15 +252,6 @@ function refreshCounter(button) {
     button.getElementsByClassName('counter')[0].innerHTML = likesCount;
 }
 
-
-
-
-
-
-
-
-
-// Pagination
 function page(addition) {
     var currentPage = parseInt(sessionStorage.getItem('page'));
     currentPage += parseInt(addition);
@@ -282,7 +279,6 @@ function updateButtonsMode(buttonClass, newMode) {
 }
 
 function setupPages(sectionName) {
-    sessionStorage.setItem('user', 3);// TO DO delete
     updateButtonsMode('prevPage', true);
     updateButtonsMode('nextPage', false);
     sessionStorage.setItem('page', 1);
@@ -299,23 +295,21 @@ function flush() {
     loaded_videos = [];
 }
 
-
-// Create a link
 function createLink(userId, username) {
     var a = document.createElement('a');
     var linkText = document.createTextNode("User: " + username);
+    a.classList.add("picture-owner");
     a.appendChild(linkText);
     a.target = '_blank';
     a.href = '../html/userInfo.html?user=' + userId;
     return a;
 }
 
-
-//  Modal
 function showModalForSeconds(reload = false) {
-    document.getElementsByClassName("feed")[0].classList.add("show-modal");
+    var tabcontents = document.getElementsByClassName("tabcontent");
+    Array.from(tabcontents).forEach(tabcontent => { tabcontent.classList.add("show-modal"); });
     setTimeout(() => {
-        document.getElementsByClassName("feed")[0].classList.remove("show-modal");
+        Array.from(tabcontents).forEach(tabcontent => { tabcontent.classList.remove("show-modal"); });
         if (reload) {
             window.location.reload();
         }
@@ -323,11 +317,20 @@ function showModalForSeconds(reload = false) {
 }
 
 function getAllFriendsVideos() {
-    sendRequestWithHeaders(videoEditorUrl + `get-videos-feed.php?page=${sessionStorage.getItem('page')}`, { method: 'GET', data: "" }, loadUserVideos, handleErrorAscii);
+    sendRequestWithHeaders(videoEditorUrl + `get-videos-feed.php?page=${sessionStorage.getItem('page')}`, { method: 'GET', data: "" }, loadUserVideos, handleError);
 }
 
 function loadUserVideos(response) {
+    const notFoundText = document.getElementsByClassName("not-found")[1];
+    const pagination = document.getElementsByClassName("button-wrapper")[1];
     let videos = response["data"];
+
+    if(videos.length == 0) {
+        notFoundText.style.display = "block";
+        pagination.style.display = "none";
+        return;
+    }
+
     if (videos.length < 10) {
         updateButtonsMode('nextPage', true);
     }
@@ -373,15 +376,6 @@ function deleteLoadedVideos() {
         for (let i = 0; i < length; i++) {
             section.removeChild(loaded_videos_for_del[0]);
         }
-    }
-}
-
-function handleErrorAscii(response) {
-    if (response["errors"]) {
-        showModalForSeconds();
-        modalContent.innerHTML = "An error has occurred. Try again."
-    } else {
-        document.getElementsByClassName("editor")[0].classList.remove("show-modal");
     }
 }
 
@@ -445,15 +439,11 @@ class Video {
 
 
     play() {
-        let get_last = document.getElementById(`loaded-frame-video-${this.id}-${this.current}`);
-        get_last.style.display = "none";
-
         if (this.current++ == this.frames.length - 1) {
             this.current = 0;
         }
-
-        let get_next = document.getElementById(`loaded-frame-video-${this.id}-${this.current}`);
-        get_next.style.display = "block";
+        let video_element = document.getElementById(`loaded-frame-video-${this.id}`);
+        video_element.innerHTML = this.frames[this.current];
 
         clearTimeout(this.timer);
         this.timer = setTimeout(this.name + '.play()', this.time);
@@ -461,3 +451,7 @@ class Video {
     }
 
 }
+
+document.addEventListener("DOMContentLoaded", function (event) {
+    openTab(event, "feed-img-section");
+});
