@@ -449,24 +449,11 @@ class Video {
 
     addLabels() {
         let label = document.createElement("label");
-        // let title = document.createTextNode(this.title);
-        // let owner = createLink(owner_id, owner_name);
-
         label.setAttribute("class", "loaded-video-title");
-
-        // label.appendChild(title);
-        // label.appendChild(owner);
 
         let videoWrapperEl = document.getElementById("videos-wrapper");
 
         videoWrapperEl.className = "ascii-wrapper";
-        let asciiTextElement = document.createElement("pre");
-        asciiTextElement.className = "ascii-picture";
-        // asciiTextElement.style.color = asciiColor;
-        asciiTextElement.style.backgroundColor = "#ffffff";
-        asciiTextElement.style.overflowY = "auto";
-        // asciiTextElement.innerHTML = asciiText;
-        videoWrapperEl.appendChild(asciiTextElement);
 
         let nameEl = document.createElement('span');
         let wrapper = document.createElement('div');
@@ -480,7 +467,7 @@ class Video {
         asciiFooter.classList.add("ascii-footer");
         wrapper.appendChild(nameEl);
         asciiFooter.appendChild(wrapper);
-    
+
         wrapper = document.createElement("div");
         asciiFooter.appendChild(wrapper);
         wrapper = document.createElement("div");
@@ -488,31 +475,32 @@ class Video {
         asciiFooter.appendChild(wrapper);
         videoWrapperEl.appendChild(asciiFooter);
 
-
-
+        videoWrapperEl.style.margin = '20px auto';
+        videoWrapperEl.style.width = '500px';
         videoWrapperEl.appendChild(label);
     }
 
     makeLoadedVideo() {
-        for (let i = 0; i < this.frames_count; i++) {
-            var new_frame = document.createElement("textarea");
-            new_frame.classList.add("loaded-video-frames", `video-frame-${this.id}`);
-            new_frame.setAttribute("id", `loaded-frame-video-${this.id}-${i}`);
-            new_frame.setAttribute("rows", TEXT_ROWS);
-            new_frame.setAttribute("readonly", "");
+        var new_frame = document.createElement("textarea");
+        new_frame.setAttribute("class", "loaded-video-frames");
+        new_frame.setAttribute("id", `loaded-frame-video-${this.id}`);
+        new_frame.setAttribute("rows", TEXT_ROWS);
+        new_frame.style.width = '500px';
+        new_frame.readOnly = true;
+        new_frame.style.resize = 'none';
+        new_frame.style.border = 'none';
+        new_frame.setAttribute("readonly", "");
 
 
-            let text_value = this.frames[i];
-            new_frame.appendChild(document.createTextNode(text_value));
+        let text_value = this.frames[0];
+        new_frame.appendChild(document.createTextNode(text_value));
 
-            new_frame.style.color = this.color;
-            new_frame.style.background = this.background;
+        new_frame.style.color = this.color;
+        new_frame.style.background = this.background;
 
-            let section = document.getElementById("videos-wrapper");
+        let section = document.getElementById("videos-wrapper");
 
-            section.appendChild(new_frame);
-        }
-
+        section.appendChild(new_frame);
     }
 
 

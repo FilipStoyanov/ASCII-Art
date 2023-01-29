@@ -387,6 +387,7 @@ function deleteLoadedVideos() {
 
 
 const TEXT_ROWS = 41;
+const TEXT_COLS = 50;
 var loaded_videos = [];
 
 class Video {
@@ -413,11 +414,6 @@ class Video {
 
         let videoWrapperEl = document.getElementById("videos-wrapper");
 
-        let asciiTextElement = document.createElement("pre");
-        asciiTextElement.className = "ascii-picture";
-        asciiTextElement.style.backgroundColor = "#ffffff";
-        asciiTextElement.style.overflowY = "auto";
-        videoWrapperEl.appendChild(asciiTextElement);
         videoWrapperEl.className = "ascii-wrapper";
 
         let nameEl = document.createElement('span');
@@ -440,6 +436,8 @@ class Video {
         wrapper.appendChild(updatedEl);
         asciiFooter.appendChild(wrapper);
 
+        videoWrapperEl.style.margin = '20px auto';
+        videoWrapperEl.style.width = '500px';
         videoWrapperEl.appendChild(label);
         videoWrapperEl.appendChild(asciiFooter);
     }
@@ -449,8 +447,11 @@ class Video {
         new_frame.setAttribute("class", "loaded-video-frames");
         new_frame.setAttribute("id", `loaded-frame-video-${this.id}`);
         new_frame.setAttribute("rows", TEXT_ROWS);
+        new_frame.style.width = '500px';
+        new_frame.readOnly = true;
+        new_frame.style.resize = 'none';
+        new_frame.style.border = 'none';
         new_frame.setAttribute("readonly", "");
-
 
         let text_value = this.frames[0];
         new_frame.appendChild(document.createTextNode(text_value));
@@ -458,10 +459,9 @@ class Video {
         new_frame.style.color = this.color;
         new_frame.style.background = this.background;
 
-        let section = document.getElementsByClassName("sections")[3];
+        let section = document.getElementById("videos-wrapper");
 
         section.appendChild(new_frame);
-
     }
 
 
