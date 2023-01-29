@@ -7,6 +7,7 @@ const videoEditorUrl = baseUrl + 'ascii-video-editor/';
 window.addEventListener("load", (event) => {
     setupPages();
     getUserInfo();
+    openTab(event, 'user-info-img-section');
 });
 function openTab(event, sectionName) {
     if (sessionStorage.getItem('owner') === null && getCookie('token') === null) {
@@ -23,7 +24,7 @@ function openTab(event, sectionName) {
         tabcontent[i].style.display = "none";
     }
     tablinks = document.getElementsByClassName("tablinks");
-    if (event.currentTarget != document) {
+    if (event.currentTarget != window) {
         for (i = 0; i < tablinks.length; i++) {
           tablinks[i].classList.remove("active");
         }
@@ -488,7 +489,3 @@ class Video {
     }
 
 }
-
-document.addEventListener("DOMContentLoaded", function (event) {
-    openTab(event, 'user-info-img-section')
-});
