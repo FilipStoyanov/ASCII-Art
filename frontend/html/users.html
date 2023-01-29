@@ -60,7 +60,7 @@
     </nav>
   </header>
   <div class="tab">
-    <button class="tablinks" onclick="openTab(event, 'users-section')">All users</button>
+    <button class="tablinks active" onclick="openTab(event, 'users-section')">All users</button>
     <button class="tablinks" onclick="openTab(event, 'users-by-name-section')">Find user by name</button>
 
   </div>
@@ -74,8 +74,10 @@
         <th>Link</th>
       </tr>
     </table>
-    <button class='prevPage' onclick="page(-1,true)">prev</button>
-    <button class='nextPage' onclick="page(1,true)">next</button>
+    <div class="button-wrapper">
+      <button class='prevPage' onclick="page(-1,true)"><span>&#171;</span> Prev</button>
+      <button class='nextPage' onclick="page(1,true)">Next <span>&#187;</span></button>
+    </div>
     <div id="modal" class="modal">
       <div class="modal-content">
         <div class="modal-header">
@@ -97,7 +99,7 @@
     <input class="login-data login-input" name="name" id="user-name" placeholder="Username" />
     <p class="error-msg error-credentials"></p>
     <button class="search-button" type="button" onClick="lookupUser()">Search</button>
-
+    <p class="not-found">No Users Found</p>
     <table id="user-by-name-tb" name="User">
       <caption>Users</caption>
       <tr>
@@ -106,8 +108,10 @@
         <th>Link</th>
       </tr>
     </table>
-    <button class='prevPage' onclick="page(-1,false)">prev</button>
-    <button class='nextPage' onclick="page(1,false)">next</button>
+    <div class="button-wrapper" id="pagination-search">
+      <button class='prevPage' onclick="page(-1,false)"><span>&#171;</span> Prev</button>
+      <button class='nextPage' onclick="page(1,false)">Next <span>&#187;</span></button>
+    </div>
     <div id="modal" class="modal">
       <div class="modal-content">
         <div class="modal-header">

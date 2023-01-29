@@ -1,3 +1,5 @@
+@import "./main.css";
+
 * {
   margin: 0;
   padding: 0;
@@ -22,6 +24,25 @@ body {
   color: var(--white);
   font-weight: bold;
   border-radius: 25px;
+  margin-bottom: 30px;
+}
+
+#user-by-name-tb, #pagination-search {
+  display: none;
+}
+
+.not-found {
+  text-align: center;
+  font-size: 35px;
+  display: none;
+
+}
+
+.user-info-title {
+  padding: 30px 30px 0;
+  margin: 0px;
+  text-underline-offset: 5px;
+  font-size: 30px;
 }
 
 .search-button:focus {
@@ -43,23 +64,10 @@ body {
   padding: 20px;
 }
 
-.signin-label,
-.login-label {
-  margin-bottom: 5px;
-}
-
-.signin-label,
-.signin-input,
-.login-label,
-.login-input {
+.search-input {
   display: block;
   width: 100%;
-}
-
-.signin-input,
-.login-input {
-  height: 30px;
-  margin-bottom: 20px;
+  height: 40px;
   text-indent: 10px;
 }
 
@@ -90,7 +98,7 @@ table {
 td,
 th {
   border: 1px solid #dddddd;
-  text-align: left;
+  text-align: center;
   padding: 8px;
 }
 
@@ -99,8 +107,34 @@ th {
   ;
 }
 
+tr {
+  height: 50px;
+}
+
 tr:nth-child(even) {
   background-color: #dddddd;
+}
+
+tr:nth-child(odd) {
+  background-color: #ffffff;
+}
+
+.button-wrapper {
+  display: flex;
+  justify-content: center;
+  padding: 15px;
+}
+
+.button-wrapper button {
+  border: none;
+  background: none;
+  font-size: var(--xl-font);
+  color: white;
+  margin: 10px;
+}
+
+.button-wrapper button:disabled {
+  opacity: 0.5;
 }
 
 /* Style the tab */
@@ -123,6 +157,61 @@ tr:nth-child(even) {
   font-size: 17px;
 }
 
+.removeBtn {
+  padding: 10px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 0 auto;
+  font-weight: bold;
+  color: var(--table-header);
+  border: 3px solid var(--table-header);
+  background-color: #ffffff;
+}
+
+.removeBtn:not([disabled]):hover {
+  background-color: var(--table-header);
+  color: #ffffff;
+}
+
+.removeBtn:disabled {
+  opacity: 0.5;
+}
+
+.followBtn {
+  padding: 10px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 0 auto;
+  font-weight: bold;
+  color: var(--success);
+  border: 3px solid var(--success);
+  background-color: #ffffff;
+}
+
+#followers-tb {
+  display: none;
+}
+
+#followings-tb {
+  display: none;
+}
+
+.picture-owner {
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.followBtn:not([disabled]):hover {
+  background-color: var(--success);
+  color: #ffffff;
+}
+
+.followBtn:disabled {
+  opacity: 0.5;
+}
+
 /* Change background color of buttons on hover */
 .tab button:hover {
   background-color: #ddd;
@@ -133,10 +222,14 @@ tr:nth-child(even) {
   background-color: #ccc;
 }
 
+.tablinks {
+  width: 50%;
+}
+
 /* Style the tab content */
 .tabcontent {
   display: none;
-  padding: 6px 12px;
+  padding: 30px;
   border: 1px solid #ccc;
   border-top: none;
 }
@@ -145,7 +238,7 @@ tr:nth-child(even) {
 .modal {
   display: none;
   position: fixed;
-  z-index: 1;
+  z-index: 3;
   left: 0;
   top: 0;
   width: 100%;
@@ -158,6 +251,17 @@ tr:nth-child(even) {
 .tabcontent.show-modal .modal {
   display: block;
 }
+
+.tabcontent thead {
+  height: 60px;
+  color: #ffffff;
+  font-size: var(--font-size);
+}
+
+.follower-link {
+  text-decoration: none;
+}
+
 
 .modal-content {
   position: relative;
@@ -216,17 +320,16 @@ tr:nth-child(even) {
 /* Like button  */
 
 .button-like {
-  border: 2px solid #8a8a8a;
   background-color: transparent;
   text-decoration: none;
-  padding: 1rem;
   position: relative;
   vertical-align: middle;
   text-align: center;
   display: inline-block;
-  border-radius: 3rem;
   color: #8a8a8a;
   transition: all ease 0.4s;
+  cursor: pointer;
+  font-size: var(--font-size);
 }
 
 .button-like span {
@@ -284,6 +387,20 @@ tr:nth-child(even) {
 .liked:hover .fa,
 .liked:hover span {
   color: #fefefe;
+}
+
+.user-name {
+  display: block;
+  font-size: var(--font-size);
+  margin-bottom: 7.5px;
+  text-underline-offset: 5px;
+}
+
+/* ascii wrapper */
+.ascii-wrapper {
+  background-color: var(--gray);
+  box-shadow: 0px 3px 3px -2px rgb(0 0 0 / 20%), 0px 3px 4px 0px rgb(0 0 0 / 14%), 0px 1px 8px 0px rgb(0 0 0 / 12%);
+  margin-bottom: 50px;
 }
 
 

@@ -15,8 +15,10 @@ function openTab(event, sectionName) {
     tabcontent[i].style.display = "none";
   }
   tablinks = document.getElementsByClassName("tablinks");
-  for (i = 0; i < tablinks.length; i++) {
-    tablinks[i].className = tablinks[i].className.replace(" active", "");
+  if (event.currentTarget != document) {
+    for (i = 0; i < tablinks.length; i++) {
+      tablinks[i].classList.remove("active");
+    }
   }
   document.getElementById(sectionName).style.display = "block";
   event.currentTarget.className += " active";
@@ -47,22 +49,31 @@ function handleListUsers(response, type, listAllUsers) {
   let userId = response['user'];
   var tableName = type + '-tb';
   var table = document.getElementById(tableName);
+  var notFoundText = document.getElementsByClassName("not-found")[0];
+  var pagination = document.getElementById("pagination-search");
   table.innerHTML = '';
   addHeaders(table);
 
   var users = response['users'];
   if (users.length < 20) {
+    pagination.style.display = "flex";
+    table.style.display = "table";
     updateButtonsMode('nextPage', true);
   }
   if (users.length == 0) {
     console.log('No users found.')
+    table.style.display = "none";
+    notFoundText.style.display = "block";
+    pagination.style.display = "none";
     return;
   }
+  notFoundText.style.display = "none";
 
-  users.forEach(item => {
+  const page = parseInt(sessionStorage.getItem("page"));
+  users.forEach((item, index) => {
     let row = table.insertRow();
     let date = row.insertCell(0);
-    date.innerHTML = item.id;
+    date.innerHTML = ( (page - 1) * 20 + index + 1)
     let name = row.insertCell(1);
     name.innerHTML = item.username;
     let link = row.insertCell(2);
@@ -132,7 +143,7 @@ function lookupUser() {
   if (errorFields.length == 0) { return; }
   let errorField = errorFields[0];
   if (!name.value || /^\s*$/.test(name.value)) {
-    errorField.innerHTML = 'Mandatory field.';
+    errorField.innerHTML = '*Mandatory field.';
     errorField.style.display = 'block';
     return;
   }
@@ -162,14 +173,14 @@ function sendRequestWithHeaders(url, options, successCallback, errorCallback) {
     console.log(request.responseText);
     var response = JSON.parse(request.responseText);
     if (request.status === 200 && response['success']) {
-      setCookie('token', response["token"], 1);
+      setCookie('token', response["token"], 30);
       successCallback(response);
     } else if (request.status == 401 || request.status == 403) {
-      setCookie('token', token, 1);
+      setCookie('token', token, 30);
       errorCallback(response, true);
     }
     else {
-      setCookie('token', token, 1);
+      setCookie('token', token, 30);
       errorCallback(response, false);
     }
   };
@@ -195,7 +206,7 @@ function setCookie(name, value, days) {
 
 function addHeaders(table) {
   var thead = document.createElement('thead');
-  var orderArrayHeader = ["Id", "Name", "Link", "Remove from followers", "Unfollow", "Follow"];
+  var orderArrayHeader = ["№", "Name", "Link", "Remove from followers", "Unfollow", "Follow"];
   table.appendChild(thead);
 
   for (var i = 0; i < orderArrayHeader.length; i++) {
@@ -222,8 +233,9 @@ function handleUpdateFollower(listAllUsers, response, msg) {
 
 function createLink(userId) {
   var a = document.createElement('a');
-  var linkText = document.createTextNode("user info");
+  var linkText = document.createTextNode("View user profile");
   a.appendChild(linkText);
+  a.classList.add("follower-link");
   a.target = '_blank';
   a.href = dir + 'frontend/html/userInfo.html?user=' + userId;
   return a;
@@ -236,6 +248,7 @@ function createDeleteButton(removeThisFollower, disable, userId, otherId, listAl
   } else {
     removeBtn.innerHTML = "Unfollow";
   }
+  removeBtn.classList.add("removeBtn");
   removeBtn.disabled = disable;
   removeBtn.onclick = function () {
     if (removeThisFollower) {
@@ -251,6 +264,7 @@ function createDeleteButton(removeThisFollower, disable, userId, otherId, listAl
 function createAddButton(disable, userId, otherId, listAllUsers) {
   let addBtn = document.createElement("button");
   addBtn.innerHTML = "Follow";
+  addBtn.classList.add("followBtn");
   addBtn.onclick = function () {
     addFollower(otherId, userId, listAllUsers);
   };
@@ -302,3 +316,7 @@ function addButtons(row, userId, otherId, removeFollowerDisabled, removeFollowin
   let add = row.insertCell(5);
   add.appendChild(createAddButton(addFollowerDisabled, userId, otherId, listAllUsers));
 }
+
+document.addEventListener("DOMContentLoaded", function (event) {
+  openTab(event, 'users-section')
+});

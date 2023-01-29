@@ -23,8 +23,10 @@ function openTab(event, sectionName) {
         tabcontent[i].style.display = "none";
     }
     tablinks = document.getElementsByClassName("tablinks");
-    for (i = 0; i < tablinks.length; i++) {
-        tablinks[i].className = tablinks[i].className.replace(" active", "");
+    if (event.currentTarget != document) {
+        for (i = 0; i < tablinks.length; i++) {
+          tablinks[i].classList.remove("active");
+        }
     }
     document.getElementById(sectionName).style.display = "block";
     event.currentTarget.className += " active";
@@ -32,6 +34,7 @@ function openTab(event, sectionName) {
     sessionStorage.setItem('current_section', sectionName);
 
     if (sectionName == 'user-info-img-section') {
+        document.getElementsByClassName("wrapper")[0].innerHTML = "";
         getAllAsciiPictures();
         return;
     }
@@ -57,14 +60,14 @@ function sendRequestWithHeaders(url, options, successCallback, errorCallback) {
     request.onload = function () {
         var response = JSON.parse(request.responseText);
         if (request.status === 200 && response['success']) {
-            setCookie('token', response["token"], 1);
+            setCookie('token', response["token"], 30);
             successCallback(response);
         } else if (request.status == 401 || request.status == 403) {
-            setCookie('token', token, 1);
+            setCookie('token', token, 30);
             errorCallback(response, true);
         }
         else {
-            setCookie('token', token, 1);
+            setCookie('token', token, 30);
             errorCallback(response, false);
         }
     };
@@ -96,8 +99,8 @@ function getUserInfo() {
 
 
 function handleUserInfo(response) {
-    var userNameEl = document.getElementById('username');
-    userNameEl.innerHTML = response['user']['username'];
+    var userNameEl = document.getElementsByClassName('user-info-title')[0];
+    userNameEl.innerHTML = `<span>Username:</span> ${response['user']['username']}`;
 }
 
 
@@ -113,14 +116,20 @@ function getAllAsciiPictures() {
 }
 
 function displayAsciiPictures(response) {
+    const notFoundText = document.getElementsByClassName("not-found")[0];
+    const pagination = document.getElementsByClassName("button-wrapper")[0];
     if (response["success"] && response['pictures']) {
         var wrapper = document.getElementsByClassName("wrapper")[0];
         let pictures = response['pictures'];
         if (pictures.length < 10) {
+            notFoundText.style.display = "none";
+            pagination.style.display = "flex";
             updateButtonsMode('nextPage', true);
         }
         if (pictures.length == 0) {
-            console.log('No pictures found.')
+            console.log('No pictures found.');
+            notFoundText.style.display = "block";
+            pagination.style.display = "none";
             return;
         }
         for (let currentAscii of pictures) {
@@ -135,31 +144,38 @@ function displayAsciiPictures(response) {
 
 function showAsciiPicture(element, asciiPicture, isLiked, likesCount) {
     if (element && asciiPicture) {
-
         let nameEl = document.createElement('span');
         nameEl.style.fontWeight = 'bold';
         nameEl.innerHTML = 'Picture name: ' + asciiPicture['picture_name'];
+        nameEl.style.fontSize = "20px";
         let updatedEl = document.createElement('span');
         updatedEl.style.fontWeight = 'bold';
         updatedEl.innerHTML = 'Last update on: ' + asciiPicture['updated_at'];
-        element.appendChild(createAscciWrapperEl(asciiPicture));
-        element.appendChild(nameEl);
-        addLikeButton(element, asciiPicture['id'], isLiked, likesCount);
-        element.appendChild(updatedEl);
+        let asciiItemElement = createAscciWrapperEl(asciiPicture);
+        let asciiFooter = document.createElement("div");
+        asciiFooter.style.padding = "15px";
+        asciiFooter.style.display = "flex";
+        asciiFooter.style.alignItems = "center";
+        asciiFooter.style.gap = "20px";
+        asciiFooter.appendChild(nameEl);
+        addLikeButton(asciiFooter, asciiPicture['id'], isLiked, likesCount);
+        asciiFooter.appendChild(updatedEl);
+        asciiItemElement.appendChild(asciiFooter);
+        element.appendChild(asciiItemElement);
     }
 }
 
 function createAscciWrapperEl(asciiPicture) {
     let responseAsciiValue = asciiPicture.value;
     let asciiColor = asciiPicture.color;
-    let asciiText = responseAsciiValue.substring(1, responseAsciiValue.length - 1).replace(/\\n/g, '<br/>');
+    let asciiText = responseAsciiValue.substring(2, responseAsciiValue.length - 1).replace(/\\n/g, '<br/>');
     asciiText = asciiText.replace('<br/>', '');
     let asciiWrapperElement = document.createElement('div');
     asciiWrapperElement.className = "ascii-wrapper";
-    asciiWrapperElement.style.backgroundColor = 'white';
     let asciiTextElement = document.createElement("pre");
     asciiTextElement.className = "ascii-picture";
     asciiTextElement.style.color = asciiColor;
+    asciiTextElement.style.backgroundColor = "#ffffff";
     asciiTextElement.innerHTML = asciiText;
     asciiWrapperElement.appendChild(asciiTextElement);
     return asciiWrapperElement;
@@ -175,14 +191,9 @@ const PAGINATION_PAGESIZE = 10;
 
 function addLikeButton(el, pictureId, isLiked, likesCount) {
     let button = document.createElement('a');
-
     button.className = "button button-like";
-    let i = document.createElement('i');
-    i.classList.add('fa');
-    i.classList.add('fa-heart');
-    button.appendChild(i);
     let span = document.createElement('span');
-    span.innerHTML = 'Like';
+    span.innerHTML = '\u2764';
     let likesCountEl = document.createElement('span');
     likesCountEl.innerHTML = likesCount;
     likesCountEl.className = 'counter';
@@ -223,10 +234,10 @@ function deleteLike(pictureId) {
 }
 
 function makeButtonLiked(button) {
-    button.style.color = 'green';
+    button.style.color = 'red';
     button.style.fontWeight = 'bold';
     button.style.borderWidth = 'thick ';
-    button.style.borderColor = 'green';
+    button.style.borderColor = 'red';
 }
 
 function makeButtonNotLiked(button) {
@@ -277,7 +288,7 @@ function page(addition) {
         updateButtonsMode('prevPage', false);
     }
     sessionStorage.setItem('page', currentPage);
-    if (sessionStorage.getItem('current_section') == 'user-infor-img-section') {
+    if (sessionStorage.getItem('current_section') == 'user-info-img-section') {
         flush();
         getAllAsciiPictures(); return;
     }
@@ -325,9 +336,20 @@ function getUserInfoVideos() {
 }
 
 function loadUserVideos(response) {
+    const notFoundText = document.getElementsByClassName("not-found")[1];
+    const pagination = document.getElementsByClassName("button-wrapper")[1];
     let videos = response["data"];
+
+    if(videos.length == 0) {
+        notFoundText.style.display = "block";
+        pagination.style.display = "none";
+        return;
+    }
+
     if (videos.length < 10) {
         updateButtonsMode('nextPage', true);
+        notFoundText.style.display = "none";
+        pagination.style.display = "flex";
     }
 
     deleteLoadedVideos();
@@ -464,3 +486,7 @@ class Video {
     }
 
 }
+
+document.addEventListener("DOMContentLoaded", function (event) {
+    openTab(event, 'user-info-img-section')
+});
