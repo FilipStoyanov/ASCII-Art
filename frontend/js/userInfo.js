@@ -402,6 +402,11 @@ function handleError(response, isErrorInAuth) {
     let message = "An error has occurred. Try again.";
     if (isErrorInAuth) {
         message = "An error with the authentication has occured. Please, logout and login again."
+        var modalContents = document.getElementsByClassName("modal-body");
+        Array.from(modalContents).forEach(modalContent => { modalContent.innerHTML = message; });
+        showModalForSeconds();
+        window.location.assign("login.html");
+        return;
     }
     var modalContents = document.getElementsByClassName("modal-body");
     Array.from(modalContents).forEach(modalContent => { modalContent.innerHTML = message; });
@@ -446,11 +451,33 @@ class Video {
 
         label.setAttribute("class", "loaded-video-title");
 
-        label.appendChild(title);
+        // label.appendChild(title);
 
+        let nameEl = document.createElement('span');
+        let wrapper = document.createElement('div');
+        nameEl.style.fontWeight = 'bold';
+        nameEl.innerHTML = 'Video name: ' + this.title;
+        nameEl.style.fontSize = "20px";
+        // let updatedEl = document.createElement('span');
+        // updatedEl.style.fontWeight = 'bold';
+        // updatedEl.innerHTML = 'Last update on: ' + asciiPicture['updated_at'];
+        // let asciiItemElement = createAscciWrapperEl(asciiPicture);
+        let asciiFooter = document.createElement("div");
+        asciiFooter.classList.add("ascii-footer");
+        wrapper.appendChild(nameEl);
+        asciiFooter.appendChild(wrapper);
+        wrapper = document.createElement("div");
+        // wrapper.appendChild(createLink(asciiPicture['owner_id'], ownerName));
+        asciiFooter.appendChild(wrapper);
+        wrapper = document.createElement("div");
+        // wrapper.appendChild(updatedEl);
+        asciiFooter.appendChild(wrapper);
+        // asciiItemElement.appendChild(asciiFooter);
+        // element.appendChild(asciiFooter);
+        label.appendChild(asciiFooter);
         let display_section = document.getElementById("videos-wrapper");
-
         display_section.appendChild(label);
+        // label.appendChild(displaySection);
     }
 
     makeLoadedVideo() {
