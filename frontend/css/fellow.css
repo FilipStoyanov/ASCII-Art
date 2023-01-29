@@ -403,9 +403,22 @@ tr:nth-child(odd) {
   margin-bottom: 50px;
 }
 
+.ascii-footer {
+  padding: 15px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
 
 @media screen and (max-width: 1200px) {
   .tab {
     margin-top: 50px
+  }
+}
+
+@media screen and (max-width: 600px) {
+  .ascii-footer {
+    display: block;
+    text-align: center;
   }
 }

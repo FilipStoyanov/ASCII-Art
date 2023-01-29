@@ -145,6 +145,7 @@ function displayAsciiPictures(response) {
 function showAsciiPicture(element, asciiPicture, isLiked, likesCount) {
     if (element && asciiPicture) {
         let nameEl = document.createElement('span');
+        let wrapper = document.createElement('div');
         nameEl.style.fontWeight = 'bold';
         nameEl.innerHTML = 'Picture name: ' + asciiPicture['picture_name'];
         nameEl.style.fontSize = "20px";
@@ -153,13 +154,13 @@ function showAsciiPicture(element, asciiPicture, isLiked, likesCount) {
         updatedEl.innerHTML = 'Last update on: ' + asciiPicture['updated_at'];
         let asciiItemElement = createAscciWrapperEl(asciiPicture);
         let asciiFooter = document.createElement("div");
-        asciiFooter.style.padding = "15px";
-        asciiFooter.style.display = "flex";
-        asciiFooter.style.alignItems = "center";
-        asciiFooter.style.gap = "20px";
-        asciiFooter.appendChild(nameEl);
+        asciiFooter.classList.add("ascii-footer");
+        wrapper.appendChild(nameEl);
+        asciiFooter.appendChild(wrapper);
         addLikeButton(asciiFooter, asciiPicture['id'], isLiked, likesCount);
-        asciiFooter.appendChild(updatedEl);
+        wrapper = document.createElement("div");
+        wrapper.appendChild(updatedEl);
+        asciiFooter.appendChild(wrapper);
         asciiItemElement.appendChild(asciiFooter);
         element.appendChild(asciiItemElement);
     }
@@ -176,6 +177,7 @@ function createAscciWrapperEl(asciiPicture) {
     asciiTextElement.className = "ascii-picture";
     asciiTextElement.style.color = asciiColor;
     asciiTextElement.style.backgroundColor = "#ffffff";
+    asciiTextElement.style.overflowY = "auto";
     asciiTextElement.innerHTML = asciiText;
     asciiWrapperElement.appendChild(asciiTextElement);
     return asciiWrapperElement;
