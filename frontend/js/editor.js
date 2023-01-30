@@ -25,46 +25,24 @@ var modal = document.getElementById("modal");
 var modalContent = document.getElementsByClassName("modal-body")[0];
 var modalCloseBtn = document.getElementsByClassName("close")[0];
 
-//emojis
-const emojis = [
-  "\u2665",
-  "\u25B6",
-  "\u219D",
-  "\u274C",
-  "\u21F0",
-  "\u2663",
-  "\u263A",
-  "\u2642",
-  "\u2672",
-  "\u203C",
-  "\u2652",
-  "\u2691",
-  "\u1F973",
-  "\u263B",
-  "\u26D4",
-  "\u2744",
-  "\u272D",
-  "\u2600",
-  "\u2660",
-  "\u26BD",
-  "\u266B",
-  "\u261D",
-];
 
 function modalFunctionality() {
   modalCloseBtn.onclick = function () {
-    modal.style.display = "none";
     document.getElementsByClassName("editor")[0].classList.remove("show-modal");
-    window.location.reload();
+    if(document.getElementsByClassName("modal")[0].classList.contains("delete")) {
+       window.location.reload();
+    }
   };
 
   window.onclick = function (event) {
+    console.log(document.getElementsByClassName("modal")[0].classList.contains("delete"));
     if (event.target == modal) {
-      modal.style.display = "none";
       document
         .getElementsByClassName("editor")[0]
         .classList.remove("show-modal");
-      window.location.reload();
+        if(document.getElementsByClassName("modal")[0].classList.contains("delete")) {
+          window.location.reload();
+        }
     }
   };
 }
@@ -77,6 +55,8 @@ let asciiText;
 function addAsciiCharacters() {
   const START_ASCII_CODE = 32;
   const FINISH_ASCII_CODE = 126;
+  const START_ASCII_CODE_SECOND = 160;
+  const FINISH_ASCII_CODE_SECOND = 885;
   let letters = document.getElementsByClassName("letters")[0];
   for (let i = START_ASCII_CODE; i < FINISH_ASCII_CODE; ++i) {
     let character = String.fromCharCode(i);
@@ -88,11 +68,14 @@ function addAsciiCharacters() {
     }
   }
 
-  for (let emoji of emojis) {
-    let letter = document.createElement("button");
-    letter.classList.add("letter");
-    letter.innerHTML = emoji;
-    letters.appendChild(letter);
+  for (let i = START_ASCII_CODE_SECOND; i < FINISH_ASCII_CODE_SECOND; ++i) {
+    let character = String.fromCharCode(i);
+    if (character != " ") {
+      let letter = document.createElement("button");
+      letter.classList.add("letter");
+      letter.innerHTML = String.fromCharCode(i);
+      letters.appendChild(letter);
+    }
   }
 }
 
@@ -200,11 +183,11 @@ function addOptionsToSelect(response) {
       search = urlObj.search.substring(1);
       searchParams = JSON.parse(
         '{"' +
-          decodeURI(search)
-            .replace(/"/g, '\\"')
-            .replace(/&/g, '","')
-            .replace(/=/g, '":"') +
-          '"}'
+        decodeURI(search)
+          .replace(/"/g, '\\"')
+          .replace(/&/g, '","')
+          .replace(/=/g, '":"') +
+        '"}'
       );
       if (searchParams && searchParams["ascii-name"]) {
         const option = Array.from(selectFromAsciiNames.options).find(
@@ -264,6 +247,7 @@ function removeAsciiPicture(name) {
 
 function deleteAsciiPicture(response) {
   showModalForSeconds(true);
+  document.getElementsByClassName("modal")[0].classList.add("delete");
   if (response["success"]) {
     deleteSearchParams();
     document.getElementsByClassName("modal-header")[0].style.backgroundColor =
@@ -363,11 +347,11 @@ function loadCurrentAsciiPicture() {
     search = urlObj.search.substring(1);
     searchParams = JSON.parse(
       '{"' +
-        decodeURI(search)
-          .replace(/"/g, '\\"')
-          .replace(/&/g, '","')
-          .replace(/=/g, '":"') +
-        '"}'
+      decodeURI(search)
+        .replace(/"/g, '\\"')
+        .replace(/&/g, '","')
+        .replace(/=/g, '":"') +
+      '"}'
     );
   }
   if (searchParams && searchParams["ascii-name"]) {
@@ -452,7 +436,7 @@ function updateOnResizeAsciiSymbolsArr() {
       newAsciiSymbolsArr[
         Math.floor(
           (asciiSymbols[i].y / CELL_SIZE) * numberOfColumns +
-            asciiSymbols[i].x / CELL_SIZE
+          asciiSymbols[i].x / CELL_SIZE
         )
       ] = { x: newX, y: newY, symbol: asciiSymbols[i].symbol };
     }
@@ -594,28 +578,28 @@ function sketch(event) {
     asciiSymbols[
       Math.floor(
         (currentPoint.y / CELL_SIZE) * numberOfColumns +
-          currentPoint.x / CELL_SIZE
+        currentPoint.x / CELL_SIZE
       )
     ] = { x: currentPoint.x, y: currentPoint.y, symbol: chosenSymbol };
   } else if (canvas.classList.contains("delete-symbol")) {
     if (
       asciiSymbols[
-        Math.floor(
-          (currentPoint.y / CELL_SIZE) * numberOfColumns +
-            currentPoint.x / CELL_SIZE
-        )
+      Math.floor(
+        (currentPoint.y / CELL_SIZE) * numberOfColumns +
+        currentPoint.x / CELL_SIZE
+      )
       ] &&
       asciiSymbols[
         Math.floor(
           (currentPoint.y / CELL_SIZE) * numberOfColumns +
-            currentPoint.x / CELL_SIZE
+          currentPoint.x / CELL_SIZE
         )
       ].symbol
     )
       asciiSymbols[
         Math.floor(
           (currentPoint.y / CELL_SIZE) * numberOfColumns +
-            currentPoint.x / CELL_SIZE
+          currentPoint.x / CELL_SIZE
         )
       ]["symbol"] = " ";
     redrawAsciiPicture();
@@ -706,8 +690,8 @@ function saveAsciiPicture() {
         let i = 0;
         i <
         numberOfRows * Math.floor(canvas.width / CELL_SIZE) +
-          numberOfColumns +
-          1;
+        numberOfColumns +
+        1;
         ++i
       ) {
         if (i % Math.floor(canvas.width / CELL_SIZE) == 0) {
@@ -755,8 +739,8 @@ function updateAsciiPicture() {
         let i = 0;
         i <
         numberOfRows * Math.floor(canvas.width / CELL_SIZE) +
-          numberOfColumns +
-          1;
+        numberOfColumns +
+        1;
         ++i
       ) {
         if (i % Math.floor(canvas.width / CELL_SIZE) == 0 && i > 0) {

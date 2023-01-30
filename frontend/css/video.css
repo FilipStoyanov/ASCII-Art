@@ -1,5 +1,4 @@
 body {
-    background: var(--skyblue);
     margin-top: 50px;
 }
 
@@ -270,7 +269,7 @@ body {
 
 .modal-header {
     padding: 2px 16px;
-    background-color: var(--error);
+    background-color: #b54349;
     color: white;
     border-top-left-radius: 10px;
     border-top-right-radius: 10px;
@@ -285,7 +284,7 @@ body {
 
 .modal-footer {
     padding: 2px 16px;
-    background-color: var(--error);
+    background-color: #b54349;
     color: white;
     border-bottom-left-radius: 10px;
     border-bottom-right-radius: 10px;
@@ -366,12 +365,12 @@ body {
     user-select: none;
 }
 
-.fa{
+.fa {
     color: #fed1bd;
 }
 
 @media only screen and (max-width: 600px) {
-    body{
+    body {
         flex-wrap: wrap;
         overflow-y: auto;
     }

@@ -26,6 +26,10 @@
     --button-height: 40px;
 }
 
+body {
+    background-color: var(--skyblue);
+}
+
 .login, .signin {
     position: absolute;
     width: 100%;
