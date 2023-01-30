@@ -28,18 +28,21 @@ var modalCloseBtn = document.getElementsByClassName("close")[0];
 
 function modalFunctionality() {
   modalCloseBtn.onclick = function () {
-    modal.style.display = "none";
     document.getElementsByClassName("editor")[0].classList.remove("show-modal");
-    window.location.reload();
+    if(document.getElementsByClassName("modal")[0].classList.contains("delete")) {
+       window.location.reload();
+    }
   };
 
   window.onclick = function (event) {
+    console.log(document.getElementsByClassName("modal")[0].classList.contains("delete"));
     if (event.target == modal) {
-      modal.style.display = "none";
       document
         .getElementsByClassName("editor")[0]
         .classList.remove("show-modal");
-      window.location.reload();
+        if(document.getElementsByClassName("modal")[0].classList.contains("delete")) {
+          window.location.reload();
+        }
     }
   };
 }
@@ -244,6 +247,7 @@ function removeAsciiPicture(name) {
 
 function deleteAsciiPicture(response) {
   showModalForSeconds(true);
+  document.getElementsByClassName("modal")[0].classList.add("delete");
   if (response["success"]) {
     deleteSearchParams();
     document.getElementsByClassName("modal-header")[0].style.backgroundColor =

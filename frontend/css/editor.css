@@ -144,18 +144,16 @@
 .letters {
     position: absolute;
     display: none;
-    width: 300px;
+    width: calc(100% - 20px);
     background-color: white;
-    border-radius: 36px 0px 0px 36px;
-    /* right: calc(-100% - 50px); */
-    top: 50px;
-    padding: 15px;
+    border-radius: 10px;
+    top: 45px;
+    padding: 15px 0px 15px 15px;
     cursor: pointer;
     z-index: 1;
-    border: 3px solid var(--skyblue);
-    /* background-color: var(--light-gray); */
+    border: 4px solid var(--skyblue);
     overflow-x: auto;
-    max-height: 300px;
+    max-height: 290px;
 }
 
 .letters::-webkit-scrollbar {
@@ -290,7 +288,7 @@
 
 .modal-header {
     padding: 2px 16px;
-    background-color: var(--error);
+    background-color: #b54349;
     color: white;
     border-top-left-radius: 10px;
     border-top-right-radius: 10px;
@@ -305,7 +303,7 @@
 
 .modal-footer {
     padding: 2px 16px;
-    background-color: var(--error);
+    background-color: #b54349;
     color: white;
     border-bottom-left-radius: 10px;
     border-bottom-right-radius: 10px;
