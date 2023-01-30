@@ -7,8 +7,11 @@ var times = document.getElementsByClassName("times");
 var buttonToggleTime = document.getElementsByClassName("time-btn")[0];
 const TEXT_ROWS = 41;
 const TEXT_COLLS = 10;
+const MAX_NUMBER_OF_FRAMES = 10;
 var loaded_videos = [];
-var number_of_frames = 0;   //MAYBE ADD THIS TO SESSION STORAGE?!!?
+var number_of_frames = 0;
+const BASE_URL = "../../server/page_controllers/";
+
 
 var modal = document.getElementById("modal");
 var modalContent = document.getElementsByClassName("modal-body")[0]
@@ -39,9 +42,9 @@ function showModalForSeconds(reload = false) {
     setTimeout(() => {
         document.getElementsByClassName("sections")[0].classList.remove("show-modal");
         modal.style.display = "none";
-        // if (reload) {
-        //     window.location.reload();
-        // }
+        if (reload) {
+            window.location.reload();
+        }
     }, 2000);
 }
 
@@ -71,41 +74,25 @@ class Options {
 
 var Options_vid = new Options("null", 2000, "#000000", "#ffffff");
 
-// function sendRequest(url, options, successCallback, errorCallback) {
-//     var request = new XMLHttpRequest();
-
-
-//     request.onload = function () {
-//         console.log(request.responseText);
-//         var response = JSON.parse(request.responseText);
-
-//         if (request.status === 200) {
-//             successCallback(response);
-//         } else {
-//             console.log('Not authorized')
-//             errorCallback(response);
-//         }
-//     }
-
-//     request.open(options.method, url, true);
-//     request.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-//     request.send(options.data);
-// }
 
 function addedSuccessfullyl(response) {
     if (response["success"]) {
         showModalForSeconds(true);
         document.getElementsByClassName("modal-header")[0].style.backgroundColor = "#4BB543";
-        document.getElementsByClassName("modal-body")[0].style.backgroundColor = "#4BB543";
-        modalContent.innerHTML = "Ascii видеото беше добавено успешно";
+        document.getElementsByClassName("modal-body")[0].style.backgroundColor = "#ffffff";
+        document.getElementsByClassName("modal-footer")[0].style.backgroundColor = "#4BB543";
+        modalContent.innerHTML = "Video was saved successfuly.";
     } else {
+        document.getElementsByClassName("modal-header")[0].style.backgroundColor = "#b54349";
+        document.getElementsByClassName("modal-body")[0].style.backgroundColor = "#ffffff";
+        document.getElementsByClassName("modal-footer")[0].style.backgroundColor = "#b54349";
         if (response["errors"]) {
             if (response["code"] == 23000) {
                 showModalForSeconds();
-                modalContent.innerHTML = "Вие имате запазена видео с това име. Моля, изберете друго име и опитайте отново."
+                modalContent.innerHTML = "There already exists a video with the same name."
             } else {
                 showModalForSeconds();
-                modalContent.innerHTML = "Възникна грешка! Моля опитайте отново."
+                modalContent.innerHTML = "An error has occured! Please try again!"
             }
         } else {
             document.getElementsByClassName("editor")[0].classList.remove("show-modal");
@@ -205,7 +192,7 @@ class Video {
                 data["title"] = title;
 
                 sendRequest(
-                    "../../server/page_controllers/ascii-video-editor/delete-video.php",
+                    `${BASE_URL}ascii-video-editor/delete-video.php`,
                     {
                         method: "DELETE",
                         data: JSON.stringify(data),
@@ -251,10 +238,11 @@ class Video {
 
 function deletedSuccessfully(response) {
     if (response["success"]) {
-        showModalForSeconds(true);
+        showModalForSeconds();
         document.getElementsByClassName("modal-header")[0].style.backgroundColor = "#4BB543";
-        document.getElementsByClassName("modal-body")[0].style.backgroundColor = "#4BB543";
-        modalContent.innerHTML = "Ascii видеото беше изтрито успешно";
+        document.getElementsByClassName("modal-body")[0].style.backgroundColor = "#ffffff";
+        document.getElementsByClassName("modal-footer")[0].style.backgroundColor = "#4BB543";
+        modalContent.innerHTML = "The video was deleted successfuly.";
 
         for (let i = 0; i < loaded_videos.length; i++) {
             clearTimeout(loaded_videos[i].timer);
@@ -262,9 +250,12 @@ function deletedSuccessfully(response) {
 
         document.getElementById("load-videos").click();
     } else {
+        document.getElementsByClassName("modal-header")[0].style.backgroundColor = "#b54349";
+        document.getElementsByClassName("modal-body")[0].style.backgroundColor = "#ffffff";
+        document.getElementsByClassName("modal-footer")[0].style.backgroundColor = "#b54349";
         if (response["errors"]) {
             showModalForSeconds();
-            modalContent.innerHTML = "Възникна грешка! Моля опитайте отново.";
+            modalContent.innerHTML = "An error has occured! Please try again!";
         } else {
             document.getElementsByClassName("editor")[0].classList.remove("show-modal");
         }
@@ -320,17 +311,16 @@ function loadUserVideos(response) {
         }
     } else {
         showModalForSeconds();
-        modalContent.innerHTML = "Възникна грешка! Моля опитайте отново."
+        modalContent.innerHTML = "An error has occured! Please try again."
     }
 }
 
 
 
 function handleErrorAscii(response) {
-    console.log(response);
     if (response["errors"]) {
         showModalForSeconds();
-        modalContent.innerHTML = "Възникна грешка! Моля опитайте отново."
+        modalContent.innerHTML = "An error has occured! Please try again."
     } else {
         document.getElementsByClassName("editor")[0].classList.remove("show-modal");
     }
@@ -342,7 +332,6 @@ function saveVideo() {
         event.preventDefault();
         if (Options_vid.frames.length >= 2) {
             const jwtToken = getCookie("token");
-            console.log("???");
             const userId = getUserIdFromJwtToken();
             if (userId && jwtToken) {
                 const data = {};
@@ -352,13 +341,22 @@ function saveVideo() {
                 data["color"] = Options_vid.color;
                 data["background"] = Options_vid.background;
                 data["frames"] = Options_vid.frames;
-                sendRequest('../../server/page_controllers/ascii-video-editor/save-video.php',
+                sendRequest(`${BASE_URL}ascii-video-editor/save-video.php`,
                     {
                         method: 'POST',
                         data: `data=${JSON.stringify(data)}`,
                         token: jwtToken
                     }, addedSuccessfullyl, handleErrorAscii);
             }
+        }
+        else {
+            document.getElementsByClassName("modal-header")[0].style.backgroundColor = "#b54349";
+            document.getElementsByClassName("modal-body")[0].style.backgroundColor = "#ffffff";
+            document.getElementsByClassName("modal-footer")[0].style.backgroundColor = "#b54349";
+
+            showModalForSeconds();
+            modalContent.innerHTML = "Click the show video button first.";
+
         }
     });
 }
@@ -382,7 +380,7 @@ function loadVideos() {
         if (userId && jwtToken) {
             const data = {};
             data["owner_id"] = userId;
-            sendRequest(`../../server/page_controllers/ascii-video-editor/get-videos.php?owner_id=${data["owner_id"]}`,
+            sendRequest(`${BASE_URL}ascii-video-editor/get-videos.php?owner_id=${data["owner_id"]}`,
                 { method: 'GET', data: "", token: jwtToken },
                 loadUserVideos,
                 handleErrorAscii
@@ -406,7 +404,7 @@ function changeAsciiName() {
 function addNewFrame() {
 
     new_frame_button.addEventListener("click", function () {
-        if (number_of_frames < 10) {
+        if (number_of_frames < MAX_NUMBER_OF_FRAMES) {
             number_of_frames++;
             let new_frame_label = document.createElement("label");
             let context = document.createTextNode(`Frame ${number_of_frames}`);
@@ -547,7 +545,10 @@ function setBackgroundColor() {
 function addAsciiCharacters() {
     let times = document.getElementsByClassName("timers")[0];
 
-    for (let i = 100; i < 1400; i += 100) {
+    const START = 100;
+    const END = 1400;
+    const DIFF = 100;
+    for (let i = START; i < END; i += DIFF) {
         let time = document.createElement("button");
         time.classList.add("times");
         time.innerHTML = `${i}`;
@@ -618,7 +619,7 @@ function getAllAsciiPictures() {
         const userId = getUserIdFromJwtToken();
         if (userId && jwtToken) {
             sendRequest(
-                `../../server/page_controllers/ascii-editor/getAllPictures.php?user=${userId}`,
+                `${BASE_URL}ascii-editor/getAllPictures.php?user=${userId}`,
                 { method: "GET", data: '', token: jwtToken },
                 displayAsciiPictures,
                 handleErrorAscii,
@@ -655,10 +656,12 @@ function displayAsciiPictures(response) {
         }
         copyToClipboard();
     } else if (!response["success"]) {
-        showModalForSeconds(true);
-        document.getElementsByClassName("modal-header")[0].style.backgroundColor = "#4BB543";
-        document.getElementsByClassName("modal-body")[0].style.backgroundColor = "#4BB543";
-        modalContent.innerHTML = "Възникна грешка, моля опитайте отново!";
+        document.getElementsByClassName("modal-header")[0].style.backgroundColor = "#b54349";
+        document.getElementsByClassName("modal-body")[0].style.backgroundColor = "#ffffff";
+        document.getElementsByClassName("modal-footer")[0].style.backgroundColor = "#b54349";
+
+        showModalForSeconds();
+        modalContent.innerHTML = "An error has occured! Please try again.";
     }
 }
 
@@ -680,10 +683,6 @@ function showAsciiPicture(element, asciiPicture) {
     }
 }
 
-const ASCII_NAME = "1";
-const PAGINATION_PAGE = 0;
-const PAGINATION_PAGESIZE = 10;
-
 //copy picture to clipboard
 function copyToClipboard() {
     let pictures = document.getElementsByClassName("ascii-picture");
@@ -701,7 +700,7 @@ function autoPasteText(textarea) {
     textarea.addEventListener('click', async () => {
         try {
             let text = await navigator.clipboard.readText();
-            if(text != ""){
+            if (text != "") {
                 textarea.value = text;
                 navigator.clipboard.writeText("");
             }
@@ -713,6 +712,7 @@ function autoPasteText(textarea) {
 
 //Left and Right navigaion
 function scrollLeftRight() {
+    const SCROLL_SPEED = 10;
     var scroll_timeout;
     var left = document.getElementById("left");
     var right = document.getElementById("right");
@@ -720,7 +720,7 @@ function scrollLeftRight() {
 
     left.addEventListener("mousedown", function (e) {
         scroll_timeout = setInterval(function () {
-            body.scrollLeft -= 10;
+            body.scrollLeft -= SCROLL_SPEED;
         })
     });
 
@@ -737,7 +737,7 @@ function scrollLeftRight() {
 
     right.addEventListener("mousedown", function (e) {
         scroll_timeout = setInterval(function () {
-            body.scrollLeft += 10;
+            body.scrollLeft += SCROLL_SPEED;
         })
     });
 

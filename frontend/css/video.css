@@ -366,12 +366,12 @@ body {
     user-select: none;
 }
 
-.fa{
+.fa {
     color: #fed1bd;
 }
 
 @media only screen and (max-width: 600px) {
-    body{
+    body {
         flex-wrap: wrap;
         overflow-y: auto;
     }

@@ -8,7 +8,9 @@ var times = document.getElementsByClassName("times");
 var buttonToggleTime = document.getElementsByClassName("time-btn")[0];
 const TEXT_ROWS = 41;
 const TEXT_COLLS = 10;
+const MAX_NUMBER_OF_FRAMES = 10;
 var loaded_videos = [];
+const BASE_URL = "../../server/page_controllers/";
 
 var modal = document.getElementById("modal");
 // modal.style.display = "none";
@@ -18,7 +20,6 @@ var modalCloseBtn = document.getElementsByClassName("close")[0];
 function modalFunctionality() {
 
     modalCloseBtn.onclick = function () {
-        // console.log("AA");
         modal.style.display = "none";
         document.getElementsByClassName("sections")[0].classList.remove("show-modal");
         // window.location.reload();
@@ -39,9 +40,9 @@ function showModalForSeconds(reload = false) {
     setTimeout(() => {
         document.getElementsByClassName("sections")[0].classList.remove("show-modal");
         modal.style.display = "none";
-        // if (reload) {
-        //     window.location.reload();
-        // }
+        if (reload) {
+            window.location.href = "http://localhost/ASCII-Art/frontend/html/video_editor.html";
+        }
     }, 2000);
 }
 
@@ -55,7 +56,6 @@ function getParameters() {
         searchParams = JSON.parse('{"' + decodeURI(search).replace(/"/g, '\\"').replace(/&/g, '","').replace(/=/g, '":"') + '"}');
     }
 
-    // console.log(searchParams["id"]);
     return searchParams;
 }
 
@@ -67,7 +67,7 @@ function getVideo(params) {
     if (owner_id && jwtToken) {
 
         sendRequest(
-            `../../server/page_controllers/ascii-video-editor/get-video.php?owner_id=${owner_id}&id=${id}`,
+            `${BASE_URL}ascii-video-editor/get-video.php?owner_id=${owner_id}&id=${id}`,
             { method: "GET", data: '', token: jwtToken },
             displayVideo,
             handleErrorAscii,
@@ -124,9 +124,13 @@ function addedSuccessfully(response) {
     if (response["success"]) {
         showModalForSeconds(true);
         document.getElementsByClassName("modal-header")[0].style.backgroundColor = "#4BB543";
-        document.getElementsByClassName("modal-body")[0].style.backgroundColor = "#4BB543";
+        document.getElementsByClassName("modal-body")[0].style.backgroundColor = "#ffffff";
+        document.getElementsByClassName("modal-footer")[0].style.backgroundColor = "#4BB543";
         modalContent.innerHTML = "The video changes were successful.";
     } else {
+        document.getElementsByClassName("modal-header")[0].style.backgroundColor = "#b54349";
+        document.getElementsByClassName("modal-body")[0].style.backgroundColor = "#ffffff";
+        document.getElementsByClassName("modal-footer")[0].style.backgroundColor = "#b54349";
         if (response["errors"]) {
             if (response["code"] == 23000) {
                 showModalForSeconds();
@@ -145,7 +149,7 @@ function addedSuccessfully(response) {
 function handleErrorAscii(response) {
     if (response["errors"]) {
         showModalForSeconds();
-        modalContent.innerHTML = "Възникна грешка! Моля опитайте отново."
+        modalContent.innerHTML = "An error has occured!"
     } else {
         document.getElementsByClassName("editor")[0].classList.remove("show-modal");
     }
@@ -156,7 +160,6 @@ function saveVideo() {
         event.preventDefault();
         if (Options_vid.frames.length >= 2) {
             const jwtToken = getCookie("token");
-            console.log("???");
             const userId = getUserIdFromJwtToken();
             if (userId && jwtToken) {
                 const data = {};
@@ -167,13 +170,22 @@ function saveVideo() {
                 data["background"] = Options_vid.background;
                 data["frames"] = Options_vid.frames;
                 data["id"] = Options_vid.id;
-                sendRequest('../../server/page_controllers/ascii-video-editor/update-video.php',
+                sendRequest(`${BASE_URL}ascii-video-editor/update-video.php`,
                     {
                         method: 'POST',
                         data: `data=${JSON.stringify(data)}`,
                         token: jwtToken
                     }, addedSuccessfully, handleErrorAscii);
             }
+        }
+        else {
+            document.getElementsByClassName("modal-header")[0].style.backgroundColor = "#b54349";
+            document.getElementsByClassName("modal-body")[0].style.backgroundColor = "#ffffff";
+            document.getElementsByClassName("modal-footer")[0].style.backgroundColor = "#b54349";
+
+            showModalForSeconds();
+            modalContent.innerHTML = "Click the show video button first.";
+
         }
     });
 }
@@ -191,7 +203,7 @@ function autoPasteText(textarea) {
     textarea.addEventListener('click', async () => {
         try {
             let text = await navigator.clipboard.readText();
-            if(text != ""){
+            if (text != "") {
                 textarea.value = text;
                 navigator.clipboard.writeText("");
             }
@@ -204,7 +216,7 @@ function autoPasteText(textarea) {
 function addNewFrame() {
 
     new_frame_button.addEventListener("click", function () {
-        if (number_of_frames < 10) {
+        if (number_of_frames < MAX_NUMBER_OF_FRAMES) {
             number_of_frames++;
             let new_frame_label = document.createElement("label");
             let context = document.createTextNode(`Frame ${number_of_frames}`);
@@ -339,8 +351,10 @@ function setBackgroundColor() {
 
 function addAsciiCharacters() {
     let times = document.getElementsByClassName("timers")[0];
-
-    for (let i = 100; i < 1400; i += 100) {
+    const START = 100;
+    const END = 1400;
+    const DIFF = 100;
+    for (let i = START; i < END; i += DIFF) {
         let time = document.createElement("button");
         time.classList.add("times");
         time.innerHTML = `${i}`;
@@ -407,7 +421,7 @@ function getAllAsciiPictures() {
         const userId = getUserIdFromJwtToken();
         if (userId && jwtToken) {
             sendRequest(
-                `../../server/page_controllers/ascii-editor/getAllPictures.php?user=${userId}`,
+                `${BASE_URL}ascii-editor/getAllPictures.php?user=${userId}`,
                 { method: "GET", data: '', token: jwtToken },
                 displayAsciiPictures,
                 handleErrorAscii,
@@ -441,7 +455,12 @@ function displayAsciiPictures(response) {
         }
         copyToClipboard();
     } else {
-        // show error message
+        document.getElementsByClassName("modal-header")[0].style.backgroundColor = "#b54349";
+        document.getElementsByClassName("modal-body")[0].style.backgroundColor = "#ffffff";
+        document.getElementsByClassName("modal-footer")[0].style.backgroundColor = "#b54349";
+
+        showModalForSeconds();
+        modalContent.innerHTML = "An error has occured! Please try again.";
     }
 }
 
@@ -451,7 +470,7 @@ function showAsciiPicture(element, asciiPicture) {
     if (element && asciiPicture) {
         let responseAsciiValue = asciiPicture.value;
         let asciiColor = asciiPicture.color;
-        let asciiText = responseAsciiValue.substring(1, responseAsciiValue.length - 1).replace(/\\n/g, '\n');
+        let asciiText = responseAsciiValue.substring(2, responseAsciiValue.length - 1).replace(/\\n/g, '\n');
         let value_text_node = document.createTextNode(asciiText);
         let asciiTextElement = document.createElement("pre");
         asciiTextElement.setAttribute("class", "ascii-picture");
@@ -461,10 +480,6 @@ function showAsciiPicture(element, asciiPicture) {
     }
 }
 
-// const USER_ID = "1";
-// const ASCII_NAME = "1";
-// const PAGINATION_PAGE = 0;
-// const PAGINATION_PAGESIZE = 10;
 
 function copyToClipboard() {
     let pictures = document.getElementsByClassName("ascii-picture");
@@ -472,7 +487,6 @@ function copyToClipboard() {
     for (let i = 0; i < pictures.length; i++) {
         pictures[i].addEventListener('click', function (event) {
             let copied_text = pictures[i].innerHTML;
-            // console.log(pictures[i].innerHTML);
             navigator.clipboard.writeText(copied_text);
         });
     }
@@ -528,7 +542,6 @@ function scrollLeftRight() {
         }
         clearInterval(scroll_timeout);
     });
-    console.log(document.body.scrollLeft);
 }
 
 document.addEventListener("DOMContentLoaded", function (event) {
