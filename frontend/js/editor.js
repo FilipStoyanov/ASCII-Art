@@ -298,7 +298,7 @@ function loadAsciiPicture(response) {
   const START_Y = 0;
   let currentX, currentY;
   let lines = response[0][0].value
-    .substring(1, response[0][0].value.length - 1)
+    .substring(0, response[0][0].value.length - 1)
     .split("\\n");
   let color = response[0][0].color;
   context.fillStyle = color;
@@ -704,8 +704,11 @@ function saveAsciiPicture() {
       const userId = getUserIdFromJwtToken();
       if (userId && jwtToken) {
         const data = {};
+        let asciiWithoutFirstLine = asciiText.split("\\n");
+        asciiWithoutFirstLine = asciiWithoutFirstLine.slice(2).join("\\n");
+        asciiWithoutFirstLine = "\\n" + asciiWithoutFirstLine;
         data["owner_id"] = userId;
-        data["value"] = asciiText;
+        data["value"] = asciiWithoutFirstLine;
         data["name"] = asciiName;
         data["color"] = chosenColor;
         event.preventDefault();
@@ -751,8 +754,11 @@ function updateAsciiPicture() {
       const userId = getUserIdFromJwtToken();
       if (userId && jwtToken) {
         const data = {};
+        let asciiWithoutFirstLine = asciiText.split("\\n");
+        asciiWithoutFirstLine = asciiWithoutFirstLine.slice(1).join("\\n");
+        asciiWithoutFirstLine = "\\n" + asciiWithoutFirstLine;
         data["owner_id"] = userId;
-        data["value"] = asciiText;
+        data["value"] = asciiWithoutFirstLine;
         data["name"] = updateNameInput.value;
         data["color"] = chosenColor;
         data["previous_name"] =

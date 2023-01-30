@@ -85,13 +85,15 @@ function handleListFellows(response, type) {
 function handleError(response, isErrorInAuth) {
   let message = "An error has occurred. Try again.";
   if (isErrorInAuth) {
-    message =
-      "An error with the authentication has occured. Please, logout and login again.";
+      message = "An error with the authentication has occured. Please, logout and login again."
+      var modalContents = document.getElementsByClassName("modal-body");
+      Array.from(modalContents).forEach(modalContent => { modalContent.innerHTML = message; });
+      showModalForSeconds();
+      window.location.assign("login.html");
+      return;
   }
   var modalContents = document.getElementsByClassName("modal-body");
-  Array.from(modalContents).forEach((modalContent) => {
-    modalContent.innerHTML = message;
-  });
+  Array.from(modalContents).forEach(modalContent => { modalContent.innerHTML = message; });
   showModalForSeconds();
 }
 
