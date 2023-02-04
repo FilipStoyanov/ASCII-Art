@@ -61,7 +61,6 @@ function handleListUsers(response, type, listAllUsers) {
     updateButtonsMode('nextPage', true);
   }
   if (users.length == 0) {
-    console.log('No users found.')
     table.style.display = "none";
     notFoundText.style.display = "block";
     pagination.style.display = "none";
@@ -175,7 +174,6 @@ function sendRequestWithHeaders(url, options, successCallback, errorCallback) {
   var request = new XMLHttpRequest();
 
   request.onload = function () {
-    console.log(request.responseText);
     var response = JSON.parse(request.responseText);
     if (request.status === 200 && response['success']) {
       setCookie('token', response["token"], 30);
@@ -221,7 +219,6 @@ function addHeaders(table) {
 }
 
 function removeFollower(user, follower, listAllUsers) {
-  console.log('Delete follower ' + follower + ' from user ' + user);
   var url = baseFollowUrl + 'updateFollower.php';
   var data = { 'user': user, 'follower': follower };
   sendRequestWithHeaders(url, { method: 'DELETE', data: JSON.stringify(data) }, (response) => handleUpdateFollower(listAllUsers, response, 'Successfully deleted follower.'), handleError);
@@ -278,7 +275,6 @@ function createAddButton(disable, userId, otherId, listAllUsers) {
 }
 
 function addFollower(user, follower, listAllUsers) {
-  console.log('Add follower ' + follower + ' to user ' + user);
   var url = baseFollowUrl + 'updateFollower.php';
   var data = { 'user': user, 'follower': follower };
   sendRequestWithHeaders(url, { method: 'POST', data: JSON.stringify(data) }, (response) => handleUpdateFollower(listAllUsers, response, 'Successfully added follower.'), handleError);
@@ -307,7 +303,6 @@ function page(addition, refreshUsers) {
 }
 
 function updateButtonsMode(buttonClass, newMode) {
-  console.log('disable');
   var btns = document.getElementsByClassName(buttonClass);
   Array.from(btns).forEach(btn => { btn.disabled = newMode; });
 }

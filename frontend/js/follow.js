@@ -39,7 +39,6 @@ function handleListFellows(response, type) {
   addHeaders(table);
 
   var followers = response[type];
-  console.log(followers.length);
   if (followers.length < 20) {
     table.style.display = "table";
     notFound[0].style.display = "none";
@@ -55,7 +54,6 @@ function handleListFellows(response, type) {
     notFound[1].style.display = "block";
     pagination[0].style.display = "none";
     pagination[1].style.display = "none";
-    console.log("No users found.");
     return;
   }
   const page = parseInt(sessionStorage.getItem("page"));
@@ -192,7 +190,6 @@ function addHeaders(table) {
 }
 
 function removeFollower(user, follower, changeFollowersTable) {
-  console.log("Delete follower " + follower + " from user " + user);
   var url = baseUrl + "updateFollower.php";
   var data = { user: user, follower: follower };
   sendRequestWithHeaders(
@@ -204,7 +201,6 @@ function removeFollower(user, follower, changeFollowersTable) {
 }
 
 function handleRemoveFollower(response, searchFollowers) {
-  console.log("Successfully deleted follower.");
   sessionStorage.setItem("page", 1);
   listFellows(searchFollowers);
 }

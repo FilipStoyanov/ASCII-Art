@@ -100,7 +100,6 @@ function displayAsciiPictures(response) {
             updateButtonsMode('nextPage', true);
         }
         if (pictures.length == 0) {
-            console.log('No pictures found.');
             notFoundText.style.display = "block";
             pagination.style.display = "none";
             return;

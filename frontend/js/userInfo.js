@@ -128,7 +128,6 @@ function displayAsciiPictures(response) {
             updateButtonsMode('nextPage', true);
         }
         if (pictures.length == 0) {
-            console.log('No pictures found.');
             notFoundText.style.display = "block";
             pagination.style.display = "none";
             return;
@@ -171,7 +170,6 @@ function createAscciWrapperEl(asciiPicture) {
     let responseAsciiValue = asciiPicture.value;
     let asciiColor = asciiPicture.color;
     let asciiText = responseAsciiValue.substring(2, responseAsciiValue.length - 1).replace(/\\n/g, '<br/>');
-    console.log(asciiText);
     let asciiWrapperElement = document.createElement('div');
     asciiWrapperElement.className = "ascii-wrapper";
     let asciiTextElement = document.createElement("pre");

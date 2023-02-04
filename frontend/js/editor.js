@@ -35,7 +35,6 @@ function modalFunctionality() {
   };
 
   window.onclick = function (event) {
-    console.log(document.getElementsByClassName("modal")[0].classList.contains("delete"));
     if (event.target == modal) {
       document
         .getElementsByClassName("editor")[0]

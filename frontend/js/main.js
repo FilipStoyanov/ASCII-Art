@@ -29,7 +29,6 @@ function sendRequest(url, options, successCallback, errorCallback) {
       localStorage.clear();
       removeCookie("token", "/");
       window.location.assign("login.html");
-      console.log("Not authorized");
       errorCallback(response);
     }
   };
