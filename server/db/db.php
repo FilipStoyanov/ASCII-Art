@@ -94,10 +94,6 @@ class DataBaseConnection
         $sql = 'SELECT * FROM user WHERE username = :username AND password_hash = :password';
         $this->selectUser = $this->connection->prepare($sql);
 
-        // TODO like %:username%
-        // $sql = "SELECT * FROM user WHERE username LIKE :username";
-        // $this->selectUserByName = $this->connection->prepare($sql);
-
         $sql = 'SELECT * FROM user WHERE id = :user';
         $this->selectUserById = $this->connection->prepare($sql);
 
@@ -411,7 +407,6 @@ class DataBaseConnection
         }
     }
 
-    //
     public function insertNewAsciiVideo($input)
     {
         try {

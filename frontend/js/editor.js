@@ -11,7 +11,7 @@ var drawField = document.getElementsByClassName("draw-field")[0];
 var toggleButtonForColors = document.getElementsByClassName("color-btn")[0];
 var selectFromAsciiNames = document.getElementsByClassName("menu-select")[0];
 var deleteBtn = document.getElementsByClassName("delete-ascii")[0];
-var pageUrl = new URL("http://localhost/ASCII-Art/frontend/html/editor.html");
+var pageUrl = new URL(window.location.href);
 
 var updateNameInput = document.getElementById("name-update");
 var selectedAsciiFile;

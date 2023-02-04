@@ -417,7 +417,6 @@ class AsciiVideoEditor
             $title = $data['title'];
             $owner_id = $data['owner_id'];
 
-
             $this->validateAsciiText($title);
 
             if ($this->errors['success']) {

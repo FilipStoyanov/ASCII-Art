@@ -46,7 +46,6 @@ class AsciiEditor
                 header('HTTP/1.0 403 Forbidden');
                 return json_encode(["success" => false, "error" => "You are not authorized to access this page"]);
             }
-            //TODO: validate $color variable
             $this->validateAsciiText($value, $name);
             if ($this->errors['success']) {
                 $query = $this->connection->insertNewAsciiText(["value" => $value, "name" => $name, "color" => $color, "owner_id" => $owner_id]);
@@ -275,9 +274,7 @@ class AsciiEditor
             $jwtUser = JWT::fetchUserFromJWT($authHeader);
             $user = $jwtUser['id'];
             if ($user == null) {
-                $this->response['success'] = false;
-                $this->response['error'] = 'User is not chosen.';
-                return json_encode($this->response);
+                return json_encode(["success" => false, "error" => "User is not chosen."]);
             }
             if (
                 !array_key_exists('owner', $pathParameters) || $pathParameters['owner'] == null

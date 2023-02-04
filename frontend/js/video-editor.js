@@ -13,7 +13,6 @@ var loaded_videos = [];
 const BASE_URL = "../../server/page_controllers/";
 
 var modal = document.getElementById("modal");
-// modal.style.display = "none";
 var modalContent = document.getElementsByClassName("modal-body")[0]
 var modalCloseBtn = document.getElementsByClassName("close")[0];
 
@@ -22,14 +21,12 @@ function modalFunctionality() {
     modalCloseBtn.onclick = function () {
         modal.style.display = "none";
         document.getElementsByClassName("sections")[0].classList.remove("show-modal");
-        // window.location.reload();
     }
 
     window.onclick = function (event) {
         if (event.target == modal) {
             modal.style.display = "none";
             document.getElementsByClassName("sections")[0].classList.remove("show-modal");
-            // window.location.reload();
         }
     }
 }
@@ -545,13 +542,11 @@ function scrollLeftRight() {
 }
 
 document.addEventListener("DOMContentLoaded", function (event) {
-    // submitOptionsForm();
     addNewFrame();
     removeFrame();
     makeVideo();
     setColors();
     setBackgroundColor();
-    // stopVideo();
     addAsciiCharacters();
     toggleAsciiCharacters();
     chooseCharacter();

@@ -24,14 +24,12 @@ function modalFunctionality() {
     modalCloseBtn.onclick = function () {
         modal.style.display = "none";
         document.getElementsByClassName("sections")[0].classList.remove("show-modal");
-        // window.location.reload();
     }
 
     window.onclick = function (event) {
         if (event.target == modal) {
             modal.style.display = "none";
             document.getElementsByClassName("sections")[0].classList.remove("show-modal");
-            // window.location.reload();
         }
     }
 }
@@ -613,7 +611,6 @@ function stopVideo() {
 
 //send a request for the pictures
 function getAllAsciiPictures() {
-    //TO DO get the user id from session
     document.getElementById("load-pictures").addEventListener("click", function (event) {
         const jwtToken = getCookie("token");
         const userId = getUserIdFromJwtToken();
@@ -666,7 +663,7 @@ function displayAsciiPictures(response) {
 }
 
 
-//loard the users pictures
+//load the users pictures
 function showAsciiPicture(element, asciiPicture) {
     if (element && asciiPicture) {
         let responseAsciiValue = asciiPicture.value;
@@ -710,7 +707,7 @@ function autoPasteText(textarea) {
     })
 }
 
-//Left and Right navigaion
+//Left and Right navigation
 function scrollLeftRight() {
     const SCROLL_SPEED = 10;
     var scroll_timeout;
