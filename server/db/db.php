@@ -43,7 +43,8 @@ class DataBaseConnection
         }
     }
 
-    public function getLastInsertedId() {
+    public function getLastInsertedId()
+    {
         return $this->connection->lastInsertId();
     }
 
@@ -238,7 +239,7 @@ class DataBaseConnection
             $this->selectUser->execute(["username" => $input["username"], "password" => $input["password"]]);
             $user = $this->selectUser->fetch();
             if ($user != null) {
-                return ["success" => true,"user"=>$user["id"], "user_role" => $user["roles"]];
+                return ["success" => true, "user" => $user["id"], "user_role" => $user["roles"]];
             }
 
             return ["success" => false, "error" => "Invalid username or password", "code" => 403];
@@ -332,7 +333,7 @@ class DataBaseConnection
         } else {
             $page = null;
         }
-        $query = 'SELECT p.id, p.value, p.color, p.name as picture_name, u.username, p.created_at, p.updated_at from pictures p join user u on p.owner_id = u.id where owner_id = :owner_id';
+        $query = 'SELECT p.id, p.value, p.color, p.name as picture_name, u.username, p.created_at, p.updated_at from pictures p join user u on p.owner_id = u.id where owner_id = :owner_id order by p.updated_at desc';
         if ($page != null) {
             $query = $query . ' limit ' . $start . ', ' . $limit . '';
         }
@@ -433,7 +434,7 @@ class DataBaseConnection
             $page = null;
         }
 
-        $query = 'SELECT id,title, time_delay, color, background, frames, updated_at FROM videos WHERE owner_id = ' . $input['owner_id'];
+        $query = 'SELECT id,title, time_delay, color, background, frames, updated_at FROM videos WHERE owner_id = ' . $input['owner_id'] . 'order by updated_at desc';
         if ($page != null) {
             $query = $query . ' limit ' . $start . ', ' . $limit . '';
         }

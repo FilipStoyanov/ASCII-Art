@@ -44,9 +44,9 @@ class AsciiVideoEditor
                 header('HTTP/1.0 401 Unauthorized');
                 return json_encode(["success" => false, "error" => "No token"]);
             }
-            // var_dump($_POST);
+
             $verifiedToken = JWT::verify($authHeader);
-            // var_dump($authHeader);
+
             if ($verifiedToken == null) {
                 header('HTTP/1.0 401 Unauthorized');
                 return json_encode(["success" => false, "error" => "Expired token"]);
@@ -106,9 +106,9 @@ class AsciiVideoEditor
                 header('HTTP/1.0 401 Unauthorized');
                 return json_encode(["success" => false, "error" => "No token"]);
             }
-            // var_dump($_POST);
+    
             $verifiedToken = JWT::verify($authHeader);
-            // var_dump($authHeader);
+     
             if ($verifiedToken == null) {
                 header('HTTP/1.0 401 Unauthorized');
                 return json_encode(["success" => false, "error" => "Expired token"]);
@@ -122,7 +122,6 @@ class AsciiVideoEditor
             $id = $data["id"];
             $owner_id = $data["owner_id"];
 
-            // var_dump($_POST);
             $jwtUser = JWT::fetchUserFromJWT($authHeader);
             if ($jwtUser['id'] != $owner_id && $jwtUser['role'] != 'ADMIN') {
                 header('HTTP/1.0 403 Forbidden');
@@ -228,13 +227,6 @@ class AsciiVideoEditor
                 "code" => $query["code"],
                 "message" => "Could not load the videos."
             ]);
-
-
-            // $response['success'] = false;
-            // $response['error_message'] = $e->getMessage();
-            // return json_encode($response);  
-            // echo json_encode(["success" => false, "errors" => $query["error"], "code" => $query["code"], "message" => "Error with fetching ascii videos"]);
-
         }
     }
 
@@ -258,9 +250,7 @@ class AsciiVideoEditor
             $jwtUser = JWT::fetchUserFromJWT($authHeader);
             $user = $jwtUser['id'];
             if ($user == null) {
-                $this->response['success'] = false;
-                $this->response['error'] = 'User is not chosen.';
-                return json_encode($this->response);
+                return json_encode(['success'=>false,'error'=>'User is not chosen.']);
             }
 
             if (!array_key_exists('page', $pathParameters) || $pathParameters['page'] == null) {
@@ -276,18 +266,14 @@ class AsciiVideoEditor
             }
 
             if ($page <= 0) {
-                $this->response['success'] = false;
-                $this->response['error'] = 'Invalid page.';
-                return json_encode($this->response);
+                return json_encode(['success'=>false,'error'=>'Invalid page.']);
             }
 
             if (!is_int($user)) {
                 $user = (int) $user;
             }
             if ($user <= 0) {
-                $this->response['success'] = false;
-                $this->response['error'] = 'Invalid user id.';
-                return json_encode($this->response);
+                return json_encode(['success'=>false,'error'=>'Invalid user id.']);
             }
 
             try {
@@ -299,14 +285,10 @@ class AsciiVideoEditor
 
                 return json_encode(["success" => true, 'data' => $videos, 'token' => $verifiedToken]);
             } catch (Exception $e) {
-                $this->response['success'] = false;
-                $this->response['error'] = $e->getMessage();
-                return json_encode($this->response);
+                return json_encode(['success'=>false,'error'=>$e->getMessage()]);
             }
         }
-        $this->response['success'] = false;
-        $this->response['error'] = 'WRONG HTTP Request method.';
-        return json_encode($this->response);
+        return json_encode(['success'=>false,'error'=>'WRONG HTTP Request method.']);
     }
 
     public function get_video()
@@ -317,9 +299,7 @@ class AsciiVideoEditor
                 header('HTTP/1.0 401 Unauthorized');
                 return json_encode(["success" => false, "error" => "No token"]);
             }
-            // var_dump($_POST);
             $verifiedToken = JWT::verify($authHeader);
-            // var_dump($authHeader);
             if ($verifiedToken == null) {
                 header('HTTP/1.0 401 Unauthorized');
                 return json_encode(["success" => false, "error" => "Expired token"]);
@@ -364,8 +344,6 @@ class AsciiVideoEditor
                 $unserialised_frames = unserialize($query["data"][0]["frames"]);
 
                 $query["data"][0]["frames"] = $unserialised_frames;
-                // var_dump($query["data"][0]["frames"]);
-
 
                 echo json_encode(["success" => true, "data" => $query['data']]);
             } else {
@@ -435,7 +413,6 @@ class AsciiVideoEditor
     public function delete_video()
     {
         if ($_SERVER['REQUEST_METHOD'] == 'DELETE') {
-            // $data = json_decode($_POST['data'], true);
             $data = (array) json_decode(file_get_contents('php://input'), true);
             $title = $data['title'];
             $owner_id = $data['owner_id'];
@@ -471,18 +448,3 @@ class AsciiVideoEditor
 
     }
 }
-
-
-// public function getAsciiPicturesForUser()
-// {
-//     if ($_POST) {
-//         $data = json_decode($_POST['data'], true);
-//         $owner = $data['owner_id'];
-//         $query = $this->connection->getAsciiPictures(["owner_id" => $owner]);
-//         if ($query["success"]) {
-//             echo json_encode(["success" => true, $query['data']]);
-//         } else {
-//             echo json_encode(["success" => false, "errors" => $query["error"], "code" => $query["code"], "message" => "Error with fetching ascii pictures"]);
-//         }
-//     }
-// }
