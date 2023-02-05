@@ -428,8 +428,7 @@ class DataBaseConnection
         } else {
             $page = null;
         }
-
-        $query = 'SELECT id,title, time_delay, color, background, frames, updated_at FROM videos WHERE owner_id = ' . $input['owner_id'] . 'order by updated_at desc';
+        $query = 'SELECT id,title, time_delay, color, background, frames, updated_at FROM videos WHERE owner_id = ' . $input['owner_id'] . ' order by updated_at desc';
         if ($page != null) {
             $query = $query . ' limit ' . $start . ', ' . $limit . '';
         }
