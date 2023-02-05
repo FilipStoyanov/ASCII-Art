@@ -227,7 +227,7 @@ class Video {
             var data = {};
             data["title"] = title;
 
-            const url = `http://localhost/ASCII-Art/frontend/html/edit-video.html?id=${id}&title=${title}`;
+            const url = `../../frontend/html/edit-video.html?id=${id}&title=${title}`;
             window.location.href = url;
         })
     }

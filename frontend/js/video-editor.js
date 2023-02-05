@@ -38,7 +38,7 @@ function showModalForSeconds(reload = false) {
         document.getElementsByClassName("sections")[0].classList.remove("show-modal");
         modal.style.display = "none";
         if (reload) {
-            window.location.href = "http://localhost/ASCII-Art/frontend/html/video_editor.html";
+            window.location.href = "../../frontend/html/video_editor.html";
         }
     }, 2000);
 }
