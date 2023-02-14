@@ -527,7 +527,7 @@ function startPainting(event) {
           }
           currentY += CELL_SIZE;
         }
-
+        redrawAsciiPicture();
         navigator.clipboard.writeText("");
 
         return true;
