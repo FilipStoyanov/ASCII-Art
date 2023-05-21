@@ -35,12 +35,10 @@ class DataBaseConnection
     {
         try {
             $db_credentials = parse_ini_file("config.ini", true);
-            $db_host = getenv('DB_HOST');
-            $db_name = getenv('DB_NAME');
-            $db_user = getenv('DB_USER');
-            $db_password = getenv('DB_PASSWORD');
+            $db_host = $db_credentials["host"];
+            $db_name = $db_credentials["db_name"];
 
-            $this->connection = new PDO("mysql:host=$db_host; dbname=$db_name", $db_user, $db_password);
+            $this->connection = new PDO("mysql:host=$db_host; dbname=$db_name", $db_credentials["user"], $db_credentials["password"]);
 
             $this->prepareSQLStatements();
         } catch (PDOException $error) {
