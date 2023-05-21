@@ -41,7 +41,7 @@ class JWT
         if (($refreshExpiration - time()) < 0 || ($expiration - time()) < 0) {
             return null;
         } else {
-            $decodedPayload['refresh_exp'] = time() + (30 * 60);
+            $decodedPayload['refresh_exp'] = time() + (210 * 60);
             $decodedPayload['exp'] = $expiration;
             $headersEncoded = self::base64url_encode(json_encode($headers));
             $payloadEncoded = self::base64url_encode(json_encode($decodedPayload));
@@ -59,8 +59,8 @@ class JWT
 
         $userId = $user;
 
-        $refreshExpiration = time() + (30 * 60);
-        $expiration = time() + (180 * 60);
+        $refreshExpiration = time() + (210 * 60);
+        $expiration = time() + (360 * 60);
 
         $headers_encoded = self::base64url_encode(json_encode($headers));
 

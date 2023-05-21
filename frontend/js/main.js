@@ -161,6 +161,7 @@ function setCookie(name, value, minutes) {
   if (minutes) {
     var date = new Date();
     date.setTime(date.getTime() + (minutes + 180) * 60 * 1000);
+    console.log(date.toUTCString);
     expires = "; expires=" + date.toUTCString();
   }
   document.cookie = name + "=" + (value || "") + expires + "; path=/";
@@ -376,7 +377,7 @@ function currentPage () {
 document.addEventListener("DOMContentLoaded", function (event) {
   currentPage();
   //redirectToLogin();
-  clearCookieAndStorages();
+ // clearCookieAndStorages();
   setHeaderName();
   submitSignInForm();
   submitLogInForm();
