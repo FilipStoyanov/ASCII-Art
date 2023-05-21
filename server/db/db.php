@@ -196,7 +196,11 @@ class DataBaseConnection
         }
         $stmt = $this->connection->prepare($query);
         $stmt->execute([$user]);
-        $fellows_ids ??= $stmt->fetchAll();
+        
+        if(!isset($fellows_ids)) 
+        {
+            $fellows_ids =  $stmt->fetchAll();
+        } 
         $fellows = array();
         if ($fellows_ids) {
             foreach ($fellows_ids as $fellow_id) {
@@ -255,7 +259,9 @@ class DataBaseConnection
         $response = array();
         try {
             $result = $this->selectUserById->execute($input);
-            $user ??= $this->selectUserById->fetch();
+            if(!isset($user)) {
+                $user = $this->selectUserById->fetch();
+            }
             if ($user) {
                 return $user;
             }
@@ -588,7 +594,9 @@ class DataBaseConnection
         }
         $stmt = $this->connection->prepare($query);
         $stmt->execute([]);
-        $users_ids ??= $stmt->fetchAll();
+        if(!isset($users_ids)) {
+            $users_ids = $stmt->fetchAll();
+        }
         $users = array();
         if ($users_ids) {
             foreach ($users_ids as $id) {
