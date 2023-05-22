@@ -503,65 +503,28 @@ function startPainting(event) {
     return;
   }
 
-  navigator.clipboard.readText().then(
-    (clipText) => {
-      if (clipText != "") {
-        const START_X = newX;
-        const START_Y = newY;
-        let currentX, currentY;
-
-        array_text = clipText.split("\r\n");
-        currentY = START_Y;
-        for (let i = 0; i < array_text.length; ++i) {
-          currentX = START_X;
-          for (let j = 0; j < array_text[i].length; ++j) {
-            context.fillText(array_text[i][j], currentX, currentY);
-            asciiSymbols[
-              (currentY / CELL_SIZE) * numberOfColumns + currentX / CELL_SIZE
-            ] = {
-              x: currentX,
-              y: currentY,
-              symbol: array_text[i][j],
-            };
-            currentX += CELL_SIZE;
-          }
-          currentY += CELL_SIZE;
-        }
-        redrawAsciiPicture();
-        navigator.clipboard.writeText("");
-
-        return true;
-      }
-      return false;
-    }
-  ).then(
-    (pasted) => {
-      if (!pasted) {
-        context.font = `${fontSize}px sans-serif`;
-        if (!canvas.classList.contains("delete-symbol")) {
-          context.fillStyle = chosenColor;
-          asciiSymbols[
-            Math.floor((newY / CELL_SIZE) * numberOfColumns + newX / CELL_SIZE)
-          ] = { x: newX, y: newY, symbol: chosenSymbol };
-          context.fillText(chosenSymbol, newX, newY);
-          arrayFromUsedPoints.push({ x: newX, y: newY });
-          asciiSymbols[
-            Math.floor((newY / CELL_SIZE) * numberOfColumns + newX / CELL_SIZE)
-          ] = { x: newX, y: newY, symbol: chosenSymbol };
-        } else {
-          asciiSymbols[
-            Math.floor((newY / CELL_SIZE) * numberOfColumns + newX / CELL_SIZE)
-          ] = {
-            x: newX,
-            y: newY,
-            symbol: " ",
-          };
-          redrawAsciiPicture();
-        }
-        isStartedPainting = true;
-      }
-    }
-  );
+  context.font = `${fontSize}px sans-serif`;
+  if (!canvas.classList.contains("delete-symbol")) {
+    context.fillStyle = chosenColor;
+    asciiSymbols[
+      Math.floor((newY / CELL_SIZE) * numberOfColumns + newX / CELL_SIZE)
+    ] = { x: newX, y: newY, symbol: chosenSymbol };
+    context.fillText(chosenSymbol, newX, newY);
+    arrayFromUsedPoints.push({ x: newX, y: newY });
+    asciiSymbols[
+      Math.floor((newY / CELL_SIZE) * numberOfColumns + newX / CELL_SIZE)
+    ] = { x: newX, y: newY, symbol: chosenSymbol };
+  } else {
+    asciiSymbols[
+      Math.floor((newY / CELL_SIZE) * numberOfColumns + newX / CELL_SIZE)
+    ] = {
+      x: newX,
+      y: newY,
+      symbol: " ",
+    };
+    redrawAsciiPicture();
+  }
+  isStartedPainting = true;
 }
 
 function stopPainting() {
